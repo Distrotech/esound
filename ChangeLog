@@ -1,3 +1,6 @@
+1998-08-08  Mandrake <mandrake@mandrake.net>
+	* fixed Makefile.am to use libtool's versioning correctly :)
+
 1998-08-07  Yo Ric Dude  <ericmit@ix.netcom.com>
 
 	* esdlib.c: switched to memcpy instead of bcopy.
