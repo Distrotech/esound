@@ -71,5 +71,5 @@ esdloop.c
 
 #esdloop_LDADD = libesd.la
 
-LDADD = -lm -lesd .libs/libesd.so
+LDADD = -lm .libs/libesd.so
 
