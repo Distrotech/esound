@@ -1,3 +1,10 @@
+Sat Oct 17 02:20:42 PDT 1998 Manish Singh <yosh@gimp.org>
+
+	* esd.c, acconfig.h, configure.in: emulated nanosleep with select
+	for systems that don't have it. Compiles on DU4, FreeBSD
+
+	* audio_oss.c: FreeBSD uses __FreeBSD__, not FREEBSD
+
 1998-10-16  Yo Ric Dude  <ricdude@ix.netcom.com>
 
 	* filter.c, mix.c, players.c: misc optimizations courtesy of Bibek.
