@@ -1,3 +1,8 @@
+Fri Feb  5 14:28:17 PST 1999 Manish Singh <yosh@gimp.org>
+
+	* esd-config.in: erk. NEVER include @CFLAGS@ or @LDFLAGS@ in these
+	scripts. They should not be propagated to client packages
+
 1999-02-03  Yo Ric Dude  <ericmit@ix.netcom.com>
 
 	* esd.c: yeat another CPU usage fix, courtesy of Chutt
