@@ -5,6 +5,7 @@
 
 /*******************************************************************/
 /* globals */
+int esd_on_standby = 0;	/* set to 1 to dump all audio to /dev/null */
 
 volatile int esd_terminate = 0;	/* signals set this for a clean exit */
 
@@ -223,8 +224,13 @@ int main ( int argc, char *argv[] )
 	/* mix new requests, and output to device */
 	length = mix_players_16s( output_buffer, buf_size );
 	if ( length > 0 || esd_monitor ) {
-	    esd_audio_write( output_buffer, buf_size );
-	    esd_audio_flush();
+	    if ( !esd_on_standby ) {
+		/* standby check goes in here, so esd will eat sound data */
+		/* TODO: eat a round of data with a better algorithm */
+		/*        this will cause guaranteed timing issues */
+		esd_audio_write( output_buffer, buf_size );
+		esd_audio_flush();
+	    }
 	} else {
 	    /* be very quiet, and wait for a wabbit to come along */
 	    esd_audio_pause();
@@ -233,7 +239,7 @@ int main ( int argc, char *argv[] )
 	/* if someone's monitoring the sound stream, send them data */
 	/* mix_players, above, forces buffer to zero if no players */
 	/* this clears out any leftovers from recording, below */
-	if ( esd_monitor ) {
+	if ( esd_monitor && !esd_on_standby ) {
 	    length = mix_from_stereo_16s( output_buffer, 
 					  esd_monitor, buf_size );
 	    if( length )
@@ -241,7 +247,7 @@ int main ( int argc, char *argv[] )
 	}
 
 	/* if someone's recording the sound stream, send them data */
-	if ( esd_recorder ) { 
+	if ( esd_recorder && !esd_on_standby ) { 
 	    length = esd_audio_read( output_buffer, buf_size );
 	    if ( length ) {
 		mix_from_stereo_16s( output_buffer, 

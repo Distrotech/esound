@@ -1,3 +1,16 @@
+1998-05-24  Yo 'Ric Dude  <ericmit@ix.netcom.com>
+
+	* clients.c, esd.c, esdlib.c: 
+	added ability to free and reclaim /dev/dsp for use by other
+	programs, without invalidating any sample references within
+	the daemon.  sound output is consumed by daemon, and ignored
+ 	until the daemon is resumed.  created esd_lock() and esd_unlock() 
+	functions, to hide the transfer of the auth. key from clients.
+
+	* esdlock.c, esdunlock.c:
+	removed from source. functionality superceded by esdctl, called
+ 	with options to	lock, unlock, standby, and resume the daemon.
+
 1998-05-19  Yo 'Ric Dude  <ericmit@ix.netcom.com>
 
 	* clients.c, esdsample.c: 

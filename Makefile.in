@@ -91,8 +91,7 @@ esd.h
 bin_PROGRAMS = \
 esd \
 esdcat \
-esdlock \
-esdunlock \
+esdctl \
 esdmon \
 esdrec \
 esdsample \
@@ -112,15 +111,10 @@ esdcat.c
 
 #esdcat_LDADD = libesd.la
 
-esdlock_SOURCES = \
-esdlock.c
+esdctl_SOURCES = \
+esdctl.c
 
-#esdlock_LDADD = libesd.la
-
-esdunlock_SOURCES = \
-esdunlock.c
-
-#esdunlock_LDADD = libesd.la
+#esdctl_LDADD = libesd.la
 
 esdmon_SOURCES = \
 esdmon.c
@@ -172,14 +166,10 @@ esdcat_OBJECTS =  esdcat.o
 esdcat_LDADD = $(LDADD)
 esdcat_DEPENDENCIES =  .libs/libesd.so
 esdcat_LDFLAGS = 
-esdlock_OBJECTS =  esdlock.o
-esdlock_LDADD = $(LDADD)
-esdlock_DEPENDENCIES =  .libs/libesd.so
-esdlock_LDFLAGS = 
-esdunlock_OBJECTS =  esdunlock.o
-esdunlock_LDADD = $(LDADD)
-esdunlock_DEPENDENCIES =  .libs/libesd.so
-esdunlock_LDFLAGS = 
+esdctl_OBJECTS =  esdctl.o
+esdctl_LDADD = $(LDADD)
+esdctl_DEPENDENCIES =  .libs/libesd.so
+esdctl_LDFLAGS = 
 esdmon_OBJECTS =  esdmon.o
 esdmon_LDADD = $(LDADD)
 esdmon_DEPENDENCIES =  .libs/libesd.so
@@ -213,11 +203,11 @@ DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
 TAR = tar
 GZIP = --best
 DEP_FILES =  .deps/audio.P .deps/clients.P .deps/esd.P .deps/esdcat.P \
-.deps/esdlib.P .deps/esdlock.P .deps/esdloop.P .deps/esdmon.P \
-.deps/esdrec.P .deps/esdsample.P .deps/esdunlock.P .deps/mix.P \
-.deps/players.P .deps/samples.P
-SOURCES = $(libesd_a_SOURCES) $(libesd_la_SOURCES) $(esd_SOURCES) $(esdcat_SOURCES) $(esdlock_SOURCES) $(esdunlock_SOURCES) $(esdmon_SOURCES) $(esdrec_SOURCES) $(esdsample_SOURCES) $(esdloop_SOURCES)
-OBJECTS = $(libesd_a_OBJECTS) $(libesd_la_OBJECTS) $(esd_OBJECTS) $(esdcat_OBJECTS) $(esdlock_OBJECTS) $(esdunlock_OBJECTS) $(esdmon_OBJECTS) $(esdrec_OBJECTS) $(esdsample_OBJECTS) $(esdloop_OBJECTS)
+.deps/esdctl.P .deps/esdlib.P .deps/esdloop.P .deps/esdmon.P \
+.deps/esdrec.P .deps/esdsample.P .deps/mix.P .deps/players.P \
+.deps/samples.P
+SOURCES = $(libesd_a_SOURCES) $(libesd_la_SOURCES) $(esd_SOURCES) $(esdcat_SOURCES) $(esdctl_SOURCES) $(esdmon_SOURCES) $(esdrec_SOURCES) $(esdsample_SOURCES) $(esdloop_SOURCES)
+OBJECTS = $(libesd_a_OBJECTS) $(libesd_la_OBJECTS) $(esd_OBJECTS) $(esdcat_OBJECTS) $(esdctl_OBJECTS) $(esdmon_OBJECTS) $(esdrec_OBJECTS) $(esdsample_OBJECTS) $(esdloop_OBJECTS)
 
 all: Makefile $(LIBRARIES) $(LTLIBRARIES) $(PROGRAMS) $(HEADERS) config.h
 
@@ -366,13 +356,9 @@ esdcat: $(esdcat_OBJECTS) $(esdcat_DEPENDENCIES)
 	@rm -f esdcat
 	$(LINK) $(esdcat_LDFLAGS) $(esdcat_OBJECTS) $(esdcat_LDADD) $(LIBS)
 
-esdlock: $(esdlock_OBJECTS) $(esdlock_DEPENDENCIES)
-	@rm -f esdlock
-	$(LINK) $(esdlock_LDFLAGS) $(esdlock_OBJECTS) $(esdlock_LDADD) $(LIBS)
-
-esdunlock: $(esdunlock_OBJECTS) $(esdunlock_DEPENDENCIES)
-	@rm -f esdunlock
-	$(LINK) $(esdunlock_LDFLAGS) $(esdunlock_OBJECTS) $(esdunlock_LDADD) $(LIBS)
+esdctl: $(esdctl_OBJECTS) $(esdctl_DEPENDENCIES)
+	@rm -f esdctl
+	$(LINK) $(esdctl_LDFLAGS) $(esdctl_OBJECTS) $(esdctl_LDADD) $(LIBS)
 
 esdmon: $(esdmon_OBJECTS) $(esdmon_DEPENDENCIES)
 	@rm -f esdmon

@@ -25,7 +25,7 @@ int esd_send_auth( int socket )
     }
 
     namelen = strlen(home) + sizeof("/.esd_auth");
-    if ((auth_filename = malloc(namelen)) == 0) {
+    if ((auth_filename = malloc(namelen + 1)) == 0) {
 	printf( "Memory exhausted\n" );
 	return -1;
     }
@@ -74,6 +74,64 @@ int esd_send_auth( int socket )
  exit_fn:
     free( auth_filename );
     return retval;
+}
+
+/*******************************************************************/
+/* lock/unlock will disable/enable foreign clients from connecting */
+int esd_lock( int esd ) {
+    int proto = ESD_PROTO_UNLOCK;
+    int ok = 0;
+
+    write( esd, &proto, sizeof(proto) );
+    esd_send_auth( esd );
+
+    if ( read( esd, &ok, sizeof(ok) ) != sizeof(ok) )
+	return -1;
+
+    return ok;
+}
+
+int esd_unlock( int esd ){
+    int proto = ESD_PROTO_UNLOCK;
+    int ok = 0;
+
+    write( esd, &proto, sizeof(proto) );
+    esd_send_auth( esd );
+
+    if ( read( esd, &ok, sizeof(ok) ) != sizeof(ok) )
+	return -1;
+
+    return ok;
+}
+
+/*******************************************************************/
+/* standby/resume will free/reclaim audio device so others may use it */
+int esd_standby( int esd )
+{
+    int proto = ESD_PROTO_STANDBY;
+    int ok = 0;
+
+    write( esd, &proto, sizeof(proto) );
+    esd_send_auth( esd );
+
+    if ( read( esd, &ok, sizeof(ok) ) != sizeof(ok) )
+	return -1;
+
+    return ok;
+}
+
+int esd_resume( int esd )
+{
+    int proto = ESD_PROTO_RESUME;
+    int ok = 0;
+
+    write( esd, &proto, sizeof(proto) );
+    esd_send_auth( esd );
+
+    if ( read( esd, &ok, sizeof(ok) ) != sizeof(ok) )
+	return -1;
+
+    return ok;
 }
 
 /*******************************************************************/

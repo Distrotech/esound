@@ -43,6 +43,10 @@ enum esd_proto {
     ESD_PROTO_SAMPLE_STOP,   /* stop a looping sample when done */
     ESD_PROTO_SAMPLE_KILL,  /* stop the looping sample immed. */
 
+    /* free and reclaim /dev/dsp functionality */
+    ESD_PROTO_STANDBY,	    /* release /dev/dsp and ignore all data */
+    ESD_PROTO_RESUME,	    /* reclaim /dev/dsp and play sounds again */
+
     ESD_PROTO_MAX           /* for bounds checking */
 };
 
@@ -102,9 +106,13 @@ typedef unsigned char octet;
 /* rate, format = (bits | endian | channels | stream | func) */
 int esd_open_sound();
 
-/* TODO: only used by esdlock, esdunlock - hide it in there */
-/* sends authorization sequence, creating ~/.esd_auth if needed */
-int esd_send_auth( int esd );
+/* lock/unlock will disable/enable foreign clients from connecting */
+int esd_lock( int esd );
+int esd_unlock( int esd );
+
+/* standby/resume will free/reclaim audio device so others may use it */
+int esd_standby( int esd );
+int esd_resume( int esd );
 
 /* open a socket for playing, monitoring, or recording as a stream */
 /* the *_fallback functions try to open /dev/dsp if there's no EsounD */

@@ -6,6 +6,9 @@
 /*******************************************************************/
 /* server function prototypes */
 
+/* esd.c - global variables */
+extern int esd_on_standby;
+
 /* clients.c - manage the client connections */
 extern esd_client_t *esd_clients_list;
 void dump_clients();

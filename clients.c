@@ -162,41 +162,110 @@ int validate_source( int fd, struct sockaddr_in source, int owner_only )
 /* daemon rejects untrusted clients, return boolean ok */
 int esd_proto_lock( esd_client_t *client )
 {
+    int ok = 0;
+
     /* can only be locked by owner */
     if( !validate_source( client->fd, client->source, 1 ) ) {
 	/* connection refused, shut down the client connection */
 	printf( "only owner may lock sound daemon\n" );
-	return 0;
+	write( client->fd, &ok, sizeof(ok) );
+	return ok;
     }
 
     printf( "locking sound daemon\n" );
     esd_is_locked = 1;
-    return 1;
+    ok = 1;
+    write( client->fd, &ok, sizeof(ok) );
+    return ok;
 }
 
 /*******************************************************************/
 /* allows anyone to connect to the sound daemon, return boolean ok */
 int esd_proto_unlock( esd_client_t *client )
 {
+    int ok = 0;
 
     /* can only be unlocked by owner */
     if( !validate_source( client->fd, client->source, 1 ) ) {
 	/* connection refused, shut down the client connection */
 	printf( "only owner may unlock sound daemon\n" );
-	return 0;
+	write( client->fd, &ok, sizeof(ok) );
+	return ok;
     }
 
     printf( "unlocking sound daemon\n" );
     esd_is_locked = 0;
-    return 1;
+
+    ok = 1;
+    write( client->fd, &ok, sizeof(ok) );
+    return ok;
+}
+
+/*******************************************************************/
+/* daemon eats sound data, without playing anything, return boolean ok */
+int esd_proto_standby( esd_client_t *client )
+{
+    int ok = 0;
+
+    /* we're already on standby, no problem */
+    if ( esd_on_standby ) {
+	ok = 1;
+	write( client->fd, &ok, sizeof(ok) );
+	return ok;
+    }	
+
+    /* can only be set to standby by owner */
+    if( !validate_source( client->fd, client->source, 1 ) ) {
+	/* connection refused, shut down the client connection */
+	printf( "only owner may set sound daemon to standby\n" );
+	write( client->fd, &ok, sizeof(ok) );
+	return ok;
+    }
+
+    printf( "setting sound daemon to standby\n" );
+    esd_on_standby = 1;
+    /* TODO: close down any recorders, too */
+    esd_audio_close();
+    ok = 1;
+    write( client->fd, &ok, sizeof(ok) );
+    return ok;
+}
+
+/*******************************************************************/
+/* daemon eats sound data, without playing anything, return boolean ok */
+int esd_proto_resume( esd_client_t *client )
+{
+    int ok = 0;
+
+    /* we're already not on standby, no problem */
+    if ( !esd_on_standby ) {
+	ok = 1;
+	write( client->fd, &ok, sizeof(ok) );
+	return ok;
+    }	
+
+    /* can only be resumed by owner */
+    if( !validate_source( client->fd, client->source, 1 ) ) {
+	/* connection refused, shut down the client connection */
+	printf( "only owner may tell sound daemon to resume\n" );
+	write( client->fd, &ok, sizeof(ok) );
+	return ok;
+    }
+
+    printf( "resuming sound daemon\n" );
+    esd_audio_open();
+    esd_on_standby = 0;
+    ok = 1;
+    write( client->fd, &ok, sizeof(ok) );
+    return ok;
 }
 
 /*******************************************************************/
 /* manage the single recording client, return boolean ok */
 int esd_proto_stream_recorder( esd_client_t *client )
 {
-    /* if we're already recording, go away */
-    if ( esd_recorder ) {
+    /* if we're already recording, or in standby mode, go away */
+    if ( esd_recorder || esd_on_standby ) {
 	return 0;
     }
 
@@ -468,6 +537,14 @@ int poll_client_requests()
 		
 	    case ESD_PROTO_UNLOCK:
 		is_ok = esd_proto_unlock( client );
+		break;
+		
+	    case ESD_PROTO_STANDBY:
+		is_ok = esd_proto_standby( client );
+		break;
+		
+	    case ESD_PROTO_RESUME:
+		is_ok = esd_proto_resume( client );
 		break;
 		
 	    case ESD_PROTO_STREAM_PLAY:

@@ -20,8 +20,7 @@ esd.h
 bin_PROGRAMS = \
 esd \
 esdcat \
-esdlock \
-esdunlock \
+esdctl \
 esdmon \
 esdrec \
 esdsample \
@@ -41,15 +40,10 @@ esdcat.c
 
 #esdcat_LDADD = libesd.la
 
-esdlock_SOURCES = \
-esdlock.c
+esdctl_SOURCES = \
+esdctl.c
 
-#esdlock_LDADD = libesd.la
-
-esdunlock_SOURCES = \
-esdunlock.c
-
-#esdunlock_LDADD = libesd.la
+#esdctl_LDADD = libesd.la
 
 esdmon_SOURCES = \
 esdmon.c
