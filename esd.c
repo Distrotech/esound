@@ -384,6 +384,7 @@ int main ( int argc, char *argv[] )
     int esd_port = ESD_DEFAULT_PORT;
     int length = 0;
     int arg = 0;
+    int itmp;
 
     void *output_buffer = NULL;
 
@@ -520,7 +521,11 @@ int main ( int argc, char *argv[] )
     ESD_AUDIO_STUFF;
 
   /* open and initialize the audio device, /dev/dsp */
-  if ( esd_audio_open() < 0 ) {
+  itmp = esd_audio_open();
+  if (itmp == -2) { /* Special return value indicates open of device failed, don't bother
+		       trying */
+	exit (2);
+  } else if ( itmp < 0 ) {
     fprintf(stderr, "Audio device open for 44.1Khz, stereo, 16bit failed\n"
 	    "Trying 44.1Khz, 8bit stereo.\n");
     /* cant do defaults ... try 44.1 kkz 8bit stereo */

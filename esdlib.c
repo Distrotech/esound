@@ -633,6 +633,7 @@ int esd_open_sound( const char *host )
       /* children end here */
     } else {
       int estat;
+
       waitpid(childpid, &estat, 0);
     }
 
