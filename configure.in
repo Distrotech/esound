@@ -28,7 +28,7 @@ echo "--- Checking to see which audio header files your system uses.";
 echo "--- Most of these checks should fail. Do not be alarmed.";
 AC_CHECK_HEADERS(soundcard.h sys/soundcard.h machine/soundcard.h sys/audio.h)
 AC_CHECK_HEADERS(sys/audioio.h sys/audio.io.h sun/audioio.h)
-AC_CHECK_HEADERS(dmedia/audio.h sys/soundlib.h)
+AC_CHECK_HEADERS(dmedia/audio.h sys/soundlib.h sys/asoundlib.h)
 
 dnl Define the driver needed based on the first header file found
 
@@ -74,13 +74,19 @@ if test "${ac_cv_header_sys_soundlib_h}" = "yes"; then
    AC_DEFINE(DRIVER_ALSA)
 fi
 
+if test "${ac_cv_header_sys_soundlib_h}" = "yes"; then
+   AC_DEFINE(DRIVER_NEWALSA)
+fi
+
 dnl Check for audio libs needed
 
 echo "---------------------------------------------------------------------"
 echo "--- Checking to see which audio libraries are required for linking.";
+echo "--- Most of these checks should also fail. Do not be alarmed.";
 AC_CHECK_FUNC(_oss_ioctl,,[AC_CHECK_LIB(ossaudio,_oss_ioctl)])
 AC_CHECK_FUNC(ALnewconfig,,[AC_CHECK_LIB(audio,ALnewconfig)])
 AC_CHECK_FUNC(snd_cards,,[AC_CHECK_LIB(sound,snd_cards)])
+AC_CHECK_FUNC(snd_cards,,[AC_CHECK_LIB(asound,snd_cards)])
 
 dnl Only build the esdplay utility if we find the library, -lauduiofile
 AF_LIB=

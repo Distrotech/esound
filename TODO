@@ -37,9 +37,6 @@ sampling rate etc. etc.) and modify that clients volume or mute that
 client..kill it.. etc.. so in effect a window manager for sound could
 be written.. :)
 
-for samples we need:
-message for sample kill
-
 oh.. volume control on samples and streams would be nice.. :)
 
 just allow setting of left/right volume. allow a "volume envelope"
@@ -60,16 +57,12 @@ play_sample_pan( int sample_id, int left_volume, int right_volume );
 so that would be something like (format determined by sample uploaded):
 modulate_sample( int play_sample, int modulation_sample );
 
-straighten out exactly what gets printed to the screen when and how
-esd_debug(); ???
-
-allow server to run at sample rates lower than 44.1kHz, or mono, or 
-8 bit, or any combination of the above.  probably need function 
-pointers in mix.c to do this well:
+allow server to run mono.
+probably need function pointers in mix.c to do this well:
   mix_funcs[MAX] = { mix_to_format, mix_from_format, clip_format, ... };
 and update according to specs.
 
-kill_sample
+kill_sample( int sample_id );
 
 add a queue of requests to the sample clients, and watch for kills?
 
@@ -77,5 +70,22 @@ pitch adjust on samples?
 
 playback samples at different rates?
 
-esd segfautls if u free a sample BEFORE its finished playing 
-and u can't know when its finished.. :)
+esdfile.c - wrappers for caching and playing files via libaudiofile
+
+esd_rename_stream( int stream_id, char *name );
+
+esd_player_t: add fields
+	int left_vol_scale, right_vol_scale;
+
+	vol = sample * vol_scale / 256;
+same for samples
+
+
+esd_filter_open( format, rate, name );
+
+free samples when client closes
+
+endian swapping cleanup
+
+for solaris: AUDIO_LINE_OUT, AUDIO_SPEAKER, AUDIO_HEADPHONE
+change on the fly?

@@ -12,7 +12,8 @@ static int esd_audio_fd = -1;
 /*******************************************************************/
 /* returns audio_fd for use by main prog - platform dependent */
 
-#if defined(DRIVER_ALSA) /* ALSA before OSS as ALSA is OSS compatible */
+/* ALSA before OSS as ALSA is OSS compatible */
+#if defined(DRIVER_ALSA) || defined(DRIVER_NEWALSA) 
 #  include "audio_alsa.c"
 #elif defined(DRIVER_OSS)
 #  include "audio_oss.c"

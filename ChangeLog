@@ -1,3 +1,10 @@
+1998-09-22  Yo Ric Dude  <ericmit@ix.netcom.com>
+
+	* AUTHORS, TODO: updates/formatting
+
+	* acconfig.h, audio.c, audio_alsa.c, configure.in: "New" ALSA
+ 	driver detection courtesy of Bibek Sahu.
+
 1998-09-20  Yo Ric Dude  <ericmit@ix.netcom.com>
 
 	* configure.in: made esdplay a --enable-able option, that was fun.

@@ -39,8 +39,10 @@ Additional Credits:
 
     Kimball Thurston: audio_irix patches.
 
-	Mandrake (Geoff Harrison) <mandrake@mandrake.net>: making sure
-	the library revision numbers actually come out right. :)
+    Mandrake (Geoff Harrison) <mandrake@mandrake.net>: making sure
+    the library revision numbers actually come out right. :)
+
+    Bibek Sahu: Improved ALSA detection algorithms
 
     Your Name Here, simply submit a patch, or port an existing 
     application for use with this package.
