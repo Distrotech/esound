@@ -153,13 +153,15 @@ esd [options]
 \&  -d DEVICE     force esd to use sound device DEVICE
 \&  -b            run server in 8 bit sound mode
 \&  -r RATE       run server at sample rate of RATE
-\&  -as SECS      free audio device after SECS of inactivity
+\&  -as SECS      free audio device after SECS of inactivity (-1 to disable)
 \&  -unix         use unix domain sockets instead of tcp/ip
 \&  -tcp          use tcp/ip sockets instead of unix domain
 \&  -public       make tcp/ip access public (other than localhost)
 \&  -promiscuous  start unlocked and owned (disable authenticaton) NOT RECOMMENDED
 \&  -terminate    terminate esd daemon after last client exits
+\&  -noterminate  do not terminate esd daemon after last client exits
 \&  -nobeeps      disable startup beeps
+\&  -beeps        enable startup beeps
 \&  -trust        start esd even if use of /tmp/.esd can be insecure
 \&  -port PORT    listen for connections at PORT (only for tcp/ip)
 \&  -bind ADDRESS binds to ADDRESS (only for tcp/ip)

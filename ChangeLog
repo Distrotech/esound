@@ -1,3 +1,18 @@
+2004-08-12  Frederic Crozat  <fcrozat@mandrakesoft.com>
+
+	* .cvsignore:
+	Quiet CVS.
+
+	* docs/esd.1.in:
+	* esd.c: (main):
+	* esd.conf:
+	* esd_config.c: (esd_config_read), (esd_config_read_file):
+	Fix regression caused by patch for bug #118230 (bug #147293).
+	Add new default options in configuration file and as environment
+	variable, always used. spawn_options behaviour is back to normal.
+	Add commandline options to enable beeps, disable termination and
+	disable autostandby.
+
 2004-08-11  Kjartan Maraas  <kmaraas@gnome.org>
 
 	* esd.h: ANSI argument list fix.

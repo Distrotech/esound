@@ -585,9 +585,12 @@ int main ( int argc, char *argv[] )
 
     /* from esd_config.c */
     extern char esd_spawn_options[];
+    extern char esd_default_options[];
+    extern int  esd_no_spawn;
+    int esd_spawning;
     
     /* for merging argv and esd.conf */
-    char tmp_str[LINEBUF_SIZE];
+    char tmp_str[2*LINEBUF_SIZE] = "";
     int num_opts = 0;
     char *opts[MAX_OPTS];
     char *tok;
@@ -607,11 +610,29 @@ int main ( int argc, char *argv[] )
 
     programname = *argv;
 
-    /* read in esd.conf, ~/.esd.conf or ESD_SPAWN_OPTIONS */
+    /* read in esd.conf, ~/.esd.conf, ESD_SPAWN_OPTIONS or ESD_OPTIONS*/
     esd_config_read();
     
+    /* copy default options */
+    strncat (tmp_str, esd_default_options, LINEBUF_SIZE);
+
+
+    /* has server been spawned */
+    esd_spawning = 0;
+    if (!esd_no_spawn && (argc > 1)) {
+     for (i = 1; i < argc - 1 ; i++) {
+	    if (argv[i] && strcmp("-spawnfd", argv[i]) == 0) {
+		esd_spawning = 1;
+		break;		
+	    }
+      }
+    }
+	    
+    
     /* copy esd_spawn_options to tmp_str because of strtok */
-    strncpy(tmp_str, esd_spawn_options, LINEBUF_SIZE);
+    if (esd_spawning) {
+      strncpy(tmp_str, esd_spawn_options, LINEBUF_SIZE);
+    }
     
     /* add esd.conf options */
     num_opts = 0;
@@ -700,6 +721,8 @@ int main ( int argc, char *argv[] )
 #endif
 	} else if ( !strcmp( opts[ arg ], "-nobeeps" ) ) {
 	    esd_beeps = 0;
+	} else if ( !strcmp( opts[ arg ], "-beeps" ) ) {
+	    esd_beeps = 1;
 	} else if ( !strcmp( opts[ arg ], "-unix" ) ) {
 	    esd_use_tcpip = 0;
 	} else if ( !strcmp( opts[ arg ], "-tcp" ) ) {
@@ -711,6 +734,8 @@ int main ( int argc, char *argv[] )
 	    esd_is_locked = 0;
 	} else if ( !strcmp( opts[ arg ], "-terminate" ) ) {
 	    esd_terminate = 1;
+	} else if ( !strcmp( opts[ arg ], "-noterminate" ) ) {
+	    esd_terminate = 0;
 	} else if ( !strcmp( opts[ arg ], "-spawnpid" ) ) {
 	    if ( ++arg < num_opts )
 		esd_spawnpid = atoi( opts[ arg ] );
@@ -729,13 +754,15 @@ int main ( int argc, char *argv[] )
 	    fprintf( stderr, "  -d DEVICE     force esd to use sound device DEVICE\n" );
 	    fprintf( stderr, "  -b            run server in 8 bit sound mode\n" );
 	    fprintf( stderr, "  -r RATE       run server at sample rate of RATE\n" );
-	    fprintf( stderr, "  -as SECS      free audio device after SECS of inactivity\n" );
+	    fprintf( stderr, "  -as SECS      free audio device after SECS of inactivity (-1 to disable)\n" );
 	    fprintf( stderr, "  -unix         use unix domain sockets instead of tcp/ip\n" );
 	    fprintf( stderr, "  -tcp          use tcp/ip sockets instead of unix domain\n" );
 	    fprintf( stderr, "  -public       make tcp/ip access public (other than localhost)\n" );
 	    fprintf( stderr, "  -promiscuous  start unlocked and owned (disable authenticaton) NOT RECOMMENDED\n" );
 	    fprintf( stderr, "  -terminate    terminate esd daemon after last client exits\n" );
+	    fprintf( stderr, "  -noterminate  do not terminate esd daemon after last client exits\n" );
 	    fprintf( stderr, "  -nobeeps      disable startup beeps\n" );
+	    fprintf( stderr, "  -beeps        enable startup beeps\n" );
 	    fprintf( stderr, "  -trust        start esd even if use of %s can be insecure\n",
 		     ESD_UNIX_SOCKET_DIR );
 #ifdef ESDBG

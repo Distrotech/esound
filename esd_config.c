@@ -13,6 +13,8 @@ int esd_spawn_wait_ms=100; /* Time to wait trying to connect to an
 			      autospawned ESD, in milliseconds. */
 char esd_spawn_options[LINEBUF_SIZE] = "-terminate -nobeeps -as 2";
 
+char esd_default_options [LINEBUF_SIZE] = ""; /* Default options, always applied */
+
 static int read_esd_config = 0;
 
 static void esd_config_read_file(FILE *fh);
@@ -58,6 +60,10 @@ esd_config_read(void)
   tmpenv = getenv("ESD_SPAWN_OPTIONS");
   if(tmpenv && strlen(tmpenv) < (sizeof(esd_spawn_options) - 1))
     strcpy(esd_spawn_options, tmpenv);
+
+  tmpenv = getenv("ESD_DEFAULT_OPTIONS");
+  if(tmpenv && strlen(tmpenv) < (sizeof(esd_default_options) - 1))
+    strcpy(esd_default_options, tmpenv);
 
   read_esd_config = 1;
 }
@@ -112,6 +118,10 @@ esd_config_read_file(FILE *fh)
       else if(!strcasecmp(key, "spawn_options"))
 	{
 	  strcpy(esd_spawn_options, value);
+	}
+      else if(!strcasecmp(key, "default_options"))
+	{
+	  strcpy(esd_default_options, value);
 	}
       else if(!strcasecmp(key, "spawn_wait_ms"))
 	{

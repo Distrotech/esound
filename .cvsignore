@@ -36,3 +36,8 @@ libesddsp.la
 obj
 stamp-h.in
 autom4te.cache
+INSTALL
+depcomp
+missing
+mkinstalldirs
+install-sh
