@@ -46,6 +46,7 @@ int esd_on_autostandby = 0;	/* set when auto paused for auto reawaken */
 
 int esd_use_tcpip = 0;          /* use tcp/ip sockets instead of unix domain */
 int esd_terminate = 0;          /* terminate after the last client exits */
+int esd_public = 0;             /* allow connects from hosts other than localhost */
 /*******************************************************************/
 /* just to create the startup tones for the fun of it */
 void set_audio_buffer( void *buf, esd_format_t format,
@@ -167,6 +168,35 @@ void reset_signal(int signum) {
     return;
 }
 
+static int
+esd_connect_unix(void)
+{
+  struct sockaddr_un socket_unix;
+  int socket_out = -1;
+  int curstate = 1;
+  
+  /* create the socket, and set for non-blocking */
+  socket_out = socket( AF_UNIX, SOCK_STREAM, 0 );
+  if ( socket_out < 0 )
+    return -1;
+  /* this was borrowed blindly from the Tcl socket stuff */
+  if ( fcntl( socket_out, F_SETFD, FD_CLOEXEC ) < 0 )
+    return -1;
+  if ( setsockopt( socket_out, SOL_SOCKET, SO_REUSEADDR,
+		  &curstate, sizeof(curstate) ) < 0 )
+    return -1;  
+  /* set the connect information */
+  socket_unix.sun_family = AF_UNIX;
+  strncpy(socket_unix.sun_path, "/tmp/.esd/socket", sizeof(socket_unix.sun_path));  
+  if ( connect( socket_out,
+	       (struct sockaddr *) &socket_unix,
+	       sizeof(socket_unix.sun_family) +
+	       strlen(socket_unix.sun_path) ) < 0 )
+    return -1;  
+  return socket_out;
+}
+
+
 /*******************************************************************/
 /* returns the listening socket descriptor */
 int open_listen_socket( int port )
@@ -210,13 +240,16 @@ int open_listen_socket( int port )
 	}
       else
 	{
-	  /* not allowed access */
-	  fprintf(stderr, 
-		  "esd: Esound sound daemon already running or stale UNIX socket\n"
-		  "/tmp/.esd/socket\n"
-		  "This socket alreayd exists indicating esd is already running.\n"
-		  "Exiting...\n");
-	  exit(1);
+	  if (esd_connect_unix() >= 0)
+	    {
+	      /* not allowed access */
+	      fprintf(stderr, 
+		      "esd: Esound sound daemon already running or stale UNIX socket\n"
+		      "/tmp/.esd/socket\n"
+		      "This socket already exists indicating esd is already running.\n"
+		      "Exiting...\n");
+	      exit(1);
+	    }
 	}
       unlink("/tmp/.esd/socket");
       socket_listen=socket(AF_UNIX,SOCK_STREAM,0);
@@ -253,7 +286,10 @@ int open_listen_socket( int port )
       /* set the listening information */
       socket_addr.sin_family = AF_INET;
       socket_addr.sin_port = htons( port );
-      socket_addr.sin_addr.s_addr = htonl( inet_addr("0.0.0.0") );
+      if (esd_public)
+	socket_addr.sin_addr.s_addr = htonl( inet_addr("0.0.0.0") );
+      else
+	socket_addr.sin_addr.s_addr = htonl( inet_addr("127.0.0.1") );
       if ( bind( socket_listen,
 		(struct sockaddr *) &socket_addr,
 		sizeof(struct sockaddr_in) ) < 0 )
@@ -430,9 +466,12 @@ int main ( int argc, char *argv[] )
 	} else if ( !strcmp( argv[ arg ], "-nobeeps" ) ) {
 	    esd_beeps = 0;
 /*	    fprintf( stderr, "- disabling startup beeps\n" );*/
+	} else if ( !strcmp( argv[ arg ], "-unix" ) ) {
+	    esd_use_tcpip = 0;
 	} else if ( !strcmp( argv[ arg ], "-tcp" ) ) {
 	    esd_use_tcpip = 1;
-	    fprintf( stderr, "- using tcp/ip\n" );
+	} else if ( !strcmp( argv[ arg ], "-public" ) ) {
+	    esd_public = 1;
 	} else if ( !strcmp( argv[ arg ], "-terminate" ) ) {
 	    esd_terminate = 1;
 	} else if ( !strcmp( argv[ arg ], "-h" ) ) {
@@ -441,7 +480,9 @@ int main ( int argc, char *argv[] )
 	    fprintf( stderr, "  -b          run server in 8 bit sound mode\n" );
 	    fprintf( stderr, "  -r RATE     run server at sample rate of RATE\n" );
 	    fprintf( stderr, "  -as SECS    free audio device after SECS of inactivity\n" );
-	    fprintf( stderr, "  -tcp        use tcp/ip instead of unix sockets\n" );
+	    fprintf( stderr, "  -unix       use unix domain sockets instead of tcp/ip\n" );
+	    fprintf( stderr, "  -tcp        use tcp/ip sockets instead of unix domain\n" );
+	    fprintf( stderr, "  -public     make tcp/ip access public (other than localhost)\n" );
 	    fprintf( stderr, "  -terminate  terminate esd daemone after last client exits\n" );
 #ifdef ESDBG
 	    fprintf( stderr, "  -vt         enable trace diagnostic info\n" );

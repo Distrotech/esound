@@ -13,7 +13,7 @@ extern "C" {
 #define ESD_KEY_LEN (16)
 
 /* default port for the EsounD server */
-#define ESD_DEFAULT_PORT (5001)
+#define ESD_DEFAULT_PORT (16001)
 
 /* default sample rate for the EsounD server */
 #define ESD_DEFAULT_RATE (44100)

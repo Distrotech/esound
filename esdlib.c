@@ -484,13 +484,17 @@ int esd_open_sound( const char *host )
 
   /* sit and spin for a bit to wait for esd to start - try 5 times over */
   /* 5 seconds - if esd still hasnt started - give up */
-  while ((socket_out < 0) && (connect_count < 6))
+  while ((socket_out < 0) && (connect_count < 60))
     {
+      struct timespec timewait;
+      
       socket_out = esd_connect_unix(host);
       if (socket_out < 0)
 	socket_out = esd_connect_tcpip(host);
       connect_count++;
-      sleep(1);
+      timewait.tv_sec = 0;
+      timewait.tv_nsec = 100000000;
+      nanosleep(&timewait, NULL);
     }
 
   if (socket_out >= 0)
