@@ -15,6 +15,9 @@ Additional Credits:
     available from:  http://www.icom.net/~smelecat/emp3/index.htm.
     And for the initial configure setup
 
+    Elliot Lee <sopwith@redhat.com>, for insanely jumping in and
+    carrying on, during my untimely extended leaves of absence.
+
     Shaleh <#E>, for "-Wall -pedantic" cleanup patches
 
     adnans <#E>, threshhold clipping patches
@@ -50,9 +53,14 @@ Additional Credits:
     Manish Singh <yosh@gimp.org>: misc autoconf hackery, the magic
     /dev/dsp to esd rerouter.
 
-    Miodrag Vallat: aix driver fixes
+    Philippe Defert: aix driver fixes
 
-    Philippe Defert: unnecessary fsync() cleanup, rounding patch.
+    Miodrag Vallat: unnecessary fsync() cleanup, rounding patch.
+
+    A whole list of people in the ChangeLog, who fail to appear here.
+
+    The masses of "early adopters" who beat the snot out of esound
+    early on.
 
     Your Name Here, simply submit a patch, or port an existing 
     application for use with this package.
