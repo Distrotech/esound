@@ -9,10 +9,6 @@ BUGS
 
 * generates static for some people as of 12/8/98 - 12/9/98 changes.
 
-* Does esddsp work without /usr/lib in LD_PRELOAD_PATH?
-
-* add a config option for path to libdl.so? is it needed?
-
 Planned for 0.2.7:
 ==================
 
@@ -25,8 +21,7 @@ Planned for 0.2.7:
   so in effect an audio manager could be written
   play_sample_pan( int sample_id, int left_volume, int right_volume );
   
-* factor out the "Reduce buffers on sockets to the minimum needed" code
-  to a single function(socket); 
+* get rid of hard coded 44100's in esdlib.c
 
 * make all protocols return an int indicating success/failure at a minimum
   NOTE: this will break protocol!

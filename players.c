@@ -427,29 +427,9 @@ esd_player_t *new_stream_player( esd_client_t *client )
 			 player->name, player->format, player->rate ); );
 
     /* Reduce buffers on sockets to the minimum needed */
-    {
-      int fd_bufsize;
-      int src_format;
-      
-      src_format = player->format;
-      fd_bufsize = esd_buf_size_octets;
-      if (player->rate > 0)
-	fd_bufsize = (fd_bufsize * esd_audio_rate) / player->rate;
-      else
-	fd_bufsize = (fd_bufsize * esd_audio_rate) / 44100;
-      if ((src_format & ESD_MASK_BITS) == ESD_BITS16)
-	{
-	  fd_bufsize *= 2;
-	}
-      if (!((src_format & ESD_MASK_CHAN) == ESD_MONO))
-	{
-	  fd_bufsize *= 2;	      
-	}
-      setsockopt(player->source_id, SOL_SOCKET, SO_SNDBUF, 
-		 &fd_bufsize, sizeof(fd_bufsize));
-      setsockopt(player->source_id, SOL_SOCKET, SO_RCVBUF,  
-		 &fd_bufsize, sizeof(fd_bufsize));
-    }
+    esd_set_socket_buffers( player->source_id, player->format, 
+			    player->rate, esd_audio_rate );
+
     /* calculate buffer length to match the mix buffer duration */
     player->buffer_length = esd_buf_size_octets * player->rate / esd_audio_rate;
     if ( (player->format & ESD_MASK_BITS) == ESD_BITS8 )

@@ -180,26 +180,9 @@ int get_new_clients( int listen )
 		return -1;
 	    }
 
-	  /* Reduce buffers on sockets to the minimum needed */
-	    {
-	      int fd_bufsize;
-	      int src_format;
-	      int src_rate;
-	      extern int esd_audio_rate;
+	    /* Reduce buffers on sockets to the minimum needed */
+	    esd_set_socket_buffers( fd, ESD_BITS16, 44100, esd_audio_rate );
 
-	      src_rate = 44100;
-	      src_format = ESD_BITS16;
-	      fd_bufsize = ESD_BUF_SIZE;
-	      fd_bufsize = (fd_bufsize * esd_audio_rate) / src_rate;
-	      if ((src_format & ESD_MASK_BITS) == ESD_BITS16)
-		fd_bufsize *= 2;
-	      if (!((src_format & ESD_MASK_CHAN) == ESD_MONO))
-		fd_bufsize *= 2;	      
-	      setsockopt(fd, SOL_SOCKET, SO_SNDBUF, 
-			 &fd_bufsize, sizeof(fd_bufsize));
-	      setsockopt(fd, SOL_SOCKET, SO_RCVBUF,  
-			 &fd_bufsize, sizeof(fd_bufsize));
-	    }
 	    /* fill in the new_client structure - sockaddr = works!? */
 	    new_client->next = NULL;
 	    new_client->state = ESD_NEEDS_REQDATA;

@@ -1,3 +1,10 @@
+1999-01-24  Yo Ric Dude  <ericmit@ix.netcom.com>
+
+	* clients.c, esd-server.h, esdlib.c, players.c, stamp-h.in:
+ 	factored into a function the setsockopt calls for setting the
+ 	socket options for the socket buffer sizes in the court of king
+ 	caracticus, which was just passing by...
+
 1999-01-24  bertrand <Bertrand.Guiheneuf@inria.fr>
 
 	* configure.in (audiofile check): Fixed a small typo

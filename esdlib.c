@@ -15,6 +15,13 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
+/*******************************************************************/
+/* prototypes */
+int esd_set_socket_buffers( int sock, int src_format, 
+			    int src_rate, int base_rate );
+
+/*******************************************************************/
+/* alternate implementations */
 #ifndef HAVE_INET_ATON
 int inet_aton(const char *cp, struct in_addr *inp)
 {
@@ -39,6 +46,23 @@ int inet_aton(const char *cp, struct in_addr *inp)
     return 1;
 }
 #endif
+
+/*******************************************************************/
+/* set socket buffer lengths to optimal length for audio data transfer */
+int esd_set_socket_buffers( int sock, int src_format, 
+			    int src_rate, int base_rate )
+{
+    int buf_size = ESD_BUF_SIZE;
+
+    if ( src_rate > 0 ) buf_size = ( buf_size * base_rate ) / src_rate;
+    if ( ( src_format & ESD_MASK_BITS ) == ESD_BITS16 )
+	buf_size *= 2;
+    if ( ! ( ( src_format & ESD_MASK_CHAN ) == ESD_MONO ) )
+	buf_size *= 2;
+
+    setsockopt( sock, SOL_SOCKET, SO_SNDBUF, &buf_size, sizeof( buf_size ) );
+    setsockopt( sock, SOL_SOCKET, SO_RCVBUF, &buf_size, sizeof( buf_size ) );
+}
 
 /*******************************************************************/
 /* send the authorization cookie, create one if needed */
@@ -306,30 +330,9 @@ int esd_play_stream( esd_format_t format, int rate,
     if( write( sock, name_buf, ESD_NAME_MAX ) != ESD_NAME_MAX )
 	return -1;
 
-  /* Reduce buffers on sockets to the minimum needed */
-    {
-      int fd_bufsize;
-      int src_format;
-      
-      src_format = format;
-      fd_bufsize = ESD_BUF_SIZE;
-      if (rate > 0)
-	fd_bufsize = (fd_bufsize * 44100) / rate;
-      else
-	fd_bufsize = (fd_bufsize * 44100) / 44100;
-      if ((src_format & ESD_MASK_BITS) == ESD_BITS16)
-	{
-	  fd_bufsize *= 2;
-	}
-      if (!((src_format & ESD_MASK_CHAN) == ESD_MONO))
-	{
-	  fd_bufsize *= 2;	      
-	}
-      setsockopt(sock, SOL_SOCKET, SO_SNDBUF, 
-		 &fd_bufsize, sizeof(fd_bufsize));
-      setsockopt(sock, SOL_SOCKET, SO_RCVBUF,  
-		 &fd_bufsize, sizeof(fd_bufsize));
-    }
+    /* Reduce buffers on sockets to the minimum needed */
+    esd_set_socket_buffers( sock, format, rate, 44100 );
+
     /* flush the socket */
     /* fsync( sock ); */
     
@@ -390,30 +393,9 @@ int esd_monitor_stream( esd_format_t format, int rate,
     if( write( sock, name_buf, ESD_NAME_MAX ) != ESD_NAME_MAX )
 	return -1;
 
-  /* Reduce buffers on sockets to the minimum needed */
-    {
-      int fd_bufsize;
-      int src_format;
-      
-      src_format = format;
-      fd_bufsize = ESD_BUF_SIZE;
-      if (rate > 0)
-	fd_bufsize = (fd_bufsize * 44100) / rate;
-      else
-	fd_bufsize = (fd_bufsize * 44100) / 44100;
-      if ((src_format & ESD_MASK_BITS) == ESD_BITS16)
-	{
-	  fd_bufsize *= 2;
-	}
-      if (!((src_format & ESD_MASK_CHAN) == ESD_MONO))
-	{
-	  fd_bufsize *= 2;	      
-	}
-      setsockopt(sock, SOL_SOCKET, SO_SNDBUF, 
-		 &fd_bufsize, sizeof(fd_bufsize));
-      setsockopt(sock, SOL_SOCKET, SO_RCVBUF,  
-		 &fd_bufsize, sizeof(fd_bufsize));
-    }
+    /* Reduce buffers on sockets to the minimum needed */
+    esd_set_socket_buffers( sock, format, rate, 44100 );
+
     /* flush the socket */
     /* fsync( sock ); */
     
@@ -450,30 +432,9 @@ int esd_filter_stream( esd_format_t format, int rate,
     if( write( sock, name_buf, ESD_NAME_MAX ) != ESD_NAME_MAX )
 	return -1;
 
-  /* Reduce buffers on sockets to the minimum needed */
-    {
-      int fd_bufsize;
-      int src_format;
-      
-      src_format = format;
-      fd_bufsize = ESD_BUF_SIZE;
-      if (rate > 0)
-	fd_bufsize = (fd_bufsize * 44100) / rate;
-      else
-	fd_bufsize = (fd_bufsize * 44100) / 44100;
-      if ((src_format & ESD_MASK_BITS) == ESD_BITS16)
-	{
-	  fd_bufsize *= 2;
-	}
-      if (!((src_format & ESD_MASK_CHAN) == ESD_MONO))
-	{
-	  fd_bufsize *= 2;	      
-	}
-      setsockopt(sock, SOL_SOCKET, SO_SNDBUF, 
-		 &fd_bufsize, sizeof(fd_bufsize));
-      setsockopt(sock, SOL_SOCKET, SO_RCVBUF,  
-		 &fd_bufsize, sizeof(fd_bufsize));
-    }
+    /* Reduce buffers on sockets to the minimum needed */
+    esd_set_socket_buffers( sock, format, rate, 44100 );
+
     /* flush the socket */
     /* fsync( sock ); */
     
@@ -510,30 +471,9 @@ int esd_record_stream( esd_format_t format, int rate,
     if( write( sock, name_buf, ESD_NAME_MAX ) != ESD_NAME_MAX )
 	return -1;
 
-  /* Reduce buffers on sockets to the minimum needed */
-    {
-      int fd_bufsize;
-      int src_format;
-      
-      src_format = format;
-      fd_bufsize = ESD_BUF_SIZE;
-      if (rate > 0)
-	fd_bufsize = (fd_bufsize * 44100) / rate;
-      else
-	fd_bufsize = (fd_bufsize * 44100) / 44100;
-      if ((src_format & ESD_MASK_BITS) == ESD_BITS16)
-	{
-	  fd_bufsize *= 2;
-	}
-      if (!((src_format & ESD_MASK_CHAN) == ESD_MONO))
-	{
-	  fd_bufsize *= 2;	      
-	}
-      setsockopt(sock, SOL_SOCKET, SO_SNDBUF, 
-		 &fd_bufsize, sizeof(fd_bufsize));
-      setsockopt(sock, SOL_SOCKET, SO_RCVBUF,  
-		 &fd_bufsize, sizeof(fd_bufsize));
-    }
+    /* Reduce buffers on sockets to the minimum needed */
+    esd_set_socket_buffers( sock, format, rate, 44100 );
+
     /* flush the socket */
     /* fsync( sock ); */
     
@@ -560,30 +500,9 @@ int esd_record_stream_fallback( esd_format_t format, int rate,
     esd_audio_format = format;
     esd_audio_rate = rate;
     socket_out = esd_audio_open();
-  /* Reduce buffers on sockets to the minimum needed */
-    {
-      int fd_bufsize;
-      int src_format;
-      
-      src_format = format;
-      fd_bufsize = ESD_BUF_SIZE;
-      if (rate > 0)
-	fd_bufsize = (fd_bufsize * 44100) / rate;
-      else
-	fd_bufsize = (fd_bufsize * 44100) / 44100;
-      if ((src_format & ESD_MASK_BITS) == ESD_BITS16)
-	{
-	  fd_bufsize *= 2;
-	}
-      if (!((src_format & ESD_MASK_CHAN) == ESD_MONO))
-	{
-	  fd_bufsize *= 2;	      
-	}
-      setsockopt(socket_out, SOL_SOCKET, SO_SNDBUF, 
-		 &fd_bufsize, sizeof(fd_bufsize));
-      setsockopt(socket_out, SOL_SOCKET, SO_RCVBUF,  
-		 &fd_bufsize, sizeof(fd_bufsize));
-    }
+
+    /* Reduce buffers on sockets to the minimum needed */
+    esd_set_socket_buffers( socket_out, format, rate, 44100 );
 
     /* we either got it, or we didn't */
     return socket_out;

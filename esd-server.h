@@ -195,6 +195,11 @@ int mix_players( void *mixed, int length );
 int filter_write( void *buffer, int size, esd_format_t format, int rate );
 
 /*******************************************************************/
+/* esdlib.c */
+int esd_set_socket_buffers( int sock, int src_format, 
+			    int src_rate, int base_rate );
+
+/*******************************************************************/
 /* evil evil macros */
 
 /* switch endian order for cross platform playing */
