@@ -1,5 +1,5 @@
 /* Evil evil evil hack to get OSS apps to cooperate with esd
- * Copyright (C) 1998 Manish Singh <yosh@gimp.org>
+ * Copyright (C) 1998, 1999 Manish Singh <yosh@gimp.org>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -24,6 +24,14 @@
  */
 /* #define MULTIPLE_X11AMP */
 
+#ifdef __GNUC__
+
+#ifdef DSP_DEBUG
+#define DPRINTF(format, args...)	printf(format, ## args)
+#else
+#define DPRINTF(format, args...)
+#endif
+
 #include "config.h"
 
 #include <dlfcn.h>
@@ -33,6 +41,8 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/types.h>
+#include <sys/stat.h>
+#include <stdio.h>
 
 #ifdef HAVE_MACHINE_SOUNDCARD_H
 #  include <machine/soundcard.h>
@@ -54,8 +64,102 @@ typedef unsigned long request_t;
 typedef int request_t;
 #endif
 
-static int sndfd = -1;
+static int sndfd = -1, mixfd = -1;
 static int settings = 0, done = 0;
+
+static char *ident = NULL, *mixer = NULL;
+static int use_mixer = 0;
+
+#define OSS_VOLUME_BASE 50
+
+#define ESD_VOL_TO_OSS(left, right) (short int)			\
+    (((OSS_VOLUME_BASE * (right) / ESD_VOLUME_BASE) << 8) |	\
+      (OSS_VOLUME_BASE * (left)  / ESD_VOLUME_BASE))
+
+#define OSS_VOL_TO_ESD_LEFT(vol) 				\
+    (ESD_VOLUME_BASE * (vol & 0xff) / OSS_VOLUME_BASE)
+#define OSS_VOL_TO_ESD_RIGHT(vol) 				\
+    (ESD_VOLUME_BASE * ((vol >> 8) & 0xff) / OSS_VOLUME_BASE)
+
+static void
+get_volume (int *left, int *right)
+{
+  int vol;
+
+  if (read (mixfd, &vol, sizeof (vol)) != sizeof (vol))
+    *left = *right = ESD_VOLUME_BASE;
+  else
+    {
+      *left  = OSS_VOL_TO_ESD_LEFT  (vol);
+      *right = OSS_VOL_TO_ESD_RIGHT (vol);
+    }
+}
+
+static void
+set_volume (int left, int right)
+{
+  int vol = ESD_VOL_TO_OSS (left, right);
+
+  write (mixfd, &vol, sizeof (vol));
+}
+
+
+static void
+dsp_init (void)
+{
+  if (!ident)
+    {
+      char *str = getenv ("ESDDSP_NAME");
+      ident = malloc (ESD_NAME_MAX);
+      strncpy (ident, (str ? str : "esddsp"), ESD_NAME_MAX);
+
+      if (getenv ("ESDDSP_MIXER"))
+	{
+	  use_mixer = 1;
+
+	  str = getenv ("HOME");
+	  if (str)
+ 	    {
+	      mixer = malloc (strlen (str) + strlen (ident) + 10);
+	      sprintf (mixer, "%s/.esddsp_%s", str, ident);
+	    }
+	  else
+	    {
+	      fprintf (stderr, "esddsp: can't get home directory\n");
+	      exit (1);
+	    }
+
+	  DPRINTF ("mixer settings file: %s\n", mixer);
+	}
+    }
+}
+
+static void
+mix_init (int *esd, int *player)
+{
+  esd_info_t *all_info;
+  esd_player_info_t *player_info;
+
+  if (*esd < 0 && (*esd = esd_open_sound (NULL)) < 0)
+    return;
+    
+  if (*player < 0)
+    {
+      if (all_info = esd_get_all_info (*esd))
+	{
+	  for (player_info = all_info->player_list; player_info;
+	       player_info = player_info->next)
+	    if (!strcmp(player_info->name, ident))
+	      {
+		*player = player_info->source_id;
+		break;
+	      }
+
+	  esd_free_all_info (all_info);
+	}
+    }
+}
+
 
 int
 open (const char *pathname, int flags, ...)
@@ -66,6 +170,8 @@ open (const char *pathname, int flags, ...)
 
   if (!func)
     func = (int (*) (const char *, int, mode_t)) dlsym (REAL_LIBC, "open");
+
+  dsp_init ();
 
   va_start (args, flags);
   mode = va_arg (args, mode_t);
@@ -82,16 +188,171 @@ open (const char *pathname, int flags, ...)
 	    return ret;
 	}
 
+      DPRINTF ("hijacking /dev/dsp open, and taking it to esd...\n");
       settings = done = 0;
-
-#ifdef DSP_DEBUG
-      printf ("hijacking /dev/dsp open, and taking it to esd...\n");
-#endif
-
       return (sndfd = esd_open_sound (NULL));
+    }
+  else if (use_mixer && !strcmp (pathname, "/dev/mixer"))
+    {
+      DPRINTF ("hijacking /dev/mixer open, and taking it to esd...\n");
+      return (mixfd = (*func) (mixer, O_RDWR | O_CREAT, S_IRUSR | S_IWUSR));
     }
   else
     return (*func) (pathname, flags, mode);
+}
+
+static int
+dspctl (int fd, request_t request, void *argp)
+{
+  static esd_format_t fmt = ESD_STREAM | ESD_PLAY | ESD_MONO;
+  static int speed;
+
+  int *arg = (int *) argp;
+
+  DPRINTF ("hijacking /dev/dsp ioctl, and sending it to esd "
+	   "(%d : %x - %p)\n", fd, request, argp);
+
+  
+  switch (request)
+    {
+    case SNDCTL_DSP_SETFMT:
+      fmt |= (*arg & 0x30) ? ESD_BITS16 : ESD_BITS8;
+      settings |= 1;
+      break;
+
+    case SNDCTL_DSP_SPEED:
+      speed = *arg;
+      settings |= 2;
+      break;
+
+    case SNDCTL_DSP_STEREO:
+      fmt &= ~ESD_MONO;
+      fmt |= (*arg) ? ESD_STEREO : ESD_MONO;
+      break;
+
+    case SNDCTL_DSP_GETBLKSIZE:
+      *arg = ESD_BUF_SIZE;
+      break;
+
+    case SNDCTL_DSP_GETFMTS:
+      *arg = 0x38;
+      break;
+
+    case SNDCTL_DSP_GETCAPS:
+      *arg = 0;
+      break;
+
+    default:
+      DPRINTF ("unhandled /dev/dsp ioctl (%x - %p)\n", request, argp);
+      break;
+    }
+
+  if (settings == 3 && !done)
+    {
+      int proto = ESD_PROTO_STREAM_PLAY;
+
+      done = 1;
+
+      if (write (sndfd, &proto, sizeof (proto)) != sizeof (proto))
+        return -1;
+      if (write (sndfd, &fmt, sizeof (fmt)) != sizeof (fmt))
+        return -1;
+      if (write (sndfd, &speed, sizeof (speed)) != sizeof (speed))
+        return -1;
+      if (write (sndfd, ident, ESD_NAME_MAX) != ESD_NAME_MAX)
+        return -1;
+
+      fmt = ESD_STREAM | ESD_PLAY | ESD_MONO;
+      speed = 0;
+
+      if (use_mixer)
+	{
+  	  int esd = -1, player = -1;
+	  int left, right;
+
+	  while (player < 0)
+	    mix_init (&esd, &player);
+
+	  get_volume (&left, &right);
+
+	  DPRINTF ("panning %d - %d %d\n", player, left, right);
+	  esd_set_stream_pan (esd, player, left, right);
+	}
+    }
+
+  return 0;
+}
+
+int
+mixctl (int fd, request_t request, void *argp)
+{
+  static int esd = -1, player = -1;
+  static int left, right;
+
+  int *arg = (int *) argp;
+
+  DPRINTF ("hijacking /dev/mixer ioctl, and sending it to esd "
+	   "(%d : %x - %p)\n", fd, request, argp);
+
+  switch (request)
+    {
+    case SOUND_MIXER_READ_DEVMASK:
+      *arg = 5113;
+      break;
+
+    case SOUND_MIXER_READ_PCM:
+      mix_init (&esd, &player);
+
+      if (player > 0)
+	{
+	  esd_info_t *all_info;
+	  esd_player_info_t *player_info;
+
+	  if (all_info = esd_get_all_info (esd))
+	    {
+	      for (player_info = all_info->player_list; player_info;
+		   player_info = player_info->next)
+		if (player_info->source_id == player)
+		  {
+		    *arg = ESD_VOL_TO_OSS (player_info->left_vol_scale,
+					   player_info->right_vol_scale);
+		  }
+
+	      esd_free_all_info (all_info);
+	    }
+	  else
+	    return -1;
+	}
+      else
+	{
+          get_volume (&left, &right);
+	  *arg = ESD_VOL_TO_OSS (left, right);
+	}
+
+      break;
+
+    case SOUND_MIXER_WRITE_PCM:
+      mix_init (&esd, &player);
+
+      left  = OSS_VOL_TO_ESD_LEFT  (*arg);
+      right = OSS_VOL_TO_ESD_RIGHT (*arg);
+
+      set_volume (left, right);
+
+      if (player > 0)
+	{
+	  DPRINTF ("panning %d - %d %d\n", player, left, right);
+	  esd_set_stream_pan (esd, player, left, right);
+	}
+
+      break;
+
+    default:
+      DPRINTF ("unhandled /dev/mixer ioctl (%x - %p)\n", request, argp);
+      break;
+    }
+
+  return 0;
 }
 
 int
@@ -101,89 +362,18 @@ ioctl (int fd, request_t request, ...)
   va_list args;
   void *argp;
 
-  static esd_format_t fmt = ESD_STREAM | ESD_PLAY | ESD_MONO;
-  static int speed;
-
   if (!func)                                                                    
     func = (int (*) (int, request_t, void *)) dlsym (REAL_LIBC, "ioctl");             
   va_start (args, request);
   argp = va_arg (args, void *);
   va_end (args);
 
-  if (fd != sndfd)
+  if (fd != sndfd && fd != mixfd)
     return (*func) (fd, request, argp);
-  else if (sndfd != -1)
-    {
-      int *arg = (int *) argp;
-
-#ifdef DSP_DEBUG
-      printf ("hijacking /dev/dsp ioctl, and sending it to esd "
-	      "(%d : %x - %p)\n", fd, request, argp);
-#endif
-
-      switch (request)
-	{
-        case SNDCTL_DSP_SETFMT:
-	  fmt |= (*arg & 0x30) ? ESD_BITS16 : ESD_BITS8;
-	  settings |= 1;
-	  break;
-
-	case SNDCTL_DSP_SPEED:
-	  speed = *arg;
-	  settings |= 2;
-	  break;
-
-	case SNDCTL_DSP_STEREO:
-	  fmt &= ~ESD_MONO;
-	  fmt |= (*arg) ? ESD_STEREO : ESD_MONO;
-	  break;
-
-	case SNDCTL_DSP_GETBLKSIZE:
-	  *arg = ESD_BUF_SIZE;
-	  break;
-
-	case SNDCTL_DSP_GETFMTS:
-	  *arg = 0x38;
-	  break;
-
-	case SNDCTL_DSP_GETCAPS:
-	  *arg = 0;
-	  break;
-
-	default:
-#ifdef DSP_DEBUG
-	  printf ("unhandled /dev/dsp ioctl (%x - %p)\n", request, argp);
-#endif
-	  break;
-	}
-
-      if (settings == 3 && !done)
-	{
-	  int proto = ESD_PROTO_STREAM_PLAY;
-	  char buf[ESD_NAME_MAX];
-	  strncpy (buf, /* use environment variable for alternate name */
-		   (getenv ("ESDDSP_NAME") ? getenv ("ESDDSP_NAME") : "esddsp"),
-		   ESD_NAME_MAX);
-
-	  done = 1;
-
-          if (write (sndfd, &proto, sizeof (proto)) != sizeof (proto))
-	    return -1;
-          if (write (sndfd, &fmt, sizeof (fmt)) != sizeof (fmt))
-	    return -1;
-          if (write (sndfd, &speed, sizeof (speed)) != sizeof (speed))
-	    return -1;
-	  if (write (sndfd, buf, ESD_NAME_MAX) != ESD_NAME_MAX)
-	    return -1;
-
-	  fmt = ESD_STREAM | ESD_PLAY | ESD_MONO;
-	  speed = 0;
-	}
-
-      return 0;
-    }
-
-  return 0;
+  else if (fd == sndfd)
+    return dspctl (fd, request, argp);
+  else if (use_mixer)
+    return mixctl (fd, request, argp);
 }
 
 int
@@ -196,7 +386,9 @@ close (int fd)
 
   if (fd == sndfd)
     sndfd = -1;
-
+  else if (fd == mixfd)
+    mixfd = -1;
+ 
   return (*func) (fd);
 }
 
@@ -276,3 +468,13 @@ connect (int fd, struct sockaddr *addr, int len)
 }
 
 #endif /* MULTIPLE_X11AMP */
+
+#else /* __GNUC__ */
+
+void
+nogcc (void)
+{
+  ident = NULL;
+}
+
+#endif /* __GNUC__ */

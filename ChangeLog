@@ -1,3 +1,9 @@
+Mon Jan 25 03:16:30 PST 1999 Manish Singh <yosh@gimp.org>
+
+	* esddsp.c: added a /dev/mixer wrapper. Set ESDDSP_MIXER=1 to
+	for all /dev/mixer access to be trapped. It will save and load
+	the mixer settings in ~/.esddsp.{name}.
+
 1999-01-25  Yo Ric Dude  <ericmit@ix.netcom.com>
 
 	* mix.c, proto.c: volume control wired into the mix functions.
