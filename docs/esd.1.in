@@ -167,8 +167,8 @@ esd [options]
 \&  -v --version  print version information
 .Ve
 Possible devices are:  /dev/dsp, /dev/dsp2, etc.
-.SH "FILES /etc/esound/esd.conf			daemon configuration file"
-.IX Header "FILES /etc/esound/esd.conf			daemon configuration file"
+.SH "FILES /etc/esd.conf			daemon configuration file"
+.IX Header "FILES /etc/esd.conf			daemon configuration file"
 .SH "SEE ALSO"
 .IX Header "SEE ALSO"
 \&\fIesdcat\fR\|(1), \fIesddsp\fR\|(1), \fIesdloop\fR\|(1), \fIesdplay\fR\|(1), \fIesdsample\fR\|(1),
