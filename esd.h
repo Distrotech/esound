@@ -53,13 +53,13 @@ enum esd_proto {
     ESD_PROTO_STANDBY,	    /* release /dev/dsp and ignore all data */
     ESD_PROTO_RESUME,	    /* reclaim /dev/dsp and play sounds again */
 
-    /* move these to a more logical place when we're ready to break the protocol */
+    /* TODO: move these to a more logical place. NOTE: will break the protocol */
     ESD_PROTO_SAMPLE_GETID, /* get the ID for an already-cached sample */
     ESD_PROTO_STREAM_FILT,  /* filter mixed buffer output as a stream */
 
     /* esd remote management */
-    ESD_PROTO_SERVER_INFO,  /* get server information (ver, sample rate, format) */
-    ESD_PROTO_ALL_INFO,     /* get all information (server info, players, samples) */
+    ESD_PROTO_SERVER_INFO,  /* get server info (ver, sample rate, format) */
+    ESD_PROTO_ALL_INFO,     /* get all info (server info, players, samples) */
     ESD_PROTO_SUBSCRIBE,    /* track new and removed players and samples */
     ESD_PROTO_UNSUBSCRIBE,  /* stop tracking updates */
 

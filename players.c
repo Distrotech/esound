@@ -36,10 +36,11 @@ void free_player( esd_player_t *player )
     } else if ( ( player->format & ESD_MASK_MODE ) == ESD_SAMPLE ) {
 	sample = (esd_sample_t *) (player->parent);
 	sample->ref_count--;
+	esd_playing_samples--;
 
-	ESDBG_TRACE( printf( "<%02d> free player: [%p] refs=%d erase?=%d\n", 
+	ESDBG_TRACE( printf( "<%02d> free player: [%p] refs=%d erase?=%d samps=%d\n", 
 			     player->source_id, player, sample->ref_count, 
-			     sample->erase_when_done ); );
+			     sample->erase_when_done, esd_playing_samples ); );
 
 	if ( sample->erase_when_done && !sample->ref_count ) {
 	    ESDBG_TRACE( printf( "<%02d> free_player: erasing sample\n", 
@@ -304,14 +305,22 @@ void monitor_write( void *output_buffer, int length ) {
 
 	/* mix down the monitor's buffer */
 	if ( (esd_audio_format & ESD_MASK_BITS) == ESD_BITS16 ) {
-	    length = mix_from_stereo_16s( monitor->data_buffer, monitor->buffer_length,
-					  monitor->rate, monitor->format, 
-					  output_buffer, length, esd_audio_rate );
+	    length = mix_from_stereo_16s( monitor->data_buffer, 
+					  monitor->buffer_length,
+					  monitor->rate, 
+					  monitor->format, 
+					  output_buffer, 
+					  length, 
+					  esd_audio_rate );
 	}
 	else {
-	    length = mix_from_stereo_8u( monitor->data_buffer, monitor->buffer_length,
-					 monitor->rate, monitor->format, 
-					 output_buffer, length, esd_audio_rate );
+	    length = mix_from_stereo_8u( monitor->data_buffer, 
+					 monitor->buffer_length,
+					 monitor->rate, 
+					 monitor->format, 
+					 output_buffer, 
+					 length, 
+					 esd_audio_rate );
 	}
 
 	/* write the data buffer to the socket */
@@ -350,7 +359,8 @@ void recorder_write() {
     timeout.tv_usec = 0;
     FD_ZERO( &wr_fds );
     FD_SET( esd_recorder->source_id, &wr_fds );
-    can_write = select( esd_recorder->source_id + 1, NULL, &wr_fds, NULL, &timeout );
+    can_write = select( esd_recorder->source_id + 1, NULL, &wr_fds, 
+			NULL, &timeout );
     if ( !can_write ) 
 	return;
 
@@ -360,7 +370,8 @@ void recorder_write() {
 
     if ( length < 0 ) {
 	/* couldn't send anything, close it down */
-	ESDBG_TRACE( printf( "(%02d) closing recorder\n", esd_recorder->source_id ); );
+	ESDBG_TRACE( printf( "(%02d) closing recorder\n", 
+			     esd_recorder->source_id ); );
 
 	/* stop recording */
 	esd_audio_close();
@@ -406,7 +417,7 @@ esd_player_t *new_stream_player( esd_client_t *client )
     ESDBG_TRACE( printf( "(%02d) stream %s: 0x%08x at %d Hz\n", client ->fd, 
 			 player->name, player->format, player->rate ); );
 
-  /* Reduce buffers on sockets to the minimum needed */
+    /* Reduce buffers on sockets to the minimum needed */
     {
       int fd_bufsize;
       int src_format;
@@ -519,13 +530,16 @@ esd_player_t *new_sample_player( int sample_id, int loop )
 	return NULL;
     }
 
-    /* everything's ok, return the allocated player */
+    /* update housekeeping values */
+    esd_playing_samples++;
     player->last_pos = 0;
     sample->ref_count++;
     sample->erase_when_done = 0;
 
-    ESDBG_TRACE( printf( "<%02d> new player: refs=%d [%p]\n", 
-			 player->source_id, sample->ref_count, player ); );
+    ESDBG_TRACE( printf( "<%02d> new player: refs=%d samps=%d [%p]\n", 
+			 player->source_id, sample->ref_count, 
+			 esd_playing_samples, player ); );
 
+    /* everything's ok, return the allocated player */
     return player;
 }

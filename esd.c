@@ -27,7 +27,7 @@ int esd_buf_size_samples = 0; 	/* size of audio buffer in samples */
 int esd_sample_size = 0;	/* size of sample in bytes */
 
 int esd_beeps = 1;		/* whether or not to beep on startup */
-int listen_socket = -1;		/* socket we're accepting connections on */
+int listen_socket = -1;		/* socket to accept connections on */
 
 /*******************************************************************/
 /* just to create the startup tones for the fun of it */
@@ -328,9 +328,15 @@ int main ( int argc, char *argv[] )
 		esd_audio_flush();
 	    }
 	} else {
+	    /* should be pausing just fine within wait_for_clients_and_data */
+	    /* if so, this isn't really needed */
+
 	    /* be very quiet, and wait for a wabbit to come along */
+#if 0
+	    if ( !do_sleep ) { ESDBG_TRACE( printf( "pausing in esd.c\n" ); ); }
 	    do_sleep = 1;
 	    esd_audio_pause();
+#endif
 	}
 
 	/* if someone's monitoring the sound stream, send them data */
@@ -367,6 +373,7 @@ int main ( int argc, char *argv[] )
 	    }
 	}
 
+#if 0 
 	if ( esd_on_standby || do_sleep ) {
 #ifdef HAVE_NANOSLEEP
 	    struct timespec restrain;
@@ -386,12 +393,10 @@ int main ( int argc, char *argv[] )
 	    select( 0, 0, 0, 0, &restrain );
 #endif
 	}
-
+#endif
     } /* while ( 1 ) */
 
-    /* how we'd get here, i have no idea */
-    esd_audio_close();
-    close( listen_socket );
-
+    /* how we'd get here, i have no idea, should only exit on signal */
+    clean_exit( -1 );
     exit( 0 );
 }

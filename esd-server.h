@@ -51,14 +51,14 @@ typedef struct esd_client {
     struct sockaddr_in source;	/* data maintained about source */
 
     int swap_byte_order;	/* for big/little endian compatibility */
-    octet proto_data[ 1024 ];	/* space to hold the protocol request data */
-    int proto_data_length;	/* how much protocol request data we have */
+    octet proto_data[ 1024 ];	/* hold the protocol request data */
+    int proto_data_length;	/* how much request data we have */
 } esd_client_t;
 
 /* a player is what produces data for a sound */
 typedef struct esd_player {
     struct esd_player *next;	/* point to next player in list */
-    void *parent;		/* the client or sample that spawned player */
+    void *parent;		/* client or sample that spawned player */
 
     esd_format_t format;	/* magic int with the format info */
     int rate;			/* sample rate */
@@ -146,6 +146,7 @@ void monitor_write( void *output_buffer, int length );
 
 /* samples.c - manage the players, recorder, and monitor */
 extern esd_sample_t *esd_samples_list;
+extern int esd_playing_samples;
 
 void dump_samples();
 void add_sample( esd_sample_t *sample );

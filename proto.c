@@ -51,7 +51,7 @@ typedef struct esd_proto_handler_info {
     const char *        description;
 } esd_proto_handler_info_t;
 
-/* the biug map of protocol handler info */
+/* the big map of protocol handler info */
 esd_proto_handler_info_t esd_proto_map[ ESD_PROTO_MAX ] = 
 {
     { ESD_KEY_LEN + sizeof(int), &esd_proto_connect, "connect" },
@@ -91,10 +91,7 @@ void clear_auth( int signum )
 {
     int i;
 
-    /* NOTE: attempt to only include debugging info if desired. if this doesn't
-       work on your compiler, please email ericmit@ix.netcom.com with info */
-    /* if ( esdbg_trace ) 
-	printf( "(ca) resetting ownership of sound daemon\n" ); */
+    /* TODO: add close of clients and resetting of sample id and samples */
     ESDBG_TRACE( 
 	printf( "(ca) resetting ownership of sound daemon on signal %d\n",
 		signum ); );
@@ -125,9 +122,10 @@ int esd_check_endian( esd_client_t *client, unsigned int *endian )
 	client->swap_byte_order = 1;
     } else {
 	ESDBG_TRACE( 
-	    printf( "(%02d) unknown endian key: 0x%08x (same = 0x%08x, diff = 0x%08x)\n",
-		    client->fd, *endian, ESD_ENDIAN_KEY, ESD_SWAP_ENDIAN_KEY ); );
-	
+	    printf( "(%02d) unknown endian key: 0x%08x"
+		    " (same = 0x%08x, diff = 0x%08x)\n",
+		    client->fd, *endian, 
+		    ESD_ENDIAN_KEY, ESD_SWAP_ENDIAN_KEY ); );
 	return 0;
     }
 
@@ -166,7 +164,8 @@ int esd_validate_source( esd_client_t *client,
 	return 1;
     }
 
-    /* TODO: maybe check based on source ip? */
+    /* TODO: maybe check based on source ip? */ 
+    /* done with LIBWRAP when client first connects to daemon */
     /* if ( !owner_only ) { check_ip_etc( client->source ); } */
 
     /* the client is not authorized to connect to the server */
@@ -217,7 +216,8 @@ int esd_proto_lock( esd_client_t *client )
 	esd_is_locked = 1;
     }
 
-    ESD_WRITE_INT( client->fd, &client_ok, sizeof(client_ok), actual, "lock ok" );
+    ESD_WRITE_INT( client->fd, &client_ok, sizeof(client_ok), 
+		   actual, "lock ok" );
     
     return ok;
 }
@@ -236,7 +236,8 @@ int esd_proto_unlock( esd_client_t *client )
 	esd_is_locked = 0;
     }
 
-    ESD_WRITE_INT( client->fd, &client_ok, sizeof(client_ok), actual, "unlock ok" );
+    ESD_WRITE_INT( client->fd, &client_ok, sizeof(client_ok), 
+		   actual, "unlock ok" );
     return ok;
 }
 
@@ -259,7 +260,8 @@ int esd_proto_standby( esd_client_t *client )
 	esd_audio_close();
     }	
 
-    ESD_WRITE_INT( client->fd, &client_ok, sizeof(client_ok), actual, "stdby ok" );
+    ESD_WRITE_INT( client->fd, &client_ok, sizeof(client_ok), 
+		   actual, "stdby ok" );
     return ok;
 }
 
@@ -279,7 +281,7 @@ int esd_proto_resume( esd_client_t *client )
 	
 	/* reclaim the audio device */
 	if ( esd_audio_open() < 0 ) {
-	    /* device was busy or something, return the error, try again later */
+	    /* device was busy or something, return error, try  later */
 	    client_ok = ok = 0;
 	} else {
 	    /* turn ourselves back on */
@@ -287,7 +289,8 @@ int esd_proto_resume( esd_client_t *client )
 	}
     }
 
-    ESD_WRITE_INT( client->fd, &client_ok, sizeof(client_ok), actual, "resum ok" );
+    ESD_WRITE_INT( client->fd, &client_ok, sizeof(client_ok), 
+		   actual, "resum ok" );
     return ok;
 }
 
@@ -412,13 +415,14 @@ int esd_proto_sample_cache( esd_client_t *client )
     /* add to the list of sample */
     if ( sample != NULL ) {
 	sample->parent = client;
-	if( ( length = read_sample( sample ) ) < sample->sample_length ) {
+	if( read_sample( sample ) < sample->sample_length ) {
 	    client->state = ESD_CACHING_SAMPLE;
 	    ESDBG_TRACE( printf( "(%02d) continue caching sample next trip\n", 
 				 client->fd ); );
 	    return 1;
 	} else {
-	    ESDBG_TRACE( printf( "(%02d) sample cached, moving on\n", client->fd ); );
+	    ESDBG_TRACE( printf( "(%02d) sample cached, moving on\n", 
+				 client->fd ); );
 	    client->state = ESD_NEXT_REQUEST;
 	}
     } else {
@@ -429,8 +433,9 @@ int esd_proto_sample_cache( esd_client_t *client )
 
     client_id = maybe_swap_32( client->swap_byte_order, 
 			       sample->sample_id );
-    ESD_WRITE_INT( client->fd, &client_id, sizeof(client_id), length, "smp cach" );
-    /* fsync( client->fd ); */
+    ESD_WRITE_INT( client->fd, &client_id, sizeof(client_id), 
+		   length, "smp cach" );
+
     return 1;
 }
 
@@ -445,7 +450,8 @@ int esd_proto_sample_getid(esd_client_t *client)
     strncpy( namebuf, client->proto_data, ESD_NAME_MAX );
     namebuf[ESD_NAME_MAX - 1] = '\0';
 
-    ESDBG_TRACE( printf( "(%02d) proto: getting sample ID: %s\n", client->fd, namebuf ); );
+    ESDBG_TRACE( printf( "(%02d) proto: getting sample ID: %s\n", 
+			 client->fd, namebuf ); );
 
     while(sample) {
 	if(!strcmp(sample->name, namebuf))
@@ -459,7 +465,8 @@ int esd_proto_sample_getid(esd_client_t *client)
     else
 	client_id = maybe_swap_32(client->swap_byte_order, -1);
 
-    ESD_WRITE_INT( client->fd, &client_id, sizeof(client_id), length, "smp getid" );
+    ESD_WRITE_INT( client->fd, &client_id, sizeof(client_id), 
+		   length, "smp getid" );
     return 1;
 }
 
@@ -478,11 +485,11 @@ int esd_proto_sample_free( esd_client_t *client )
 
     erase_sample( sample_id );
 
-    ESD_WRITE_INT( client->fd, &client_id, sizeof(client_id), actual, "smp free" );
+    ESD_WRITE_INT( client->fd, &client_id, sizeof(client_id), 
+		   actual, "smp free" );
     if ( sizeof( client_id ) != actual )
 	return 0;
 
-    client->state = ESD_NEXT_REQUEST;
     return 1;
 }
 
@@ -501,11 +508,11 @@ int esd_proto_sample_play( esd_client_t *client )
     if ( !play_sample( sample_id, 0 ) )
 	sample_id = 0;
 
-    ESD_WRITE_INT( client->fd, &client_id, sizeof(client_id), actual, "smp play" );
+    ESD_WRITE_INT( client->fd, &client_id, sizeof(client_id), 
+		   actual, "smp play" );
     if ( sizeof( client_id ) != actual )
 	return 0;
 
-    client->state = ESD_NEXT_REQUEST;
     return 1;
 }
 
@@ -524,11 +531,11 @@ int esd_proto_sample_loop( esd_client_t *client )
     if ( !play_sample( sample_id, 1 ) )
 	sample_id = 0;
 
-    ESD_WRITE_INT( client->fd, &client_id, sizeof(client_id), actual, "smp loop" );
+    ESD_WRITE_INT( client->fd, &client_id, sizeof(client_id), 
+		   actual, "smp loop" );
     if ( sizeof( sample_id ) != actual )
 	return 0;
 
-    client->state = ESD_NEXT_REQUEST;
     return 1;
 }
 
@@ -547,11 +554,11 @@ int esd_proto_sample_stop( esd_client_t *client )
     if ( !stop_sample( sample_id ) )
 	sample_id = 0;
 
-    ESD_WRITE_INT( client->fd, &client_id, sizeof(client_id), actual, "smp stop" );
+    ESD_WRITE_INT( client->fd, &client_id, sizeof(client_id), 
+		   actual, "smp stop" );
     if ( sizeof( client_id ) != actual )
 	return 0;
 
-    client->state = ESD_NEXT_REQUEST;
     return 1;
 }
 
@@ -574,7 +581,6 @@ int esd_proto_server_info( esd_client_t *client )
     if ( sizeof( format ) != actual )
 	return 0;
 
-    client->state = ESD_NEXT_REQUEST;
     return 1;
 }
 
@@ -603,27 +609,38 @@ int esd_proto_all_info( esd_client_t *client )
 	return 0;
 
     /* send back the player information */
-    for ( player = esd_players_list; /* NULL will break; */ ; player = player->next )
+    for ( player = esd_players_list; /* NULL breaks */ ; player = player->next )
     {
 	if ( player ) {
-	    source_id = maybe_swap_32( client->swap_byte_order, player->source_id );
+	    source_id = maybe_swap_32( client->swap_byte_order, 
+				       player->source_id );
 	    name = ( (player->format & ESD_MASK_MODE) == ESD_STREAM ) 
 		? player->name : ( (esd_sample_t*) (player->parent) )->name;
-	    rate = maybe_swap_32( client->swap_byte_order, player->rate );
-	    left = maybe_swap_32( client->swap_byte_order, player->left_vol_scale );
-	    right = maybe_swap_32( client->swap_byte_order, player->right_vol_scale );
-	    format = maybe_swap_32( client->swap_byte_order, player->format );
+	    rate = maybe_swap_32( client->swap_byte_order, 
+				  player->rate );
+	    left = maybe_swap_32( client->swap_byte_order, 
+				  player->left_vol_scale );
+	    right = maybe_swap_32( client->swap_byte_order, 
+				   player->right_vol_scale );
+	    format = maybe_swap_32( client->swap_byte_order, 
+				    player->format );
 	} else {
 	    source_id = rate = format = 0;
 	    name = no_name;
 	}
 
-	ESD_WRITE_INT( client->fd, &source_id, sizeof(source_id), actual, "ai p.id" );
-	ESD_WRITE_BIN( client->fd, name, ESD_NAME_MAX, actual, "ai p.nm" );
-	ESD_WRITE_INT( client->fd, &rate, sizeof(rate), actual, "ai p.rate" );
-	ESD_WRITE_INT( client->fd, &left, sizeof(left), actual, "ai p.lt" );
-	ESD_WRITE_INT( client->fd, &right, sizeof(right), actual, "ai p.rt" );
-	ESD_WRITE_INT( client->fd, &format, sizeof(format), actual, "ai p.fmt" );
+	ESD_WRITE_INT( client->fd, &source_id, sizeof(source_id), 
+		       actual, "ai p.id" );
+	ESD_WRITE_BIN( client->fd, name, ESD_NAME_MAX, 
+		       actual, "ai p.nm" );
+	ESD_WRITE_INT( client->fd, &rate, sizeof(rate), 
+		       actual, "ai p.rate" );
+	ESD_WRITE_INT( client->fd, &left, sizeof(left), 
+		       actual, "ai p.lt" );
+	ESD_WRITE_INT( client->fd, &right, sizeof(right), 
+		       actual, "ai p.rt" );
+	ESD_WRITE_INT( client->fd, &format, sizeof(format), 
+		       actual, "ai p.fmt" );
 	if ( sizeof( format ) != actual )
 	    return 0;
 
@@ -631,35 +648,47 @@ int esd_proto_all_info( esd_client_t *client )
     }
 
     /* send back the sample information */
-    for ( sample = esd_samples_list; /* NULL will break; */ ; sample = sample->next )
+    for ( sample = esd_samples_list; /* NULL breaks */ ; sample = sample->next )
     {
 	if ( sample ) {
-	    sample_id = maybe_swap_32( client->swap_byte_order, sample->sample_id );
+	    sample_id = maybe_swap_32( client->swap_byte_order, 
+				       sample->sample_id );
 	    name = sample->name;
-	    rate = maybe_swap_32( client->swap_byte_order, sample->rate );
-	    left = maybe_swap_32( client->swap_byte_order, sample->left_vol_scale );
-	    right = maybe_swap_32( client->swap_byte_order, sample->right_vol_scale );
-	    format = maybe_swap_32( client->swap_byte_order, sample->format );
-	    length = maybe_swap_32( client->swap_byte_order, sample->sample_length );
+	    rate = maybe_swap_32( client->swap_byte_order, 
+				  sample->rate );
+	    left = maybe_swap_32( client->swap_byte_order, 
+				  sample->left_vol_scale );
+	    right = maybe_swap_32( client->swap_byte_order, 
+				   sample->right_vol_scale );
+	    format = maybe_swap_32( client->swap_byte_order, 
+				    sample->format );
+	    length = maybe_swap_32( client->swap_byte_order, 
+				    sample->sample_length );
 	} else {
 	    sample_id = rate = format = length = 0;
 	    name = no_name;
 	}
 
-	ESD_WRITE_INT( client->fd, &sample_id, sizeof(sample_id), actual, "ai s.id" );
-	ESD_WRITE_BIN( client->fd, name, ESD_NAME_MAX, actual, "ai s.nm" );
-	ESD_WRITE_INT( client->fd, &rate, sizeof(rate), actual, "ai s.rate" );
-	ESD_WRITE_INT( client->fd, &left, sizeof(left), actual, "ai s.lt" );
-	ESD_WRITE_INT( client->fd, &right, sizeof(right), actual, "ai s.rt" );
-	ESD_WRITE_INT( client->fd, &format, sizeof(format), actual, "ai s.fmt" );
-	ESD_WRITE_INT( client->fd, &length, sizeof(length), actual, "ai s.fmt" );
+	ESD_WRITE_INT( client->fd, &sample_id, sizeof(sample_id), 
+		       actual, "ai s.id" );
+	ESD_WRITE_BIN( client->fd, name, ESD_NAME_MAX, 
+		       actual, "ai s.nm" );
+	ESD_WRITE_INT( client->fd, &rate, sizeof(rate), 
+		       actual, "ai s.rate" );
+	ESD_WRITE_INT( client->fd, &left, sizeof(left), 
+		       actual, "ai s.lt" );
+	ESD_WRITE_INT( client->fd, &right, sizeof(right), 
+		       actual, "ai s.rt" );
+	ESD_WRITE_INT( client->fd, &format, sizeof(format), 
+		       actual, "ai s.fmt" );
+	ESD_WRITE_INT( client->fd, &length, sizeof(length), 
+		       actual, "ai s.fmt" );
 	if ( sizeof( length ) != actual )
 	    return 0;
 
 	if ( !sample ) break;
     }
 
-    client->state = ESD_NEXT_REQUEST;
     return 1;
 }
 
@@ -672,16 +701,6 @@ int esd_proto_stream_pan( esd_client_t *client )
     int stream_id, left, right, ok;
     esd_player_t *player;
     
-/*    ESD_READ_INT( client->fd, &client_id, 
-		  sizeof(client_id), actual, "panstr id" );
-    ESD_READ_INT( client->fd, &client_left, 
-		  sizeof(client_left), actual, "panstr lt" );
-    ESD_READ_INT( client->fd, &client_right, 
-		  sizeof(client_right), actual, "panstr rt" );
-    if ( sizeof( client_right ) != actual ) {
-	return 0;
-    }*/
-
     client_id = *(int*)(client->proto_data);
     client_left = *(int*)(client->proto_data + sizeof(int));
     client_right = *(int*)(client->proto_data + 2 * sizeof(int));
@@ -709,11 +728,11 @@ int esd_proto_stream_pan( esd_client_t *client )
 
     /* let the client know how it went */
     client_ok = maybe_swap_32( client->swap_byte_order, ok );
-    ESD_WRITE_INT( client->fd, &client_ok, sizeof(client_ok), actual, "panstr ok" );
+    ESD_WRITE_INT( client->fd, &client_ok, sizeof(client_ok), 
+		   actual, "panstr ok" );
     if ( sizeof( client_ok ) != actual )
 	return 0;
 
-    client->state = ESD_NEXT_REQUEST;
     return 1;
 }
 
@@ -752,11 +771,11 @@ int esd_proto_sample_pan( esd_client_t *client )
 
     /* let the client know how it went */
     client_ok = maybe_swap_32( client->swap_byte_order, ok );
-    ESD_WRITE_INT( client->fd, &client_ok, sizeof(client_ok), actual, "panstr ok" );
+    ESD_WRITE_INT( client->fd, &client_ok, sizeof(client_ok), 
+		   actual, "panstr ok" );
     if ( sizeof( client_ok ) != actual )
 	return 0;
 
-    client->state = ESD_NEXT_REQUEST;
     return 1;
 }
 
@@ -771,20 +790,16 @@ int poll_client_requests()
     fd_set rd_fds;
     struct timeval timeout;
 
-    /* for each readable socket in the FD_SET, check protocol reqs? */
-    /* check all, as some may become readable between the previous */
-    /* blocking select() and now */
+    /* check all clients, as some may become readable between the
+       previous blocking select() and now */
 
     /* for each client */
     client = esd_clients_list;
     while ( client != NULL )
     {
-	/* TODO: does this detect end of streams properly? */
-	/* if it's a streaming client connection, just skip it */
-	/* data will be read (if available) during the mix process */
+	/* if it's a streaming client connection, just skip it 
+	   data will be read (if available) during the mix phase */
 	if ( client->state == ESD_STREAMING_DATA ) {
-	    /* ESDBG_TRACE( printf( "(%02d) skipping streaming data.\n", 
-				 client->fd ); ); */
 	    client = client->next;
 	    continue;
 	}
@@ -820,11 +835,14 @@ int poll_client_requests()
 		break;
 	    }
 
-	    /* read another chunk of data */
-	    ESD_READ_BIN( client->fd, client->proto_data + client->proto_data_length, 
-			  esd_proto_map[ client->request ].data_length 
-			  - client->proto_data_length , length, "req dat" );
-	    client->proto_data_length += length;
+	    /* read another chunk of data, if any more is required */
+	    if ( esd_proto_map[ client->request ].data_length ) {
+		ESD_READ_BIN( client->fd, 
+			      client->proto_data + client->proto_data_length, 
+			      esd_proto_map[ client->request ].data_length 
+			      - client->proto_data_length , length, "req dat" );
+		client->proto_data_length += length;
+	    }
 
 	    /* see if we have it all */
 	    if ( client->proto_data_length 
@@ -843,11 +861,11 @@ int poll_client_requests()
 	    break;
 
 	case ESD_NEXT_REQUEST:
+
  	    /* make sure there's a request as EOF may return as readable */
-	    
 	    ESDBG_COMMS( printf( "--------------------------------\n" ); );
-	    ESD_READ_INT( client->fd, &client->request, sizeof(client->request), 
-			  length, "request" );
+	    ESD_READ_INT( client->fd, &client->request, 
+			  sizeof(client->request), length, "request" );
 	    if ( client->swap_byte_order )
 		client->request = swap_endian_32( client->request );
 

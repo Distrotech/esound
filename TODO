@@ -1,86 +1,65 @@
 
-BUGS!
-=====
-
-There are none. =)
-
 Planned for 0.2.7:
 ==================
 
-factor out the "Reduce buffers on sockets to the minimum needed" code
-to a single function(socket); 
+* keep track of whether or not we're playing any samples
 
-support 8 bit u-law format output data?
-
-reorganize source files into esdlib, esd, utils subdirectories.
-
-free samples when client closes
-
-also beng able to request info on all connected clients (numebr,
-sampling rate etc. etc.) and modify that clients volume or mute that
-client..kill it.. etc.. so in effect an audio manager could be written
-
-oh.. volume control on samples and streams would be nice.. :)
-
-just allow setting of left/right volume. 
-
-probably need function pointers in mix.c to do this well:
+* function pointers in mix.c for mix_in (add) and translate (copy):
   mix_funcs[MAX] = { mix_to_format, mix_from_format, clip_format, ... };
-and update according to specs.
+  set function when creating player. update if a filter is added or removed
 
-Volume and left/right volume would be on a per-play basis, then?
-play_sample_pan( int sample_id, int left_volume, int right_volume );
+* volume control (setting of left/right volume) on samples and streams
+  modify clients volume or mute so that client can kill it.. etc.. 
+  so in effect an audio manager could be written
+  play_sample_pan( int sample_id, int left_volume, int right_volume );
+  
+* add auto-suspend mode, if no activity for (timeout) seconds, close
+  audio device.  add esd_suspend() and esd_resume() functions.  call 
+  these functions from the corresponding protocol handlers
 
-esd_rename_stream( int stream_id, char *name );
+* factor out the "Reduce buffers on sockets to the minimum needed" code
+  to a single function(socket); 
 
-esd_player_t: add fields
-	int left_vol_scale, right_vol_scale;
+* on a SIGHUP, reset ownership of the daemon, close all clients, 
+  free all samples, and reset sample id.
 
-	vol = sample * vol_scale / 256;
-same for samples
+* Pass a device spec to esd_audio_open (?) as a char *
+  for Solaris: AUDIO_LINE_OUT, AUDIO_SPEAKER, AUDIO_HEADPHONE
+  for Linux: pick /dev/dsp2 if more than one card.  
 
-for Solaris: AUDIO_LINE_OUT, AUDIO_SPEAKER, AUDIO_HEADPHONE
-for Linux: pick /dev/dsp2 if more than one card.  
-Pass the device spec to esd_audio_open (?)
+* make all protocols return an int indicating success/failure at a minimum
 
-change audio device with esdctl? on the fly?
+* change audio device with esdctl??? on the fly???
 
-on a SIGHUP, reset ownership of the daemon, close all streams, 
-and free all samples.
+* esd_rename_stream( int stream_id, char *name ); ???
+
+* reorganize source files into esdlib, esd, utils subdirectories. ???
+
+* support 8 bit u-law format output data ???
+
 
 Planned for later:
 ================== 
-
-allow a "volume envelope"
-sample to be paired witht the sample optionally - perhaps at a lower
-sampling rate and maybe 8 or 4 bits.. this sould in addition to "set lr
-volume for smapl/stream now" functions... :)
 
 make the reading/mixing
 process a separate thread from the client protocol parsing thread.
 
 command line parameter for the server's fragment value
 
-One other nice feature of
-the BeOS streaming model is that you can choose where your application
-should be positioned in the stream (beginning | end | don't care).
-Could be done with some extra parameters to esd_play_stream()..?
+kill_sample( int sample_id );
+
+One other nice feature of the BeOS streaming model is that you can
+choose where your application should be positioned in the stream
+(beginning | end | don't care).  Could be done with some extra
+parameters to esd_play_stream()..?  add a queue of requests to the
+sample clients, and watch for kills?
 
 mmap the data into the sound card? -- Linux only
-
-[raster!raster@trode.redhat.com] actuyally dump like 1k oir
-whatever - tell soudncard to start at the first 1kb
--white readihg this (the soudncard) write the 2nd kb -
-then the 3rd etc... u just have to keep in step witht
-the card and a little ahead of it... but only just enuf
-to minimise lag.
-
-it does need better logic for the "monitoring only" case.  right now
-it just writes a zeroed buffer to the sound card, so as to force
-a block on the data write, thus freeing the cpu for other processes.
-intelligent blocking needs to be done, probably by merging the 
-get_new_clients and poll_client_request logic into the same 
-blocking select() call.
+[raster!raster@trode.redhat.com] actuyally dump like 1k or whatever -
+tell soundcard to start at the first 1kb - while readihg this (the
+soundcard) write the 2nd kb - then the 3rd etc... just have to keep in
+step with the card and a little ahead of it... but only just enough to
+minimize lag.
 
 it's also rather fiddly wiht cpu usage spikes.. 
 
@@ -91,17 +70,15 @@ int play_tri_sample( start, loop, end ) {
 later: 
 int finish_tri_sample( end ) { play(end); return ?;}
 
+allow a "volume envelope"
+sample to be paired witht the sample optionally - perhaps at a lower
+sampling rate and maybe 8 or 4 bits.. this sould in addition to "set lr
+volume for smapl/stream now" functions... :)
 so that would be something like (format determined by sample uploaded):
 modulate_sample( int play_sample, int modulation_sample );
 
 allow server to run mono.
 
-kill_sample( int sample_id );
-
-add a queue of requests to the sample clients, and watch for kills?
-
 pitch adjust on samples?
 
 playback samples at different rates?
-
-endian swapping cleanup

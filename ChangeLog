@@ -1,3 +1,11 @@
+1998-12-29  Yo Ric Dude  <ricdude@ix.netcom.com>
+
+	* esd.c, clients.c: call esd_audio_pause() only if select has
+ 	returned no clients ready, and no samples are playing.  other
+	miscellaneous tweaks to the when-to-sleep algorithm...
+	* players.c: add a variable so we know if we're playing samples
+	* all other server files: editorial changes, prettier for printing 
+	
 1998-12-27  Yo Ric Dude  <ricdude@ix.netcom.com>
 
 	* proto.c: missed one code path for setting is_ok...

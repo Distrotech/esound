@@ -5,6 +5,7 @@
 /* globals */
 esd_sample_t *esd_samples_list = NULL;
 
+int esd_playing_samples = 0;
 static int esd_next_sample_id = 1;	/* sample id = 0 is an error */
 
 /*******************************************************************/
@@ -195,13 +196,14 @@ esd_sample_t *new_sample( esd_client_t *client )
     sample->ref_count = 0;
     sample->left_vol_scale = sample->right_vol_scale = ESD_VOLUME_BASE;
 
-    ESDBG_TRACE( printf( "<%02d> sample %s: [0x%p] - %d bytes\n", sample->sample_id, 
-			 sample->name, sample, sample->sample_length ); );
+    ESDBG_TRACE( printf( "<%02d> sample %s: [0x%p] - %d bytes\n", 
+			 sample->sample_id, 
+			 sample->name, sample, 
+			 sample->sample_length ); );
 
     client_id = maybe_swap_32( client->swap_byte_order, 
 			       sample->sample_id );
     ESD_WRITE_INT( client->fd, &client_id, sizeof(client_id), actual, "ns ack" );
-    /* fsync( client->fd ); */
 
     return sample;
 }
