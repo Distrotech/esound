@@ -1,5 +1,10 @@
 1998-07-05  Yo Ric Dude  <ericmit@ix.netcom.com>
 
+	* esdsample.c, esdlib.c: added a confirmation step to the
+	sample_cache mechanism.  esd_confirm_sample_cache(esd)
+	should return the same sample id as the sample just cached.
+	esdlib failed to read this indication back from the server.
+
 	* esd-server.h, esdlib.c, players.c, proto.c, samples.c:
 	more endian swapping fixes. works for Linux, half of it
 	works irix->linux, much seems to be broken on irix. added

@@ -434,6 +434,21 @@ int esd_sample_cache( int esd, esd_format_t format, int rate, long size, char *n
 }
 
 /*******************************************************************/
+/* call this after sending the sample data to the server, should */
+/* return the same sample id read previously, <= 0 is error */
+int esd_confirm_sample_cache( int esd )
+{
+    int id = 0;
+
+    /* get the sample id back from the server */
+    if ( read( esd, &id, sizeof(id) ) != sizeof(id) )
+	return -1;
+
+    /* return the sample id to the client */
+    return id;
+}
+
+/*******************************************************************/
 /* uncache a sample in the server */
 int esd_sample_free( int esd, int sample )
 {

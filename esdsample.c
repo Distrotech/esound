@@ -23,7 +23,7 @@ int main(int argc, char **argv)
     int mode = ESD_STREAM, func = ESD_PLAY ;
     esd_format_t format = 0;
 
-    int sample_id = 0;
+    int sample_id = 0, confirm_id = 0;
     FILE *source = NULL;
     struct stat source_stats;
     char *host = NULL;
@@ -84,7 +84,13 @@ int main(int argc, char **argv)
 	    total += length;
     }
 
-    printf( "sample uploaded, %d bytes\n", total );
+    confirm_id = esd_confirm_sample_cache( sock );
+    if ( sample_id != confirm_id ) {
+	printf( "error while caching sample <%d>: confirm returned %d\n",
+		sample_id, confirm_id );
+	exit( 1 );
+    }
+    printf( "sample <%d> uploaded, %d bytes\n", sample_id, total );
 
     printf( "press \'q\' <enter> to quit, <enter> to trigger.\n" );
     while ( !terminate ) {
