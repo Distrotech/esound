@@ -95,6 +95,12 @@ snd_pcm_t* initAlsa(char *dev, int format, int channels, int speed, int mode)
 	int err;
 	int periods;
   
+#ifdef DRIVER_ALSA_09_NEW_PCM_API
+	int t_dir=0;
+	int t_speed=speed;
+	snd_pcm_uframes_t t_bufsize=BUFFERSIZE;
+#endif
+
 	err = snd_pcm_open(&handle, dev, mode, SND_PCM_NONBLOCK);
 	if (err < 0) {
 		if (alsadbg)
@@ -139,8 +145,6 @@ snd_pcm_t* initAlsa(char *dev, int format, int channels, int speed, int mode)
 #ifndef DRIVER_ALSA_09_NEW_PCM_API
 	err = snd_pcm_hw_params_set_rate_near(handle, hwparams, speed, 0);
 #else
-    int t_dir=0;
-    int t_speed=speed;
     err = snd_pcm_hw_params_set_rate_near(handle, hwparams, &t_speed, &t_dir);
 #endif
 	if (err < 0) {
@@ -188,7 +192,6 @@ snd_pcm_t* initAlsa(char *dev, int format, int channels, int speed, int mode)
 #ifndef DRIVER_ALSA_09_NEW_PCM_API
 	err = snd_pcm_hw_params_set_buffer_size_near(handle, hwparams, BUFFERSIZE); 
 #else
-	snd_pcm_uframes_t t_bufsize=BUFFERSIZE;
 	err = snd_pcm_hw_params_set_buffer_size_near(handle, hwparams, &t_bufsize);
 #endif
 	if (err < 0) { 

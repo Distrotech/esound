@@ -1,3 +1,9 @@
+2004-03-03  Frederic Crozat  <fcrozat@mandrakesoft.com>
+
+	* audio_alsa09.c:
+	Don't use C99 extensions (Bug #136038, 
+	patch from Jens Granseuer <jensgr@gmx.net>).
+
 2004-03-01  Frédéric Crozat  <fred@crozat.net>
 
 	* NEWS:
