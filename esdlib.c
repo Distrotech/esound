@@ -173,6 +173,8 @@ int esd_open_sound( char *host )
 	if ( host_div ) {
 	    strncpy( connect_host, espeaker, host_div );
 	    connect_host[ host_div ] = '\0';
+	} else {
+	    strcpy( connect_host, default_host );
 	}
 
         /* Resolving the host name */
