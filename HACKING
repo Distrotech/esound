@@ -35,7 +35,7 @@ to autogen.sh and they will be passed on to configure.
 If at all possible, please use CVS to get the latest development version of
 esound.  You can do the following to get esound from cvs:
 
-   $ export CVSROOT=':pserver:anonymous@cvs.gnome.org:/cvs/gnome'
+   $ export CVSROOT=':pserver:anonymous@anoncvs.gnome.org:/cvs/gnome'
    $ cvs login
      (there is no password, just hit return)
    $ cvs -z9 checkout esound
