@@ -1,3 +1,7 @@
+2002-03-13  jacob berkman  <jacob@ximian.com>
+
+	* Makefile.am (dist-hook): don't fail if docs weren't built
+
 2002-03-12  Laszlo Peter  <laca@ireland.sun.com>
 
 	* configure.in: use AM_CONDITIONAL to control whether getopt*.c

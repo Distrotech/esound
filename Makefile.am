@@ -129,8 +129,8 @@ doc:
 dist-hook: doc esound.spec
 	test -d $(distdir)/docs || mkdir $(distdir)/docs 
 	cp $(srcdir)/docs/esound.sgml $(distdir)/docs
-	cp -r $(srcdir)/docs/esound $(distdir)/docs/html
-	cp $(srcdir)/docs/esound.ps $(distdir)/docs
+	-cp -r $(srcdir)/docs/esound $(distdir)/docs/html
+	-cp $(srcdir)/docs/esound.ps $(distdir)/docs
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = esound.pc
