@@ -1,7 +1,10 @@
 #include "esd-server.h"
 
 #include <arpa/inet.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 #include <sys/un.h>
+#include <errno.h>
 
 #ifndef HAVE_NANOSLEEP
 #include <sys/time.h>
@@ -132,7 +135,7 @@ void clean_exit(int signum) {
     /* just clean up as best we can and terminate from here */
     esd_client_t * client = esd_clients_list;
     
-    fprintf( stderr, "received signal %d: terminating...\n", signum );
+/*    fprintf( stderr, "received signal %d: terminating...\n", signum );*/
     
     /* free the sound device */
     esd_audio_close();
@@ -148,12 +151,11 @@ void clean_exit(int signum) {
     }
 
     /* trust the os to clean up the memory for the samples and such */
-    fprintf( stderr, "bye bye.\n" );
     exit( 0 );
 }
 
 void reset_signal(int signum) {
-    fprintf( stderr, "received signal %d: resetting...\n", signum );
+/*    fprintf( stderr, "received signal %d: resetting...\n", signum );*/
     signal( signum, reset_signal);
 
     return;
@@ -169,8 +171,6 @@ int open_listen_socket( int port )
     struct sockaddr_un socket_unix;
     int socket_listen = -1;
     struct linger lin;
-    char *homedir;
-    char  s[1024];
       
    
     /* create the socket, and set for non-blocking */
@@ -178,13 +178,32 @@ int open_listen_socket( int port )
       socket_listen=socket(AF_INET,SOCK_STREAM,0);
     else
     {
-      homedir = getenv("HOME");
-      if (homedir)
-	{
-	  sprintf(s, "%s/.esdsocket", homedir);
-	  unlink(s);
-	  socket_listen=socket(AF_UNIX,SOCK_STREAM,0);
+      if (access("/tmp/.esd", R_OK | W_OK) == -1)
+	{	
+	  mkdir("/tmp/.esd",
+		S_IRUSR|S_IWUSR|S_IXUSR|
+		S_IRGRP|S_IWGRP|S_IXGRP|
+		S_IROTH|S_IWOTH|S_IXOTH);
+	  chmod("/tmp/.esd",
+		S_IRUSR|S_IWUSR|S_IXUSR|
+		S_IRGRP|S_IWGRP|S_IXGRP|
+		S_IROTH|S_IWOTH|S_IXOTH);
 	}
+      if (access("/tmp/.esd/socket", R_OK | W_OK) == -1)
+	{
+	  if (errno == EACCES)
+	    {
+	      /* not allowed access */
+	      fprintf(stderr, 
+		      "esd: Esound sound daemon unable to create unix domain socket:\n"
+		      "/tmp/.esd/socket\n"
+		      "This socket already exists and is not accessible by esd.\n"
+		      "Exiting...\n");
+	      exit(1);
+	    }
+	}
+      unlink("/tmp/.esd/socket");
+      socket_listen=socket(AF_UNIX,SOCK_STREAM,0);
     }
     if (socket_listen<0) 
     {
@@ -230,15 +249,21 @@ int open_listen_socket( int port )
     else
     {
       socket_unix.sun_family=AF_UNIX;
-      strncpy(socket_unix.sun_path,s,sizeof(socket_unix.sun_path));
+      strncpy(socket_unix.sun_path,"/tmp/.esd/socket",sizeof(socket_unix.sun_path));
       if ( bind( socket_listen,
 		(struct sockaddr *) &socket_unix,
 		sizeof(socket_unix.sun_family) + 
 		strlen(socket_unix.sun_path) ) < 0 )
 	{
-	  fprintf(stderr,"Unable to connect to UNIX socket %s\n", s );
+	  fprintf(stderr,"Unable to connect to UNIX socket /tmp/.esd/socket\n");
 	  exit(1);
 	}
+      /* let anyone access esd's socket - but we have authentication so they */
+      /* wont get far if they dont have the auth key */
+      chmod("/tmp/.esd/socket", 
+	    S_IRUSR|S_IWUSR|S_IXUSR|
+	    S_IRGRP|S_IWGRP|S_IXGRP|
+	    S_IROTH|S_IWOTH|S_IXOTH);
     }
     if (listen(socket_listen,16)<0)
     {
@@ -362,8 +387,8 @@ int main ( int argc, char *argv[] )
 		    fprintf( stderr, "- could not read autostandby timeout: %s\n", 
 			     argv[ arg ] );
 		}
-		fprintf( stderr, "- autostandby timeout: %d seconds\n", 
-			 esd_autostandby_secs );
+/*		fprintf( stderr, "- autostandby timeout: %d seconds\n", 
+			 esd_autostandby_secs );*/
 	    }
 #ifdef ESDBG
 	} else if ( !strcmp( argv[ arg ], "-vt" ) ) {
@@ -378,7 +403,7 @@ int main ( int argc, char *argv[] )
 #endif
 	} else if ( !strcmp( argv[ arg ], "-nobeeps" ) ) {
 	    esd_beeps = 0;
-	    fprintf( stderr, "- disabling startup beeps\n" );
+/*	    fprintf( stderr, "- disabling startup beeps\n" );*/
 	} else if ( !strcmp( argv[ arg ], "-tcp" ) ) {
 	    esd_use_tcpip = 1;
 	    fprintf( stderr, "- using tcp/ip\n" );
@@ -412,7 +437,7 @@ int main ( int argc, char *argv[] )
     esd_buf_size_octets = esd_buf_size_samples * esd_sample_size;
 
     /* start the initializatin process */
-    printf( "ESound ESD daemon initializing...\n" );
+/*    printf( "ESound ESD daemon initializing...\n" );*/
 
     /* set the data size parameters */
     esd_audio_format = default_format;
@@ -421,48 +446,63 @@ int main ( int argc, char *argv[] )
 
   /* open and initialize the audio device, /dev/dsp */
   if ( esd_audio_open() < 0 ) {
+    fprintf(stderr, "Audio device open for 44.1Khz, stereo, 16bit failed\n"
+	    "Trying 44.1Khz, 8bit stereo.\n");
     /* cant do defaults ... try 44.1 kkz 8bit stereo */
     esd_audio_format = ESD_BITS8 | ESD_STEREO;
     esd_audio_rate = 44100;
     ESD_AUDIO_STUFF;
     if ( esd_audio_open() < 0 ) {
+      fprintf(stderr, "Audio device open for 44.1Khz, stereo, 8bit failed\n"
+	      "Trying 22.05Khz, 8bit stereo.\n");
       /* cant do defaults ... try 22.05 kkz 8bit stereo */
       esd_audio_format = ESD_BITS8 | ESD_STEREO;
       esd_audio_rate = 22050;
       ESD_AUDIO_STUFF;
       if ( esd_audio_open() < 0 ) {
+	fprintf(stderr, "Audio device open for 22.05Khz, stereo, 8bit failed\n"
+		"Trying 44.1Khz, 16bit mono.\n");
 	/* cant do defaults ... try 44.1Khz kkz 16bit mono */
 	esd_audio_format = ESD_BITS16;
 	esd_audio_rate = 44100;
 	ESD_AUDIO_STUFF;
 	if ( esd_audio_open() < 0 ) {
+	  fprintf(stderr, "Audio device open for 44.1Khz, mono, 8bit failed\n"
+		  "Trying 22.05Khz, 8bit mono.\n");
 	  /* cant do defaults ... try 22.05 kkz 8bit mono */
 	  esd_audio_format = ESD_BITS8;
 	  esd_audio_rate = 22050;
 	  ESD_AUDIO_STUFF;
 	  if ( esd_audio_open() < 0 ) {
+	    fprintf(stderr, "Audio device open for 22.05Khz, mono, 8bit failed\n"
+		    "Trying 11.025Khz, 8bit stereo.\n");
 	    /* cant to defaults ... try 11.025 kkz 8bit stereo */
 	    esd_audio_format = ESD_BITS8 | ESD_STEREO;
 	    esd_audio_rate = 11025;
 	    ESD_AUDIO_STUFF;
 	    if ( esd_audio_open() < 0 ) {
+	      fprintf(stderr, "Audio device open for 11.025Khz, stereo, 8bit failed\n"
+		      "Trying 11.025Khz, 8bit mono.\n");
 	      /* cant to defaults ... try 11.025 kkz 8bit mono */
 	      esd_audio_format = ESD_BITS8;
 	      esd_audio_rate = 11025;
 	      ESD_AUDIO_STUFF;
 	      if ( esd_audio_open() < 0 ) {
+		fprintf(stderr, "Audio device open for 11.025Khz, mono, 8bit failed\n"
+			"Trying 8.192Khz, 8bit mono.\n");
 	        /* cant to defaults ... try 8.192 kkz 8bit mono */
 		esd_audio_format = ESD_BITS8;
 		esd_audio_rate = 8192;
 		ESD_AUDIO_STUFF;
 		if ( esd_audio_open() < 0 ) {
+		  fprintf(stderr, "Audio device open for 8.192Khz, mono, 8bit failed\n"
+			  "Trying 8Khz, 8bit mono.\n");
 		  /* cant to defaults ... try 8 kkz 8bit mono */
 		  esd_audio_format = ESD_BITS8;
 		  esd_audio_rate = 8000;
 		  ESD_AUDIO_STUFF;
 		  if ( esd_audio_open() < 0 ) {
-		    fprintf( stderr, "fatal error configuring sound, %s\n", 
-			    "/dev/dsp" );
+		    fprintf(stderr, "Sound device inadequate for Esound. Fatal.\n");
 		    exit( 1 );
 		  }
 		}
@@ -523,7 +563,7 @@ int main ( int argc, char *argv[] )
 
       
 	if ((esd_clients_list == NULL) && (!first) && (esd_terminate)) {
-	  fprintf(stderr, "No clients!\n");
+/*	  fprintf(stderr, "No clients!\n");*/
 	  exit(0);
 	}
 
