@@ -36,11 +36,11 @@ fi
 
 THEDIR="`pwd`"
 cd $srcdir
-aclocal-1.4 $ACLOCAL_FLAGS
-libtoolize --force
-autoheader
-autoconf
-automake-1.4 --gnu --add-missing
+aclocal-1.4 $ACLOCAL_FLAGS || exit 1
+libtoolize --force || exit 1
+autoheader || exit 1
+autoconf || exit 1
+automake-1.4 --gnu --add-missing || exit 1
 cd "$THEDIR"
 
 if test -z "$*"; then

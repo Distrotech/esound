@@ -1,3 +1,8 @@
+2003-06-25  Thomas Vander Stichele <thomas at apestaart dot org>
+
+        * autogen.sh: exit with error if any of the autotools fail so
+          you know what's going on where it's going on
+
 2003-06-18  Frederic Crozat  <fcrozat@mandrakesoft.com>
 
 	* esd.c: (main): allow to set auto-standby to 0 (patch from 
