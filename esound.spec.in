@@ -1,6 +1,6 @@
 # Note that this is NOT a relocatable package
 %define ver      @ESD_VERSION@
-%define rel      SNAP
+%define rel      2
 %define prefix   /usr
 
 Summary:   The Enlightened Sound Daemon

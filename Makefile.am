@@ -11,7 +11,6 @@ EXTRA_SCRIPTS = esddsp
 
 EXTRA_DIST = \
 	esd.m4 		\
-	EsounD.ps 	\
 	TIPS 		\
 	test-script 	\
 	test.wav 	\
