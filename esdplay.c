@@ -20,6 +20,7 @@
 
 static char *program_name = NULL;
 
+#if 0
 static int
 play_file (const char *filename)
 {
@@ -106,6 +107,16 @@ play_file (const char *filename)
 
   return 0;
 }
+#else 
+
+static int
+play_file (const char *filename)
+{
+    esd_play_file( filename, 1 );
+}
+
+#endif
+
 
 static void
 usage_exit (int ret_code)

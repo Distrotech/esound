@@ -16,6 +16,8 @@ void esd_print_server_info( esd_server_info_t *server_info )
 /* print player into to stdout */
 void esd_print_player_info( esd_player_info_t *player_info )
 {
+    printf( "player %d name    = %s\n", 
+	    player_info->source_id, player_info->name );
     printf( "player %d format  = 0x%08x\n", 
 	    player_info->source_id, player_info->format );
     printf( "player %d rate    = %d\n", 
@@ -31,6 +33,8 @@ void esd_print_player_info( esd_player_info_t *player_info )
 /* print server into to stdout */
 void esd_print_sample_info( esd_sample_info_t *sample_info )
 {
+    printf( "sample %d name    = %s\n", 
+	    sample_info->sample_id, sample_info->name );
     printf( "sample %d format  = 0x%08x\n", 
 	    sample_info->sample_id, sample_info->format );
     printf( "sample %d rate    = %d\n", 

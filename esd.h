@@ -115,7 +115,7 @@ typedef unsigned char octet;
 /* returns EsounD socket for communication, result < 0 = error */
 /* server = listen socket (localhost:5001, 192.168.168.0:9999 */
 /* rate, format = (bits | channels | stream | func) */
-int esd_open_sound( char *host );
+int esd_open_sound( const char *host );
 
 /* lock/unlock will disable/enable foreign clients from connecting */
 int esd_lock( int esd );
@@ -127,16 +127,23 @@ int esd_resume( int esd );
 
 /* open a socket for playing, monitoring, or recording as a stream */
 /* the *_fallback functions try to open /dev/dsp if there's no EsounD */
-int esd_play_stream( esd_format_t format, int rate, char *host, char *name );
-int esd_play_stream_fallback( esd_format_t format, int rate, char *host, char *name );
-int esd_monitor_stream( esd_format_t format, int rate, char *host, char *name );
+int esd_play_stream( esd_format_t format, int rate, 
+		     const char *host, const char *name );
+int esd_play_stream_fallback( esd_format_t format, int rate, 
+			      const char *host, const char *name );
+int esd_monitor_stream( esd_format_t format, int rate, 
+			const char *host, const char *name );
 /* int esd_monitor_stream_fallback( esd_format_t format, int rate ); */
-int esd_record_stream( esd_format_t format, int rate, char *host, char *name );
-int esd_record_stream_fallback( esd_format_t format, int rate, char *host, char *name );
-int esd_filter_stream( esd_format_t format, int rate, char *host, char *name );
+int esd_record_stream( esd_format_t format, int rate, 
+		       const char *host, const char *name );
+int esd_record_stream_fallback( esd_format_t format, int rate, 
+				const char *host, const char *name );
+int esd_filter_stream( esd_format_t format, int rate, 
+		       const char *host, const char *name );
 
 /* cache a sample in the server returns sample id, < 0 = error */
-int esd_sample_cache( int esd, esd_format_t format, int rate, int length, char *name );
+int esd_sample_cache( int esd, esd_format_t format, int rate, 
+		      int length, const char *name );
 int esd_confirm_sample_cache( int esd );
 
 /* get the sample id for an already-cached sample */
@@ -261,6 +268,13 @@ int esd_set_stream_pan( int esd, int stream_id,
 /* reset the default volume panning for a sample */
 int esd_set_default_sample_pan( int esd, int sample_id, 
 				int left_scale, int right_scale );
+
+
+/*******************************************************************/
+/* esdfile.c - audiofile wrappers for sane handling of files */
+int esd_play_file( const char *filename, int fallback );
+int esd_file_cache( int esd, const char *filename );
+
 
 /*******************************************************************/
 /* audio.c - abstract the sound hardware for cross platform usage */

@@ -167,9 +167,9 @@ int esd_resume( int esd )
 
 /*******************************************************************/
 /* initialize the socket to send data to the sound daemon */
-int esd_open_sound( char *host )
+int esd_open_sound( const char *host )
 {
-    char *espeaker = NULL;
+    const char *espeaker = NULL;
     struct hostent *he;
 
     /*********************/
@@ -268,7 +268,8 @@ int esd_open_sound( char *host )
 
 /*******************************************************************/
 /* open a socket for playing as a stream */
-int esd_play_stream( esd_format_t format, int rate, char *host, char *name )
+int esd_play_stream( esd_format_t format, int rate, 
+		     const char *host, const char *name )
 {
     int sock;
     int proto = ESD_PROTO_STREAM_PLAY;
@@ -303,7 +304,8 @@ int esd_play_stream( esd_format_t format, int rate, char *host, char *name )
 
 /*******************************************************************/
 /* open a socket for playing as a stream, fallback to /dev/dsp */
-int esd_play_stream_fallback( esd_format_t format, int rate, char *host, char *name )
+int esd_play_stream_fallback( esd_format_t format, int rate, 
+			      const char *host, const char *name )
 {
     int socket_out;
     /* try to open a connection to the server */
@@ -326,7 +328,8 @@ int esd_play_stream_fallback( esd_format_t format, int rate, char *host, char *n
 
 /*******************************************************************/
 /* open a socket for monitoring as a stream */
-int esd_monitor_stream( esd_format_t format, int rate, char *host, char *name )
+int esd_monitor_stream( esd_format_t format, int rate, 
+			const char *host, const char *name )
 {
     int sock;
     int proto = ESD_PROTO_STREAM_MON;
@@ -361,7 +364,8 @@ int esd_monitor_stream( esd_format_t format, int rate, char *host, char *name )
 
 /*******************************************************************/
 /* open a socket for filtering as a stream */
-int esd_filter_stream( esd_format_t format, int rate, char *host, char *name )
+int esd_filter_stream( esd_format_t format, int rate, 
+		       const char *host, const char *name )
 {
     int sock;
     int proto = ESD_PROTO_STREAM_FILT;
@@ -396,7 +400,8 @@ int esd_filter_stream( esd_format_t format, int rate, char *host, char *name )
 
 /*******************************************************************/
 /* open a socket for recording as a stream */
-int esd_record_stream( esd_format_t format, int rate, char *host, char *name )
+int esd_record_stream( esd_format_t format, int rate, 
+		       const char *host, const char *name )
 {
     int sock;
     int proto = ESD_PROTO_STREAM_REC;
@@ -431,7 +436,8 @@ int esd_record_stream( esd_format_t format, int rate, char *host, char *name )
 
 /*******************************************************************/
 /* open a socket for recording as a stream, fallback to /dev/dsp */
-int esd_record_stream_fallback( esd_format_t format, int rate, char *host, char *name )
+int esd_record_stream_fallback( esd_format_t format, int rate, 
+				const char *host, const char *name )
 {
     int socket_out;
 
@@ -455,7 +461,8 @@ int esd_record_stream_fallback( esd_format_t format, int rate, char *host, char 
 
 /*******************************************************************/
 /* cache a sample in the server returns sample id, <= 0 is error */
-int esd_sample_cache( int esd, esd_format_t format, int rate, int size, char *name )
+int esd_sample_cache( int esd, esd_format_t format, int rate, 
+		      const int size, const char *name )
 {
     int id = 0;
     int proto = ESD_PROTO_SAMPLE_CACHE;

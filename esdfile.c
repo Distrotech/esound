@@ -1,0 +1,177 @@
+#include <esd.h>
+#include <audiofile.h>
+#include <stdio.h>
+
+/*******************************************************************/
+/* esdfile.c - audiofile wrappers for sane handling of files */
+
+int esd_send_file( int esd, AFfilehandle au_file, int frame_length )
+{
+    /* data for transfer */
+    char buf[ ESD_BUF_SIZE ];
+    int frames_read;
+    int buf_frames = ESD_BUF_SIZE / frame_length;
+
+    while ( frames_read = afReadFrames( au_file, AF_DEFAULT_TRACK, 
+					buf, buf_frames ) )
+    {
+	if ( write ( esd, buf, frames_read * frame_length ) <= 0)
+	    return 1;
+    }
+
+    return 0;
+}
+
+int esd_play_file( const char *filename, int fallback )
+{
+    /* input from libaudiofile... */
+    AFfilehandle in_file;
+    int in_format, in_width, in_channels, frame_count;
+    double in_rate;
+    int bytes_per_frame;
+
+    /* output to esound... */
+    int out_sock, out_bits, out_channels, out_rate;
+    int out_mode = ESD_STREAM, out_func = ESD_PLAY;
+    esd_format_t out_format;
+
+    /* open the audio file */
+    in_file = afOpenFile( filename, "r", NULL );
+    if ( !in_file )
+	return 0;
+
+    /* get audio file parameters */
+    frame_count = afGetFrameCount( in_file, AF_DEFAULT_TRACK );
+    in_channels = afGetChannels( in_file, AF_DEFAULT_TRACK );
+    in_rate = afGetRate( in_file, AF_DEFAULT_TRACK );
+    afGetSampleFormat( in_file, AF_DEFAULT_TRACK, &in_format, &in_width );
+
+    /* TODO: should this be set to the native endian order of the playing machine? */
+    afSetVirtualByteOrder( in_file, AF_DEFAULT_TRACK, AF_BYTEORDER_LITTLEENDIAN );
+
+    /*  printf ("frames: %i channels: %i rate: %f format: %i width: %i\n",
+     *	        frame_count, in_channels, in_rate, in_format, in_width);
+     */
+
+    /* convert audiofile parameters to EsounD parameters */
+    if ( in_width == 8 )
+	out_bits = ESD_BITS8;
+    else if ( in_width == 16 )
+	out_bits = ESD_BITS16;
+    else
+    {
+	/* fputs ("only sample widths of 8 and 16 supported\n", stderr); */
+	return 0;
+    }
+
+    bytes_per_frame = ( in_width  * in_channels ) / 8;
+
+    if ( in_channels == 1 )
+	out_channels = ESD_MONO;
+    else if ( in_channels == 2 )
+	out_channels = ESD_STEREO;
+    else
+    {
+	/* fputs ("only 1 or 2 channel samples supported\n", stderr); */
+	return 0;
+    }
+
+    out_format = out_bits | out_channels | out_mode | out_func;
+    out_rate = (int) in_rate;
+
+    /* connect to server and play stream */
+    if ( fallback )
+	out_sock = esd_play_stream_fallback( out_format, out_rate, NULL, filename );
+    else
+	out_sock = esd_play_stream( out_format, out_rate, NULL, filename );
+
+    if ( out_sock <= 0 )
+	return 0;
+
+    /* play */
+    esd_send_file( out_sock, in_file, bytes_per_frame );
+
+    /* close up and go home */
+    close( out_sock );
+    if ( afCloseFile ( in_file ) )
+	return 0;
+
+    return 1;
+}
+
+int esd_file_cache( int esd, const char *filename )
+{
+    /* input from libaudiofile... */
+    AFfilehandle in_file;
+    int in_format, in_width, in_channels, frame_count;
+    double in_rate;
+    int bytes_per_frame;
+
+    /* output to esound... */
+    int out_bits, out_channels, out_rate;
+    int out_mode = ESD_STREAM, out_func = ESD_PLAY;
+    esd_format_t out_format;
+    int length, sample_id, confirm_id;
+
+    /* open the audio file */
+    in_file = afOpenFile( filename, "r", NULL );
+    if ( !in_file )
+	return -1;
+
+    /* get audio file parameters */
+    frame_count = afGetFrameCount( in_file, AF_DEFAULT_TRACK );
+    in_channels = afGetChannels( in_file, AF_DEFAULT_TRACK );
+    in_rate = afGetRate( in_file, AF_DEFAULT_TRACK );
+    length = afGetTrackBytes( in_file, AF_DEFAULT_TRACK );
+    afGetSampleFormat( in_file, AF_DEFAULT_TRACK, &in_format, &in_width );
+
+    /* TODO: should this be set to the native endian order of the playing machine? */
+    afSetVirtualByteOrder( in_file, AF_DEFAULT_TRACK, AF_BYTEORDER_LITTLEENDIAN );
+
+    /*  printf ("frames: %i channels: %i rate: %f format: %i width: %i\n",
+     *	        frame_count, in_channels, in_rate, in_format, in_width);
+     */
+
+    /* convert audiofile parameters to EsounD parameters */
+    if ( in_width == 8 )
+	out_bits = ESD_BITS8;
+    else if ( in_width == 16 )
+	out_bits = ESD_BITS16;
+    else
+    {
+	/* fputs ("only sample widths of 8 and 16 supported\n", stderr); */
+	return -1;
+    }
+
+    bytes_per_frame = ( in_width  * in_channels ) / 8;
+
+    if ( in_channels == 1 )
+	out_channels = ESD_MONO;
+    else if ( in_channels == 2 )
+	out_channels = ESD_STEREO;
+    else
+    {
+	/* fputs ("only 1 or 2 channel samples supported\n", stderr); */
+	return -1;
+    }
+
+    out_format = out_bits | out_channels | out_mode | out_func;
+    out_rate = (int) in_rate;
+
+    /* connect to server and play stream */
+    sample_id = esd_sample_cache( esd, out_format, out_rate, 
+				  length, filename );
+
+    /* play */
+    esd_send_file( esd, in_file, bytes_per_frame );
+
+    /* close up and go home */
+    if ( afCloseFile ( in_file ) )
+	return -1;
+
+    confirm_id = esd_confirm_sample_cache( esd );
+    if ( confirm_id != sample_id )
+	return -1;
+
+    return sample_id;
+}

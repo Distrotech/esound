@@ -24,6 +24,7 @@ lib_LTLIBRARIES = libesd.la @LIBESDDSP@
 libesd_la_SOURCES = \
 	esdlib.c	\
 	esdmgr.c	\
+	esdfile.c	\
 	audio.c
 
 libesd_la_LDFLAGS = -version-info @ESD_VERSION_INFO@
@@ -100,13 +101,13 @@ esdloop_SOURCES = \
 EXTRA_esdplay_SOURCES = \
 	esdplay.c
 
-LDADD = libesd.la -lm
+LDADD = $(AUDIOFILE_LIBS) libesd.la -lm
 
 LIBOBJS = @LIBOBJS@
 
 esd_LDADD = $(LIBOBJS) $(WRAP_LIB) $(LDADD)
 esdctl_LDADD = $(LIBOBJS) $(LDADD)
-esdplay_LDADD = $(LIBOBJS) $(AUDIOFILE_LIBS) $(LDADD)
+esdplay_LDADD = $(LIBOBJS) $(LDADD)
 
 m4datadir = $(datadir)/aclocal
 m4data_DATA = esd.m4

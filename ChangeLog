@@ -1,3 +1,13 @@
+1998-11-28  Yo Ric Dude  <ricdude@ix.netcom.com>
+
+	* Makefile.am, esdfile.c, esd.h: added convenient audiofile
+	wrappers for playing and caching audio file data. 
+	* esd.h, esdlib.c: const clean up.
+	* esdmgr.c: added name to print info functions.
+	* esdplay.c, esdsample.c: updated to use audiofile wrappers.
+	NOTE: this means that the AUDIOFILE library is now REQUIRED for
+	proper compilation of esound.  configure.in will be updated soon.
+	
 Mon Nov 23 06:34:43 PST 1998 Manish Singh <yosh@gimp.org>
 
 	* configure.in: allow manual enable/disabling of alsa support
