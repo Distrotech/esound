@@ -67,8 +67,12 @@ enum esd_proto {
     ESD_PROTO_STREAM_PAN,   /* set stream panning */
     ESD_PROTO_SAMPLE_PAN,   /* set default sample panning */
 
+    /* esd status */
+    ESD_PROTO_STANDBY_MODE, /* see if server is in standby, autostandby, etc */
+
     ESD_PROTO_MAX           /* for bounds checking */
 };
+    
 
 /******************/
 /* The EsounD api */
@@ -221,6 +225,11 @@ typedef struct esd_info {
 
 } esd_info_t;
 
+enum esd_standby_mode { 
+    ESM_ERROR, ESM_ON_STANDBY, ESM_ON_AUTOSTANDBY, ESM_RUNNING
+};
+typedef int esd_standby_mode_t;
+
 /* define callbacks for esd_update_info() */
 /* what to do when a stream connects, or sample is played */
 typedef int esd_new_player_callback_t( esd_player_info_t * );
@@ -272,6 +281,9 @@ int esd_set_stream_pan( int esd, int stream_id,
 /* reset the default volume panning for a sample */
 int esd_set_default_sample_pan( int esd, int sample_id, 
 				int left_scale, int right_scale );
+
+/* see if the server is in stnaby, autostandby, etc */
+esd_standby_mode_t esd_get_standby_mode( int esd );
 
 
 /*******************************************************************/

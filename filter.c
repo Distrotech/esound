@@ -8,10 +8,8 @@ translate_func_t *esd_first_filter_func;
 /* send the filter's buffer to it's associated socket, erase if EOF */
 int filter_write( void *buffer, int size, esd_format_t format, int rate )
 {
-    int actual=0, total_data=0, data_size=0, data_rate=0;
-    void *data_buffer=NULL;
+    int actual=0, total_data=0, data_size=0;
     esd_player_t *filter=esd_filter_list, *erase=NULL;
-    esd_format_t data_format;
 
     /* if no filters, skip it */
     if( !esd_filter_list ) {

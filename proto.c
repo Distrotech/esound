@@ -30,6 +30,7 @@ int esd_proto_server_info( esd_client_t *client );
 int esd_proto_all_info( esd_client_t *client );
 int esd_proto_stream_pan( esd_client_t *client );
 int esd_proto_sample_pan( esd_client_t *client );
+int esd_proto_standby_mode( esd_client_t *client );
 int poll_client_requests(void);
 
 /*******************************************************************/
@@ -75,6 +76,7 @@ esd_proto_handler_info_t esd_proto_map[ ESD_PROTO_MAX ] =
     { 3 * sizeof(int), &esd_proto_stream_pan, "stream pan"},
     { 3 * sizeof(int), &esd_proto_sample_pan, "sample pan" },
 
+    { sizeof(int), &esd_proto_standby_mode, "standby mode" }
 };
 
 /*******************************************************************/
@@ -750,10 +752,35 @@ int esd_proto_sample_pan( esd_client_t *client )
 
 
 /*******************************************************************/
+/* daemon rejects untrusted clients, return boolean ok */
+int esd_proto_standby_mode( esd_client_t *client )
+{
+    int ok = 1, mode, client_mode, actual;
+
+    if ( esd_on_autostandby ) 
+	mode = ESM_ON_AUTOSTANDBY;
+    else if ( esd_on_standby )
+	mode = ESM_ON_STANDBY;
+    else
+	mode = ESM_RUNNING;
+
+    client_mode = maybe_swap_32( client->swap_byte_order, mode );
+    ESDBG_TRACE( printf( "(%02d) getting standby mode\n", client->fd ); );
+
+    ESD_WRITE_INT( client->fd, &client_mode, sizeof(client_mode), 
+		   actual, "stby mode" );
+    if ( sizeof( client_mode ) != actual )
+	return 0;
+    
+    return ok;
+}
+
+
+/*******************************************************************/
 /* checks for new client requiests - returns 1 */
 int poll_client_requests()
 {
-    int can_read, length, is_ok = 0;
+    int can_read, length = 0, is_ok = 0;
     esd_client_t *client = NULL;
     esd_client_t *erase = NULL;
     fd_set rd_fds;

@@ -219,9 +219,9 @@ esd_info_t *esd_get_all_info( int esd )
 esd_info_t *esd_subscribe_all_info( int esd )
 {
     fprintf( stderr, "- esd_subscribe_all_info: not yet implemented!\n" );
-	if(esd) {
-		fprintf(stderr, "but you passed me something anyways\n");
-	}
+    if(esd) {
+	fprintf(stderr, "but you passed me something anyways\n");
+    }
     return NULL;
 }
 
@@ -231,10 +231,10 @@ esd_info_t *esd_update_info( int esd, esd_info_t *info,
 			     esd_update_info_callbacks_t *callbacks )
 {
     fprintf( stderr, "- esd_update_info: not yet implemented!\n" );
-	if(esd)
-		if(info) 
-			if(callbacks)
-				fprintf(stderr, "but you passed me something anyways\n");
+    if(esd)
+	if(info) 
+	    if(callbacks)
+		fprintf(stderr, "but you passed me something anyways\n");
     return NULL;
 }
 
@@ -330,3 +330,24 @@ int esd_set_default_sample_pan( int esd, int sample_id,
     return ok;
 }
 
+/* see if the server is in stnaby, autostandby, etc */
+esd_standby_mode_t esd_get_standby_mode( int esd )
+{
+    int proto = ESD_PROTO_STANDBY_MODE, mode = ESM_ERROR, version = 0;
+
+    /* diagnostic info */
+    /*
+    if ( getenv( "ESDBG" ) )
+	printf( "esound getting standby mode\n" );
+    */
+
+    write( esd, &proto, sizeof(proto) );
+    if ( write( esd, &version, sizeof(version) ) != sizeof(version) ) {
+	return ESM_ERROR;
+    }
+
+    if ( read( esd, &mode, sizeof(mode) ) != sizeof(mode) )
+	return ESM_ERROR;
+
+    return mode;
+}

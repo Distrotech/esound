@@ -12,8 +12,9 @@
 /* esd.c - prototypes */
 void set_audio_buffer( void *buf, esd_format_t format, int magl, int magr, 
 		int freq, int speed, int length, long offset );
-void clean_exit(int signum);
-void reset_signal(int signum);
+void clean_exit( int signum );
+void reset_signal( int signum );
+void reset_daemon( int signum );
 int open_listen_socket( int port );
 
 /*******************************************************************/
@@ -268,8 +269,6 @@ int main ( int argc, char *argv[] )
     int arg = 0;
 
     void *output_buffer = NULL;
-
-    char *device = NULL;
 
     /* begin test scaffolding parameters */
     /* int format = AFMT_U8; AFMT_S16_LE; */

@@ -47,6 +47,7 @@ void exit_usage( const char *who, int errcode, const char *why, const char *what
 	     "panstream <id> <left> <right> set panning for a stream\n"
 	     "pansample <id> <left> <right> set default panning for a sample\n"
 	     "                              - left/right pan values scaled to 256.\n"
+	     "standbymode                   see if server's on standby, etc.\n"
 	     "\n" );
 
     /* terminate with given error code */
@@ -60,6 +61,7 @@ int main(int argc, char **argv)
     char *server = NULL;
     esd_server_info_t *server_info = NULL;
     esd_info_t *all_info = NULL;
+    int mode = 0;
   
     struct option opts[] = {
 	{ "server", required_argument, NULL, 's' },
@@ -182,6 +184,28 @@ int main(int argc, char **argv)
 	    } else {
 		esd_set_default_sample_pan( esd, id, left, right );
 	    }
+	}
+	else if ( !strcmp( "standbymode", argv[ optind ] ) ) {
+	    
+	    mode = esd_get_standby_mode( esd );
+	    switch( mode )
+	    {
+	    case ESM_ERROR:
+		printf( "standbymode failed\n" );
+		break;
+	    case ESM_ON_STANDBY:
+		printf( "server is on standby\n" );
+		break;
+	    case ESM_ON_AUTOSTANDBY:
+		printf( "server is on autostandby\n" );
+		break;
+	    case ESM_RUNNING:
+		printf( "server is running\n" );
+		break;
+	    default:
+		printf( "standbymode failed - unexpected return value\n" );
+		break;
+	    };
 	}
 	else {
 	    exit_usage( argv[ 0 ], 3, "unknown command", argv[ optind ] );

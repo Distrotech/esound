@@ -355,7 +355,7 @@ int read_player( esd_player_t *player )
 
 /*******************************************************************/
 /* send the players buffer to it's associated socket, erase if EOF */
-int monitor_write( void *output_buffer, int length ) {
+void monitor_write( void *output_buffer, int length ) {
     fd_set wr_fds;
     int can_write;
     struct timeval timeout;

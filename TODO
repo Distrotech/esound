@@ -19,6 +19,9 @@ BUGS
   into stereo from a mono stream or sample - esound "crackles" skipping
   chunks of the sample.. :) )
 
+* if sent to standby mode while on autostandby, it will awaken,
+  instead of remaining silent
+
 Planned for 0.2.9:
 ==================
 

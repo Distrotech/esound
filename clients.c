@@ -266,10 +266,11 @@ int wait_for_clients_and_data( int listen )
 
     ready = select( max_fd+1, &rd_fds, NULL, NULL, timeout_ptr );
 
-    ESDBG_COMMS( printf( "paused=%d, samples=%d, auto=%d, standby=%d, record=%d\n",
-			 is_paused_here, esd_playing_samples, 
-			 esd_autostandby_secs, esd_on_standby, 
-			 (esd_recorder != 0) ); );
+    ESDBG_COMMS( printf( 
+	"paused=%d, samples=%d, auto=%d, standby=%d, record=%d, ready=%d\n",
+	is_paused_here, esd_playing_samples, 
+	esd_autostandby_secs, esd_on_standby, 
+	(esd_recorder != 0), ready ); );
 
     /* TODO: return ready, and do this in esd.c */
     if ( ready <= 0 ) {
@@ -287,8 +288,7 @@ int wait_for_clients_and_data( int listen )
 	    is_paused_here = 1;
 	}
 
-	if ( !is_paused_here && !esd_on_standby 
-	     && !esd_playing_samples && !esd_recorder ) {
+	if ( !is_paused_here && !esd_playing_samples && !esd_recorder ) {
 
 	    if ( esd_autostandby_secs >= 0
 		 && ( time(NULL) > esd_last_activity + esd_autostandby_secs ) ) {

@@ -62,6 +62,7 @@ int esd_set_socket_buffers( int sock, int src_format,
 
     setsockopt( sock, SOL_SOCKET, SO_SNDBUF, &buf_size, sizeof( buf_size ) );
     setsockopt( sock, SOL_SOCKET, SO_RCVBUF, &buf_size, sizeof( buf_size ) );
+    return buf_size;
 }
 
 /*******************************************************************/
