@@ -1,12 +1,15 @@
 1998-06-05  Myth  <frb@umr.edu>
-	* esd.h: removed reference to config.h
+	* esd.h: removed reference to config.h.
 
-	* audio.c: added reference to config.h
+	* audio.c: added reference to config.h.
 
 	* Makefile.in,aclocal.m4,config.h.in,configure,COPYING,INSTALL,
 	config.guess,config.sub,install-sh,ltconfig,ltmain.sh,missing,
 	mkinstalldirs: removed from cvs tree, since they are added by
-	aclocal/auto*
+	aclocal/auto*.
+
+	* autogen.sh,HACKING: readme and script for generating files listed
+	above.
 
 1998-05-27  Raja R Harinath  <harinath@cs.umn.edu>
 
