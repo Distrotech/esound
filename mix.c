@@ -36,7 +36,7 @@ int mix_mono_16s_to_stereo_32s( esd_player_t *player, int length );
 int mix_stereo_16s_to_stereo_32s( esd_player_t *player, int length );
 
 void clip_mix_to_output_16s( signed short *output, int length );
-void clip_mix_to_output_8u( signed char *output, int length );
+void clip_mix_to_output_8u( unsigned char *output, int length );
 
 /* TODO: straighten out the mix algorithm comment annotations */
 /* TOTO: i don't think we're in kansas anymore... */
@@ -853,7 +853,7 @@ void clip_mix_to_output_16s( signed short *output, int length )
 
 /*******************************************************************/
 /* takes mixed data, and clips data to the output buffer */
-void clip_mix_to_output_8u( signed char *output, int length )
+void clip_mix_to_output_8u( unsigned char *output, int length )
 {
     signed int *mixed = mixed_buffer;
     signed int *end = mixed_buffer + length/sizeof(signed short);

@@ -1,3 +1,8 @@
+1999-08-19  Kjartan Maraas  <kmaraas@online.no>
+
+	* mix.c: (clip_mix_to_output_8u): Change *output to unsigned int
+	from signed int.
+	
 Sun Aug  8 00:56:41 1999 1999 Timur Bakeyev <mc@bat.ru>
 
 	* configure.in: Add bsdi4 as a system, that supports esddsp.
