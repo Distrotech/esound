@@ -1,5 +1,11 @@
 2004-08-12  Frederic Crozat  <fcrozat@mandrakesoft.com>
 
+	* audio_alsa09.c:
+	Use Alsa default alias when no card is specified (bug #144318,
+	original fix from Cyrille Chepelov)
+
+2004-08-12  Frederic Crozat  <fcrozat@mandrakesoft.com>
+
 	* .cvsignore:
 	Quiet CVS.
 

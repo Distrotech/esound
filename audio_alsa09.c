@@ -318,15 +318,8 @@ int esd_audio_open()
         }
         else
         {
-                card = -1;
-                if( snd_card_next(&card) < 0 || card < 0 )
-                {
-                        fprintf( stderr, "audio_alsa: no cards found!\n" );
-                        esd_audio_fd = -1;
-                        return -2 ;
-                }
-		dev = (char*) malloc(10);
-		sprintf(dev, "hw:%i", card);
+		/* bind to alsa default setting */
+		dev = strdup ("default");
         }
 
 
