@@ -1,3 +1,8 @@
+2000-07-18 Elliot Lee <sopwith@redhat.com>
+	* Undo esd_send_file change on 03-03 - it makes lots of things break.
+	* Fix fcntl that tried to remove non-blocking flag.
+	* 0.2.19
+
 2000-05-01  Drazen Kacar  <dave@srce.hr>
 
 	* audio_solaris.c: Don't set the output device, volume and

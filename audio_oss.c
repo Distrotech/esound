@@ -47,7 +47,7 @@ int esd_audio_open()
 
     mode = fcntl(afd, F_GETFL);
     mode &= ~O_NONBLOCK;
-    fcntl(afd, F_SETFL);
+    fcntl(afd, F_SETFL, mode);
 
     /* TODO: check that this is allowable */
     /* set for full duplex operation, if recording */
