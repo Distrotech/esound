@@ -914,6 +914,10 @@ int poll_client_requests()
 
 	    break;
 
+	case ESD_CACHING_SAMPLE:
+	    is_ok = esd_proto_sample_cache(client);
+	    break;
+
 	case ESD_NEXT_REQUEST:
 
  	    /* make sure there's a request as EOF may return as readable */
