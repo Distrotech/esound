@@ -249,9 +249,9 @@ void recorder_write() {
 	printf( "closing recorder (%d)\n", esd_recorder->source_id );
 
 	/* stop recording */
-	audio_close();
+	esd_audio_close();
 	esd_audio_format &= ~ESD_RECORD;
-	audio_open();
+	esd_audio_open();
 
 	/* clear the recorder */
 	erase_client( esd_recorder->parent );

@@ -1,8 +1,14 @@
-# Makefile.in generated automatically by automake 1.2 from Makefile.am
+# Makefile.in generated automatically by automake 1.3 from Makefile.am
 
-# Copyright (C) 1994, 1995, 1996, 1997 Free Software Foundation, Inc.
+# Copyright (C) 1994, 1995, 1996, 1997, 1998 Free Software Foundation, Inc.
 # This Makefile.in is free software; the Free Software Foundation
-# gives unlimited permission to copy, distribute and modify it.
+# gives unlimited permission to copy and/or distribute it,
+# with or without modifications, as long as this notice is preserved.
+
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY, to the extent permitted by law; without
+# even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+# PARTICULAR PURPOSE.
 
 
 SHELL = /bin/sh
@@ -26,6 +32,8 @@ mandir = @mandir@
 includedir = @includedir@
 oldincludedir = /usr/include
 
+DISTDIR =
+
 pkgdatadir = $(datadir)/@PACKAGE@
 pkglibdir = $(libdir)/@PACKAGE@
 pkgincludedir = $(includedir)/@PACKAGE@
@@ -43,12 +51,12 @@ INSTALL_DATA = @INSTALL_DATA@
 INSTALL_SCRIPT = @INSTALL_SCRIPT@
 transform = @program_transform_name@
 
-NORMAL_INSTALL = true
-PRE_INSTALL = true
-POST_INSTALL = true
-NORMAL_UNINSTALL = true
-PRE_UNINSTALL = true
-POST_UNINSTALL = true
+NORMAL_INSTALL = :
+PRE_INSTALL = :
+POST_INSTALL = :
+NORMAL_UNINSTALL = :
+PRE_UNINSTALL = :
+POST_UNINSTALL = :
 host_alias = @host_alias@
 host_triplet = @host@
 CC = @CC@
@@ -97,44 +105,44 @@ mix.c		\
 players.c	\
 samples.c	
 
-esd_LDADD = libesd.la
+#esd_LDADD = libesd.la
 
 esdcat_SOURCES = \
 esdcat.c
 
-esdcat_LDADD = libesd.la
+#esdcat_LDADD = libesd.la
 
 esdlock_SOURCES = \
 esdlock.c
 
-esdlock_LDADD = libesd.la
+#esdlock_LDADD = libesd.la
 
 esdunlock_SOURCES = \
 esdunlock.c
 
-esdunlock_LDADD = libesd.la
+#esdunlock_LDADD = libesd.la
 
 esdmon_SOURCES = \
 esdmon.c
 
-esdmon_LDADD = libesd.la
+#esdmon_LDADD = libesd.la
 
 esdrec_SOURCES = \
 esdrec.c
 
-esdrec_LDADD = libesd.la
+#esdrec_LDADD = libesd.la
 
 esdsample_SOURCES = \
 esdsample.c
 
-esdsample_LDADD = libesd.la
+#esdsample_LDADD = libesd.la
 
 esdloop_SOURCES = \
 esdloop.c
 
-esdloop_LDADD = libesd.la
+#esdloop_LDADD = libesd.la
 
-LDADD = -lm -lesd
+LDADD = -lm .libs/libesd.so
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_HEADER = config.h
@@ -157,28 +165,36 @@ libesd_la_OBJECTS =  esdlib.lo audio.lo
 PROGRAMS =  $(bin_PROGRAMS)
 
 esd_OBJECTS =  esd.o clients.o mix.o players.o samples.o
-esd_DEPENDENCIES =  libesd.la
+esd_LDADD = $(LDADD)
+esd_DEPENDENCIES =  .libs/libesd.so
 esd_LDFLAGS = 
 esdcat_OBJECTS =  esdcat.o
-esdcat_DEPENDENCIES =  libesd.la
+esdcat_LDADD = $(LDADD)
+esdcat_DEPENDENCIES =  .libs/libesd.so
 esdcat_LDFLAGS = 
 esdlock_OBJECTS =  esdlock.o
-esdlock_DEPENDENCIES =  libesd.la
+esdlock_LDADD = $(LDADD)
+esdlock_DEPENDENCIES =  .libs/libesd.so
 esdlock_LDFLAGS = 
 esdunlock_OBJECTS =  esdunlock.o
-esdunlock_DEPENDENCIES =  libesd.la
+esdunlock_LDADD = $(LDADD)
+esdunlock_DEPENDENCIES =  .libs/libesd.so
 esdunlock_LDFLAGS = 
 esdmon_OBJECTS =  esdmon.o
-esdmon_DEPENDENCIES =  libesd.la
+esdmon_LDADD = $(LDADD)
+esdmon_DEPENDENCIES =  .libs/libesd.so
 esdmon_LDFLAGS = 
 esdrec_OBJECTS =  esdrec.o
-esdrec_DEPENDENCIES =  libesd.la
+esdrec_LDADD = $(LDADD)
+esdrec_DEPENDENCIES =  .libs/libesd.so
 esdrec_LDFLAGS = 
 esdsample_OBJECTS =  esdsample.o
-esdsample_DEPENDENCIES =  libesd.la
+esdsample_LDADD = $(LDADD)
+esdsample_DEPENDENCIES =  .libs/libesd.so
 esdsample_LDFLAGS = 
 esdloop_OBJECTS =  esdloop.o
-esdloop_DEPENDENCIES =  libesd.la
+esdloop_LDADD = $(LDADD)
+esdloop_DEPENDENCIES =  .libs/libesd.so
 esdloop_LDFLAGS = 
 CFLAGS = @CFLAGS@
 COMPILE = $(CC) $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS)
@@ -199,14 +215,14 @@ GZIP = --best
 SOURCES = $(libesd_a_SOURCES) $(libesd_la_SOURCES) $(esd_SOURCES) $(esdcat_SOURCES) $(esdlock_SOURCES) $(esdunlock_SOURCES) $(esdmon_SOURCES) $(esdrec_SOURCES) $(esdsample_SOURCES) $(esdloop_SOURCES)
 OBJECTS = $(libesd_a_OBJECTS) $(libesd_la_OBJECTS) $(esd_OBJECTS) $(esdcat_OBJECTS) $(esdlock_OBJECTS) $(esdunlock_OBJECTS) $(esdmon_OBJECTS) $(esdrec_OBJECTS) $(esdsample_OBJECTS) $(esdloop_OBJECTS)
 
-default: all
+all: Makefile $(LIBRARIES) $(LTLIBRARIES) $(PROGRAMS) $(HEADERS) config.h
 
 .SUFFIXES:
-.SUFFIXES: .c .lo .o
-$(srcdir)/Makefile.in: Makefile.am $(top_srcdir)/configure.in $(ACLOCAL_M4) 
+.SUFFIXES: .S .c .lo .o .s
+$(srcdir)/Makefile.in: Makefile.am $(top_srcdir)/configure.in $(ACLOCAL_M4)
 	cd $(top_srcdir) && $(AUTOMAKE) --gnu --include-deps Makefile
 
-Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
+Makefile: $(srcdir)/Makefile.in  $(top_builddir)/config.status
 	cd $(top_builddir) \
 	  && CONFIG_FILES=$@ CONFIG_HEADERS= $(SHELL) ./config.status
 
@@ -219,6 +235,7 @@ $(srcdir)/configure: $(srcdir)/configure.in $(ACLOCAL_M4) $(CONFIGURE_DEPENDENCI
 	cd $(srcdir) && $(AUTOCONF)
 
 config.h: stamp-h
+	@:
 stamp-h: $(srcdir)/config.h.in $(top_builddir)/config.status
 	cd $(top_builddir) \
 	  && CONFIG_FILES= CONFIG_HEADERS=config.h \
@@ -234,14 +251,14 @@ mostlyclean-hdr:
 clean-hdr:
 
 distclean-hdr:
-	rm -f config.h
+	-rm -f config.h
 
 maintainer-clean-hdr:
 
 mostlyclean-noinstLIBRARIES:
 
 clean-noinstLIBRARIES:
-	test -z "$(noinst_LIBRARIES)" || rm -f $(noinst_LIBRARIES)
+	-test -z "$(noinst_LIBRARIES)" || rm -f $(noinst_LIBRARIES)
 
 distclean-noinstLIBRARIES:
 
@@ -250,38 +267,50 @@ maintainer-clean-noinstLIBRARIES:
 .c.o:
 	$(COMPILE) -c $<
 
+.s.o:
+	$(COMPILE) -c $<
+
+.S.o:
+	$(COMPILE) -c $<
+
 mostlyclean-compile:
-	rm -f *.o core
+	-rm -f *.o core *.core
 
 clean-compile:
 
 distclean-compile:
-	rm -f *.tab.c
+	-rm -f *.tab.c
 
 maintainer-clean-compile:
 
 .c.lo:
 	$(LIBTOOL) --mode=compile $(COMPILE) -c $<
 
+.s.lo:
+	$(LIBTOOL) --mode=compile $(COMPILE) -c $<
+
+.S.lo:
+	$(LIBTOOL) --mode=compile $(COMPILE) -c $<
+
 mostlyclean-libtool:
-	rm -f *.lo
+	-rm -f *.lo
 
 clean-libtool:
-	rm -rf .libs
+	-rm -rf .libs _libs
 
 distclean-libtool:
 
 maintainer-clean-libtool:
 
 libesd.a: $(libesd_a_OBJECTS) $(libesd_a_DEPENDENCIES)
-	rm -f libesd.a
+	-rm -f libesd.a
 	$(AR) cru libesd.a $(libesd_a_OBJECTS) $(libesd_a_LIBADD)
 	$(RANLIB) libesd.a
 
 mostlyclean-libLTLIBRARIES:
 
 clean-libLTLIBRARIES:
-	test -z "$(lib_LTLIBRARIES)" || rm -f $(lib_LTLIBRARIES)
+	-test -z "$(lib_LTLIBRARIES)" || rm -f $(lib_LTLIBRARIES)
 
 distclean-libLTLIBRARIES:
 
@@ -289,18 +318,18 @@ maintainer-clean-libLTLIBRARIES:
 
 install-libLTLIBRARIES: $(lib_LTLIBRARIES)
 	@$(NORMAL_INSTALL)
-	$(mkinstalldirs) $(libdir)
+	$(mkinstalldirs) $(DESTDIR)$(libdir)
 	@list='$(lib_LTLIBRARIES)'; for p in $$list; do \
 	  if test -f $$p; then \
-	    echo "$(LIBTOOL)  --mode=install $(INSTALL_PROGRAM) $$p $(libdir)/$$p"; \
-	    $(LIBTOOL)  --mode=install $(INSTALL_PROGRAM) $$p $(libdir)/$$p; \
+	    echo "$(LIBTOOL)  --mode=install $(INSTALL_DATA) $$p $(DESTDIR)$(libdir)/$$p"; \
+	    $(LIBTOOL)  --mode=install $(INSTALL_DATA) $$p $(DESTDIR)$(libdir)/$$p; \
 	  else :; fi; \
 	done
 
 uninstall-libLTLIBRARIES:
-	$(NORMAL_UNINSTALL)
+	@$(NORMAL_UNINSTALL)
 	list='$(lib_LTLIBRARIES)'; for p in $$list; do \
-	  $(LIBTOOL)  --mode=uninstall rm -f $(libdir)/$$p; \
+	  $(LIBTOOL)  --mode=uninstall rm -f $(DESTDIR)$(libdir)/$$p; \
 	done
 
 libesd.la: $(libesd_la_OBJECTS) $(libesd_la_DEPENDENCIES)
@@ -309,7 +338,7 @@ libesd.la: $(libesd_la_OBJECTS) $(libesd_la_DEPENDENCIES)
 mostlyclean-binPROGRAMS:
 
 clean-binPROGRAMS:
-	test -z "$(bin_PROGRAMS)" || rm -f $(bin_PROGRAMS)
+	-test -z "$(bin_PROGRAMS)" || rm -f $(bin_PROGRAMS)
 
 distclean-binPROGRAMS:
 
@@ -317,18 +346,18 @@ maintainer-clean-binPROGRAMS:
 
 install-binPROGRAMS: $(bin_PROGRAMS)
 	@$(NORMAL_INSTALL)
-	$(mkinstalldirs) $(bindir)
+	$(mkinstalldirs) $(DESTDIR)$(bindir)
 	@list='$(bin_PROGRAMS)'; for p in $$list; do \
 	  if test -f $$p; then \
-	    echo " $(LIBTOOL)  --mode=install $(INSTALL_PROGRAM) $$p $(bindir)/`echo $$p|sed '$(transform)'`"; \
-	    $(LIBTOOL)  --mode=install $(INSTALL_PROGRAM) $$p $(bindir)/`echo $$p|sed '$(transform)'`; \
+	    echo " $(LIBTOOL)  --mode=install $(INSTALL_PROGRAM) $$p $(DESTDIR)$(bindir)/`echo $$p|sed '$(transform)'`"; \
+	    $(LIBTOOL)  --mode=install $(INSTALL_PROGRAM) $$p $(DESTDIR)$(bindir)/`echo $$p|sed '$(transform)'`; \
 	  else :; fi; \
 	done
 
 uninstall-binPROGRAMS:
-	$(NORMAL_UNINSTALL)
+	@$(NORMAL_UNINSTALL)
 	list='$(bin_PROGRAMS)'; for p in $$list; do \
-	  rm -f $(bindir)/`echo $$p|sed '$(transform)'`; \
+	  rm -f $(DESTDIR)$(bindir)/`echo $$p|sed '$(transform)'`; \
 	done
 
 esd: $(esd_OBJECTS) $(esd_DEPENDENCIES)
@@ -365,35 +394,41 @@ esdloop: $(esdloop_OBJECTS) $(esdloop_DEPENDENCIES)
 
 install-includeHEADERS: $(include_HEADERS)
 	@$(NORMAL_INSTALL)
-	$(mkinstalldirs) $(includedir)
+	$(mkinstalldirs) $(DESTDIR)$(includedir)
 	@list='$(include_HEADERS)'; for p in $$list; do \
-	  echo " $(INSTALL_DATA) $(srcdir)/$$p $(includedir)/$$p"; \
-	  $(INSTALL_DATA) $(srcdir)/$$p $(includedir)/$$p; \
+	  if test -f "$$p"; then d= ; else d="$(srcdir)/"; fi; \
+	  echo " $(INSTALL_DATA) $$d$$p $(DESTDIR)$(includedir)/$$p"; \
+	  $(INSTALL_DATA) $$d$$p $(DESTDIR)$(includedir)/$$p; \
 	done
 
 uninstall-includeHEADERS:
-	$(NORMAL_UNINSTALL)
+	@$(NORMAL_UNINSTALL)
 	list='$(include_HEADERS)'; for p in $$list; do \
-	  rm -f $(includedir)/$$p; \
+	  rm -f $(DESTDIR)$(includedir)/$$p; \
 	done
 
 tags: TAGS
 
-ID: $(HEADERS) $(SOURCES)
-	here=`pwd` && cd $(srcdir) && mkid -f$$here/ID $(SOURCES) $(HEADERS)
+ID: $(HEADERS) $(SOURCES) $(LISP)
+	here=`pwd` && cd $(srcdir) \
+	  && mkid -f$$here/ID $(SOURCES) $(HEADERS) $(LISP)
 
-TAGS:  $(HEADERS) $(SOURCES) config.h.in $(TAGS_DEPENDENCIES)
+TAGS:  $(HEADERS) $(SOURCES) config.h.in $(TAGS_DEPENDENCIES) $(LISP)
 	tags=; \
 	here=`pwd`; \
-	test -z "$(ETAGS_ARGS)config.h.in$(SOURCES)$(HEADERS)$$tags" \
-	  || (cd $(srcdir) && etags $(ETAGS_ARGS) $$tags config.h.in $(SOURCES) $(HEADERS) -o $$here/TAGS)
+	list='$(SOURCES) $(HEADERS)'; \
+	unique=`for i in $$list; do echo $$i; done | \
+	  awk '    { files[$$0] = 1; } \
+	       END { for (i in files) print i; }'`; \
+	test -z "$(ETAGS_ARGS)config.h.in$$unique$(LISP)$$tags" \
+	  || (cd $(srcdir) && etags $(ETAGS_ARGS) $$tags config.h.in $$unique $(LISP) -o $$here/TAGS)
 
 mostlyclean-tags:
 
 clean-tags:
 
 distclean-tags:
-	rm -f TAGS ID
+	-rm -f TAGS ID
 
 maintainer-clean-tags:
 
@@ -404,7 +439,7 @@ top_distdir = $(distdir)
 # it guarantees that the distribution is self-contained by making another
 # tarfile.
 distcheck: dist
-	rm -rf $(distdir)
+	-rm -rf $(distdir)
 	GZIP=$(GZIP) $(TAR) zxf $(distdir).tar.gz
 	mkdir $(distdir)/=build
 	mkdir $(distdir)/=inst
@@ -417,20 +452,20 @@ distcheck: dist
 	  && $(MAKE) install \
 	  && $(MAKE) installcheck \
 	  && $(MAKE) dist
-	rm -rf $(distdir)
+	-rm -rf $(distdir)
 	@echo "========================"; \
 	echo "$(distdir).tar.gz is ready for distribution"; \
 	echo "========================"
 dist: distdir
 	-chmod -R a+r $(distdir)
 	GZIP=$(GZIP) $(TAR) chozf $(distdir).tar.gz $(distdir)
-	rm -rf $(distdir)
+	-rm -rf $(distdir)
 dist-all: distdir
 	-chmod -R a+r $(distdir)
 	GZIP=$(GZIP) $(TAR) chozf $(distdir).tar.gz $(distdir)
-	rm -rf $(distdir)
+	-rm -rf $(distdir)
 distdir: $(DISTFILES)
-	rm -rf $(distdir)
+	-rm -rf $(distdir)
 	mkdir $(distdir)
 	-chmod 777 $(distdir)
 	@for file in $(DISTFILES); do \
@@ -439,21 +474,6 @@ distdir: $(DISTFILES)
 	  || ln $$d/$$file $(distdir)/$$file 2> /dev/null \
 	  || cp -p $$d/$$file $(distdir)/$$file; \
 	done
-audio.o audio.lo: audio.c esd.h
-clients.o clients.lo: clients.c esd.h
-esd.o esd.lo: esd.c esd.h
-esdcat.o esdcat.lo: esdcat.c esd.h
-esdlib.o esdlib.lo: esdlib.c esd.h
-esdlock.o esdlock.lo: esdlock.c esd.h
-esdloop.o esdloop.lo: esdloop.c esd.h
-esdmon.o esdmon.lo: esdmon.c esd.h
-esdrec.o esdrec.lo: esdrec.c esd.h
-esdsample.o esdsample.lo: esdsample.c esd.h
-esdunlock.o esdunlock.lo: esdunlock.c esd.h
-mix.o mix.lo: mix.c esd.h
-players.o players.lo: players.c esd.h
-samples.o samples.lo: samples.c esd.h
-
 info:
 dvi:
 check: all
@@ -470,28 +490,27 @@ install: install-exec install-data all
 
 uninstall: uninstall-libLTLIBRARIES uninstall-binPROGRAMS uninstall-includeHEADERS
 
-all: Makefile $(LIBRARIES) $(LTLIBRARIES) $(PROGRAMS) $(HEADERS) config.h
-
 install-strip:
 	$(MAKE) INSTALL_PROGRAM='$(INSTALL_PROGRAM) -s' INSTALL_SCRIPT='$(INSTALL_PROGRAM)' install
 installdirs:
-	$(mkinstalldirs)  $(libdir) $(bindir) $(includedir)
+	$(mkinstalldirs)  $(DATADIR)$(libdir) $(DATADIR)$(bindir) \
+		$(DATADIR)$(includedir)
 
 
 mostlyclean-generic:
-	test -z "$(MOSTLYCLEANFILES)" || rm -f $(MOSTLYCLEANFILES)
+	-test -z "$(MOSTLYCLEANFILES)" || rm -f $(MOSTLYCLEANFILES)
 
 clean-generic:
-	test -z "$(CLEANFILES)" || rm -f $(CLEANFILES)
+	-test -z "$(CLEANFILES)" || rm -f $(CLEANFILES)
 
 distclean-generic:
-	rm -f Makefile $(DISTCLEANFILES)
-	rm -f config.cache config.log stamp-h stamp-h[0-9]*
-	test -z "$(CONFIG_CLEAN_FILES)" || rm -f $(CONFIG_CLEAN_FILES)
+	-rm -f Makefile $(DISTCLEANFILES)
+	-rm -f config.cache config.log stamp-h stamp-h[0-9]*
+	-test -z "$(CONFIG_CLEAN_FILES)" || rm -f $(CONFIG_CLEAN_FILES)
 
 maintainer-clean-generic:
-	test -z "$(MAINTAINERCLEANFILES)" || rm -f $(MAINTAINERCLEANFILES)
-	test -z "$(BUILT_SOURCES)" || rm -f $(BUILT_SOURCES)
+	-test -z "$(MAINTAINERCLEANFILES)" || rm -f $(MAINTAINERCLEANFILES)
+	-test -z "$(BUILT_SOURCES)" || rm -f $(BUILT_SOURCES)
 mostlyclean:  mostlyclean-hdr mostlyclean-noinstLIBRARIES \
 		mostlyclean-compile mostlyclean-libtool \
 		mostlyclean-libLTLIBRARIES mostlyclean-binPROGRAMS \
@@ -505,8 +524,8 @@ distclean:  distclean-hdr distclean-noinstLIBRARIES distclean-compile \
 		distclean-libtool distclean-libLTLIBRARIES \
 		distclean-binPROGRAMS distclean-tags distclean-generic \
 		clean
-	rm -f config.status
-	rm -f libtool
+	-rm -f config.status
+	-rm -f libtool
 
 maintainer-clean:  maintainer-clean-hdr maintainer-clean-noinstLIBRARIES \
 		maintainer-clean-compile maintainer-clean-libtool \
@@ -515,24 +534,24 @@ maintainer-clean:  maintainer-clean-hdr maintainer-clean-noinstLIBRARIES \
 		maintainer-clean-generic distclean
 	@echo "This command is intended for maintainers to use;"
 	@echo "it deletes files that may require special tools to rebuild."
-	rm -f config.status
+	-rm -f config.status
 
-.PHONY: default mostlyclean-hdr distclean-hdr clean-hdr \
-maintainer-clean-hdr mostlyclean-noinstLIBRARIES \
-distclean-noinstLIBRARIES clean-noinstLIBRARIES \
-maintainer-clean-noinstLIBRARIES mostlyclean-compile distclean-compile \
-clean-compile maintainer-clean-compile mostlyclean-libtool \
-distclean-libtool clean-libtool maintainer-clean-libtool \
-mostlyclean-libLTLIBRARIES distclean-libLTLIBRARIES \
-clean-libLTLIBRARIES maintainer-clean-libLTLIBRARIES \
-uninstall-libLTLIBRARIES install-libLTLIBRARIES mostlyclean-binPROGRAMS \
-distclean-binPROGRAMS clean-binPROGRAMS maintainer-clean-binPROGRAMS \
-uninstall-binPROGRAMS install-binPROGRAMS uninstall-includeHEADERS \
-install-includeHEADERS tags mostlyclean-tags distclean-tags clean-tags \
-maintainer-clean-tags distdir info dvi installcheck install-exec \
-install-data install uninstall all installdirs mostlyclean-generic \
-distclean-generic clean-generic maintainer-clean-generic clean \
-mostlyclean distclean maintainer-clean
+.PHONY: mostlyclean-hdr distclean-hdr clean-hdr maintainer-clean-hdr \
+mostlyclean-noinstLIBRARIES distclean-noinstLIBRARIES \
+clean-noinstLIBRARIES maintainer-clean-noinstLIBRARIES \
+mostlyclean-compile distclean-compile clean-compile \
+maintainer-clean-compile mostlyclean-libtool distclean-libtool \
+clean-libtool maintainer-clean-libtool mostlyclean-libLTLIBRARIES \
+distclean-libLTLIBRARIES clean-libLTLIBRARIES \
+maintainer-clean-libLTLIBRARIES uninstall-libLTLIBRARIES \
+install-libLTLIBRARIES mostlyclean-binPROGRAMS distclean-binPROGRAMS \
+clean-binPROGRAMS maintainer-clean-binPROGRAMS uninstall-binPROGRAMS \
+install-binPROGRAMS uninstall-includeHEADERS install-includeHEADERS \
+tags mostlyclean-tags distclean-tags clean-tags maintainer-clean-tags \
+distdir info dvi installcheck install-exec install-data install \
+uninstall all installdirs mostlyclean-generic distclean-generic \
+clean-generic maintainer-clean-generic clean mostlyclean distclean \
+maintainer-clean
 
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.

@@ -4,6 +4,7 @@
 #include <dirent.h>
 #include <sys/stat.h>
 
+#include <netdb.h>
 #include <arpa/inet.h>
 
 /*******************************************************************/
@@ -69,6 +70,7 @@ int esd_send_auth( int socket )
 int esd_open_sound()
 {
     char *espeaker = NULL;
+    struct hostent *he;
 
     /*********************/
     /* socket test setup */
@@ -76,7 +78,11 @@ int esd_open_sound()
     int socket_out;
     int curstate = 1;
 
-    char host[64] = "0.0.0.0";	/* TODO: is there a MAX_??? for this? */
+    /* TODO: find out why I don't have INET_ADDRSTRLEN in
+       my copy of /usr/include/netinet/in.h (instead of 64)
+    */
+
+    char host[64] = "0.0.0.0";
     int port = ESD_DEFAULT_PORT;
     int host_div = 0;
    
@@ -92,14 +98,24 @@ int esd_open_sound()
 	    host[ host_div ] = '\0';
 	}
 
-	/* TODO: gethostbyname(host) */
-	
+        /* Resolving the host name */
+        if ( ( he = gethostbyname( host ) ) == NULL ) {
+	    printf("Can\'t resolve host name \"%s\"!\n", host);
+	    return(-1);
+        }
+	/* TODO: is bcopy portable? maybe memcpy is more appropriate */
+	bcopy( he->h_addr, (struct in_addr *) &socket_addr.sin_addr,
+	       sizeof( struct in_addr ) );
+
 	/* get port */
 	if ( host_div != strlen( espeaker ) )
 	    port = atoi( espeaker + host_div + 1 );
 	if ( !port ) 
 	    port = ESD_DEFAULT_PORT;
 	printf( "(remote) host is %s : %d\n", host, port );
+    } else if( !inet_aton( host, &socket_addr.sin_addr ) ) {
+	printf( "couldn't convert %s to inet address\n", host );
+	return -1;
     }
 
     /* create the socket, and set for non-blocking */
@@ -126,12 +142,6 @@ int esd_open_sound()
     /* set the connect information */
     socket_addr.sin_family = AF_INET;
     socket_addr.sin_port = htons( port );
-
-    if( !inet_aton( host, &socket_addr.sin_addr ) )
-    { 
-	printf( "couldn't convert %s to inet address\n", host );
-	return -1;
-    }
 
     if ( connect( socket_out,
 		  (struct sockaddr *) &socket_addr,
@@ -193,7 +203,7 @@ int esd_play_stream_fallback( esd_format_t format, int rate )
     /* go for /dev/dsp */
     esd_audio_format = format;
     esd_audio_rate = rate;
-    socket_out = audio_open();
+    socket_out = esd_audio_open();
 
     /* we either got it, or we didn't */
     return socket_out;
@@ -263,7 +273,7 @@ int esd_record_stream_fallback( esd_format_t format, int rate )
     /* go for /dev/dsp */
     esd_audio_format = format;
     esd_audio_rate = rate;
-    socket_out = audio_open();
+    socket_out = esd_audio_open();
 
     /* we either got it, or we didn't */
     return socket_out;

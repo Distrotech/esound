@@ -205,9 +205,9 @@ int esd_proto_stream_recorder( esd_client_t *client )
     if ( esd_recorder != NULL ) {
 
 	/* let the device know we want to record */
-	audio_close();
+	esd_audio_close();
 	esd_audio_format |= ESD_RECORD;
-	audio_open();
+	esd_audio_open();
 
 	/* flesh out the recorder */
 	esd_recorder->parent = client;

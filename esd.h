@@ -94,6 +94,8 @@ extern "C" {
 
 typedef unsigned char octet;
 
+/* esdlib.c - client interface functions */
+
 /* opens channel, authenticates connection, and prefares for protos */
 /* returns EsounD socket for communication, result < 0 = error */
 /* server = listen socket (localhost:5001, 192.168.168.0:9999 */
@@ -130,6 +132,17 @@ int esd_sample_kill( int esd, int sample );
 
 /* closes fd, previously obtained by esd_open */
 int esd_close( int esd );
+
+/* audio.c - abstract the sound hardware for cross platform usage */
+extern esd_format_t esd_audio_format;
+extern int esd_audio_rate;
+
+int esd_audio_open();
+void esd_audio_close();
+void esd_audio_pause();
+int esd_audio_write( void *buffer, int buf_size );
+int esd_audio_read( void *buffer, int buf_size );
+void esd_audio_flush();
 
 #ifdef __cplusplus
 }

@@ -6,17 +6,6 @@
 /*******************************************************************/
 /* server function prototypes */
 
-/* audio.c - abstract the sound hardware for cross platform usage */
-extern esd_format_t esd_audio_format;
-extern int esd_audio_rate;
-
-int audio_open();
-void audio_close();
-void audio_pause();
-int audio_write( void *buffer, int buf_size );
-int audio_read( void *buffer, int buf_size );
-void audio_flush();
-
 /* clients.c - manage the client connections */
 extern esd_client_t *esd_clients_list;
 void dump_clients();

@@ -168,7 +168,7 @@ int main ( int argc, char *argv[] )
     esd_audio_format = format;
     esd_audio_rate = rate;
 
-    audio = audio_open();
+    audio = esd_audio_open();
     if ( audio < 0 ) {
 	fprintf( stderr, "fatal error configuring sound, %s\n", 
 		 "/dev/dsp" );
@@ -202,11 +202,11 @@ int main ( int argc, char *argv[] )
 			      ( (i%2) ? 0 : magr ),
 			      freq, rate, buf_size, 
 			      j * buf_size / sizeof(signed short) );
-	    audio_write( output_buffer, buf_size );
+	    esd_audio_write( output_buffer, buf_size );
 	}
     }
     /* pause the sound output */
-    audio_pause();
+    esd_audio_pause();
 
     /* until we kill the daemon */
     while ( !esd_terminate )
@@ -223,11 +223,11 @@ int main ( int argc, char *argv[] )
 	/* mix new requests, and output to device */
 	length = mix_players_16s( output_buffer, buf_size );
 	if ( length > 0 || esd_monitor ) {
-	    audio_write( output_buffer, buf_size );
-	    audio_flush();
+	    esd_audio_write( output_buffer, buf_size );
+	    esd_audio_flush();
 	} else {
 	    /* be very quiet, and wait for a wabbit to come along */
-	    audio_pause();
+	    esd_audio_pause();
 	}
 
 	/* if someone's monitoring the sound stream, send them data */
@@ -242,7 +242,7 @@ int main ( int argc, char *argv[] )
 
 	/* if someone's recording the sound stream, send them data */
 	if ( esd_recorder ) { 
-	    length = audio_read( output_buffer, buf_size );
+	    length = esd_audio_read( output_buffer, buf_size );
 	    if ( length ) {
 		mix_from_stereo_16s( output_buffer, 
 				     esd_recorder, buf_size ); 
@@ -252,7 +252,7 @@ int main ( int argc, char *argv[] )
 
     }
 
-    audio_close();
+    esd_audio_close();
     close( listen_socket );
 
     exit( 0 );

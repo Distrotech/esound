@@ -12,7 +12,7 @@ static int esd_audio_fd = -1;
 
 /*******************************************************************/
 /* returns audio_fd for use by main prog - platform dependent */
-int audio_open()
+int esd_audio_open()
 {
     const char *device = "/dev/dsp";
 
@@ -111,14 +111,14 @@ int audio_open()
 
 /*******************************************************************/
 /* close the audio device */
-void audio_close()
+void esd_audio_close()
 {
     close( esd_audio_fd );
     return;
 }
 /*******************************************************************/
 /* make the sound device quiet for a while */
-void audio_pause()
+void esd_audio_pause()
 {
     /* per oss specs */
     ioctl( esd_audio_fd, SNDCTL_DSP_POST, 0 );
@@ -127,21 +127,21 @@ void audio_pause()
 
 /*******************************************************************/
 /* dump a buffer to the sound device */
-int audio_write( void *buffer, int buf_size )
+int esd_audio_write( void *buffer, int buf_size )
 {
     return write( esd_audio_fd, buffer, buf_size );
 }
 
 /*******************************************************************/
 /* read a chunk from the sound device */
-int audio_read( void *buffer, int buf_size )
+int esd_audio_read( void *buffer, int buf_size )
 {
     return read( esd_audio_fd, buffer, buf_size );
 }
 
 /*******************************************************************/
 /* flush the audio buffer */
-void audio_flush()
+void esd_audio_flush()
 {
     fsync( esd_audio_fd );
     return;
