@@ -545,3 +545,10 @@ int esd_sample_stop( int esd, int sample )
     /* return the id to the client (0 = error, 1 = ok) */
     return is_ok;
 }
+
+/*******************************************************************/
+/* closes fd, previously obtained by esd_open */
+int esd_close( int esd )
+{
+    return close( esd );
+}

@@ -1,3 +1,10 @@
+1998-09-27  Yo Ric Dude  <ericmit@ix.netcom.com>
+
+	* configure.in: `AC_PROG_RANLIB' is rendered obsolete by `AM_PROG_LIBTOOL'
+
+	* esdlib.c: added the missing esd_close() function.  no need for 
+	clients to know they're dealing with a socket.
+
 1998-09-25  Mandrake <mandrake@mandrake.net>
 
 	* autogen.sh: added libtoolize --copy --force to autogen.sh per

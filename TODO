@@ -87,5 +87,13 @@ free samples when client closes
 
 endian swapping cleanup
 
-for solaris: AUDIO_LINE_OUT, AUDIO_SPEAKER, AUDIO_HEADPHONE
+for Solaris: AUDIO_LINE_OUT, AUDIO_SPEAKER, AUDIO_HEADPHONE
+for Linux: pick /dev/dsp2 if more than one card.  
+Pass the device spec to esd_audio_open (?)
+
 change on the fly?
+
+
+int find_sample_from_name( char *name );
+
+int esd_close( int esd );
