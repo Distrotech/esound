@@ -28,7 +28,6 @@ static int esd_audio_fd = -1;
 #elif defined(DRIVER_MKLINUX)
 #  include "audio_mklinux.c"
 #else
-#  define DRIVER_NONE
 #  include "audio_none.c"
 #endif
 

@@ -7,6 +7,33 @@
 #include <netdb.h>
 #include <arpa/inet.h>
 
+#ifndef HAVE_INET_ATON
+#include <netinet/in.h>
+#include <string.h>
+int inet_aton(const char *cp, struct in_addr *inp)
+{
+    union {
+	unsigned int n;
+	char parts[4];
+    } u;
+    int a=0,b=0,c=0,d=0, i;
+
+    i = sscanf(cp, "%d.%d.%d.%d%*s", &a, &b, &c, &d);
+
+    if(i != 4)
+	return 0;
+
+    u.parts[0] = a;
+    u.parts[1] = b;
+    u.parts[2] = c;
+    u.parts[3] = d;
+
+    inp->s_addr = u.n;
+
+    return 1;
+}
+#endif
+
 /*******************************************************************/
 /* send the authorization cookie, create one if needed */
 int esd_send_auth( int sock )

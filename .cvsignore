@@ -20,9 +20,10 @@ esdrec
 esdmon
 esdctl
 esdcat
+esdplay
 esd
 libesd.la
 .libs
 _libs
 .deps
-esdplay
+esd-config

@@ -1,3 +1,16 @@
+Wed Sep 30 21:08:19 PDT 1998 Manish Singh <yosh@gimp.org>
+
+	* esd.m4
+	* esd-config
+	* configure.in: Added support for esd-config (like GTK+). Added
+	explict disabling of local sound (for an audio data server). Fixed
+	NEW_ALSA detection. Define HAVE_INET_ATON if we have it.
+
+	* audio.c
+	* audio_none.c: support for no local sound
+
+	* esdlib.c: provide inet_aton implementation if it's not avaliable
+
 1998-09-29  Yo Ric Dude  <ericmit@ix.netcom.com>
 
 	* esd-server.h, esd.c: updated obsolete info. As noted by Sopwith,

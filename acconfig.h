@@ -8,3 +8,5 @@
 #undef DRIVER_MKLINUX
 #undef DRIVER_ALSA
 #undef DRIVER_NEWALSA
+#undef DRIVER_NONE
+#undef HAVE_INET_ATON

@@ -1,8 +1,24 @@
 dnl Initialize the autoconf settings
 
 AC_INIT(esd.h)
-AM_INIT_AUTOMAKE(esound, 0.2.5)
+
+ESD_MAJOR_VERSION=0
+ESD_MINOR_VERSION=2
+ESD_MICRO_VERSION=5
+ESD_VERSION=$ESD_MAJOR_VERSION.$ESD_MINOR_VERSION.$ESD_MICRO_VERSION
+AC_SUBST(ESD_MAJOR_VERSION)
+AC_SUBST(ESD_MINOR_VERSION)
+AC_SUBST(ESD_MICRO_VERSION)
+AC_SUBST(ESD_VERSION)
+
+VERSION=$ESD_VERSION
+PACKAGE=esound
+
+AM_INIT_AUTOMAKE($PACKAGE, $VERSION)
+
 AM_CONFIG_HEADER(config.h)
+
+AM_MAINTAINER_MODE
 
 dnl Check for tools
 
@@ -13,14 +29,18 @@ AC_PROG_CPP
 
 AM_PROG_LIBTOOL
 AC_PROG_INSTALL
-dnl AC_PROG_RANLIB ;# `AC_PROG_RANLIB' is rendered obsolete by `AM_PROG_LIBTOOL'
 
 dnl Check for system libs needed
 
 AC_CHECK_FUNC(connect,,[AC_CHECK_LIB(socket,connect)])
 AC_CHECK_FUNC(gethostbyname,,[AC_CHECK_LIB(nsl,gethostbyname)])
-AC_CHECK_FUNC(inet_aton,,[AC_CHECK_LIB(resolv,inet_aton)])
 AC_CHECK_FUNC(nanosleep,,[AC_CHECK_LIB(posix4,nanosleep)])
+AC_CHECK_FUNC(inet_aton,,[AC_CHECK_LIB(resolv,inet_aton)])
+if test x$ac_cv_func_inet_aton = xno && test x$ac_cv_lib_resolv_inet_aton = xno 
+then :
+else
+  AC_DEFINE(HAVE_INET_ATON)
+fi
 
 dnl Needed for FIONBIO on Solaris at least
 AC_CHECK_HEADERS(sys/filio.h sys/ioctl.h)
@@ -36,50 +56,70 @@ AC_CHECK_HEADERS(dmedia/audio.h sys/soundlib.h sys/asoundlib.h)
 
 dnl Define the driver needed based on the first header file found
 
-if test "${ac_cv_header_sys_soundcard_h}" = "yes" || \
-   test "${ac_cv_header_soundcard_h}" = "yes" || \
-   test "${ac_cv_header_machine_soundcard_h}" = "yes"; then
+AC_ARG_ENABLE(local_sound,[  --enable-local-sound    turn on local sound playing [default=yes]], , enable_local_sound=yes)
 
-dnl Platform mklinux/powerpc needs special care and feeding
-   if test "${host_cpu}" = "powerpc"; then
-     AC_DEFINE(DRIVER_MKLINUX)
-   else
-     AC_DEFINE(DRIVER_OSS)
+if test "x$enable_local_sound" = "xyes"; then
+   found_sound=no
+
+   if test "${ac_cv_header_sys_soundcard_h}" = "yes" || \
+      test "${ac_cv_header_soundcard_h}" = "yes" || \
+      test "${ac_cv_header_machine_soundcard_h}" = "yes"; then
+
+      dnl Platform mklinux/powerpc needs special care and feeding
+      if test "${host_cpu}" = "powerpc"; then
+        found_sound=yes
+        AC_DEFINE(DRIVER_MKLINUX)
+      else
+        found_sound=yes
+        AC_DEFINE(DRIVER_OSS)
+      fi
    fi
-fi
 
-if test "${ac_cv_header_sys_audio_h}" = "yes"; then
-   case ${host_os} in
-   hpux*)
-       AC_DEFINE(DRIVER_HPUX)
-   ;;
-   aix*)
-       AC_DEFINE(DRIVER_AIX)
-   esac
-fi
+   if test "${ac_cv_header_sys_audio_h}" = "yes"; then
+      case ${host_os} in
+      hpux*)
+          found_sound=yes
+          AC_DEFINE(DRIVER_HPUX)
+      ;;
+      aix*)
+          found_sound=yes
+          AC_DEFINE(DRIVER_AIX)
+      esac
+   fi
 
-if test "${ac_cv_header_sys_audioio_h}" = "yes" || \
-   test "${ac_cv_header_sys_audio_io_h}" = "yes" || \
-   test "${ac_cv_header_sun_audioio_h}" = "yes"; then
-   case ${host_os} in
-   solaris*)
-      AC_DEFINE(DRIVER_SOLARIS)
-   esac
-fi
+   if test "${ac_cv_header_sys_audioio_h}" = "yes" || \
+      test "${ac_cv_header_sys_audio_io_h}" = "yes" || \
+      test "${ac_cv_header_sun_audioio_h}" = "yes"; then
+      case ${host_os} in
+      solaris*)
+         found_sound=yes
+         AC_DEFINE(DRIVER_SOLARIS)
+      esac
+   fi
 
-if test "${ac_cv_header_dmedia_audio_h}" = "yes"; then
-   case ${host_os} in
-   irix*)
-      AC_DEFINE(DRIVER_IRIX)
-   esac
-fi
+   if test "${ac_cv_header_dmedia_audio_h}" = "yes"; then
+      case ${host_os} in
+      irix*)
+         found_sound=yes
+         AC_DEFINE(DRIVER_IRIX)
+      esac
+   fi
 
-if test "${ac_cv_header_sys_soundlib_h}" = "yes"; then
-   AC_DEFINE(DRIVER_ALSA)
-fi
+   if test "${ac_cv_header_sys_soundlib_h}" = "yes"; then
+      found_sound=yes
+      AC_DEFINE(DRIVER_ALSA)
+   fi
 
-if test "${ac_cv_header_sys_soundlib_h}" = "yes"; then
-   AC_DEFINE(DRIVER_NEWALSA)
+   if test "${ac_cv_header_sys_asoundlib_h}" = "yes"; then
+      found_sound=yes
+      AC_DEFINE(DRIVER_NEWALSA)
+   fi
+
+   if test "$found_sound" = "no"; then
+      AC_MSG_ERROR([Could not find a support sound driver])
+   fi
+else
+   AC_DEFINE(DRIVER_NONE)
 fi
 
 dnl Check for audio libs needed
@@ -123,7 +163,13 @@ echo "---------------------------------------------------------------------"
 
 dnl set | sort
 
+ESD_LIBS=$LIBS
+AC_SUBST(ESD_LIBS)
+
 AC_SUBST(AF_LIB)
 AC_SUBST(ESDPLAY)
 
-AC_OUTPUT(Makefile)
+AC_OUTPUT([
+Makefile
+esd-config
+], [chmod +x esd-config])
