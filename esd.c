@@ -15,6 +15,11 @@
 
 #include <netdb.h>
 
+/* Older resolvers don't have gethostbyname2() */
+#ifndef HAVE_GETHOSTBYNAME2
+#define gethostbyname2(host, family) gethostbyname((host))
+#endif /* HAVE_GETHOSTBYNAME2 */
+
 /*******************************************************************/
 /* esd.c - prototypes */
 void set_audio_buffer( void *buf, esd_format_t format, int magl, int magr,
