@@ -36,7 +36,6 @@ fi
 
 THEDIR="`pwd`"
 cd $srcdir
-libtoolize --copy --force
 aclocal $ACLOCAL_FLAGS
 autoheader
 autoconf
