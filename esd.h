@@ -160,4 +160,7 @@ void esd_audio_flush();
 /* default port for the EsounD server */
 #define ESD_DEFAULT_PORT (5001)
 
+/* maximum length of a stream/sample name */
+#define ESD_NAME_MAX (128)
+
 #endif /* #ifndef ESD_H */

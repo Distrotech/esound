@@ -310,8 +310,10 @@ esd_player_t *new_stream_player( int client_fd )
     player->format &= ~ESD_MASK_MODE; /* force to ESD_STREAM */
     read( client_fd, &player->rate, sizeof(player->rate) );
     player->source_id = client_fd;
+    read( client_fd, player->name, ESD_NAME_MAX );
+    player->name[ ESD_NAME_MAX - 1 ] = '\0';
 
-    printf( "connection format: 0x%08x at %d Hz\n", 
+    printf( "stream %s: 0x%08x at %d Hz\n", player->name, 
 	    player->format, player->rate );
 
     /* calculate buffer length to match the mix buffer duration */

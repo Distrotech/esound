@@ -50,7 +50,7 @@ typedef struct esd_player {
 
     /* time_t last_read; */	/* timeout for streams, not used */
     int last_pos;		/* track read position for samples */
-
+    char name[ ESD_NAME_MAX ];	/* name of stream for remote control */
 } esd_player_t;
 
 /* TODO?: typedef esd_player_t esd_recorder_t, and monitor? */
@@ -69,6 +69,7 @@ typedef struct esd_sample {
 
     int ref_count;		/* track players for clean deletion */
     int erase_when_done;	/* track uncache requests */
+    char name[ ESD_NAME_MAX ];	/* name of sample for remote control */
 } esd_sample_t;
 
 /*******************************************************************/

@@ -130,9 +130,12 @@ esd_sample_t *new_sample( int client_fd )
     read( client_fd, &sample->format, sizeof(sample->format) );
     read( client_fd, &sample->rate, sizeof(sample->rate) );
     read( client_fd, &sample->sample_length, sizeof(sample->sample_length) );
+    read( client_fd, sample->name, ESD_NAME_MAX );
+    sample->name[ ESD_NAME_MAX - 1 ] = '\0';
+
     sample->sample_id = esd_next_sample_id++;
 
-    printf( "connection format: 0x%08x at %d Hz\n", 
+    printf( "sample %s: 0x%08x at %d Hz\n", sample->name, 
 	    sample->format, sample->rate );
 
     /* force to an even multiple of 4, do it in the player */

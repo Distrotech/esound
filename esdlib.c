@@ -9,7 +9,7 @@
 
 /*******************************************************************/
 /* send the authorization cookie, create one if needed */
-int esd_send_auth( int socket )
+int esd_send_auth( int sock )
 {
     int auth_fd = -1, i = 0;
     char *auth_filename = 0, auth_key[ESD_KEY_LEN];
@@ -62,7 +62,7 @@ int esd_send_auth( int socket )
 	goto exit_fd;
 
     /* send the key to the server */
-    if ( ESD_KEY_LEN != write( socket, auth_key, ESD_KEY_LEN ) )
+    if ( ESD_KEY_LEN != write( sock, auth_key, ESD_KEY_LEN ) )
 	/* send key failed */
 	goto exit_fd;
 
@@ -237,11 +237,16 @@ int esd_play_stream( esd_format_t format, int rate, char *host, char *name )
 {
     int sock;
     int proto = ESD_PROTO_STREAM_PLAY;
+    char name_buf[ ESD_NAME_MAX ];
 
+    /* connect to the EsounD server */
     sock = esd_open_sound( host );
     if ( sock < 0 ) 
 	return sock;
-    
+
+    /* prepare the name buffer */
+    strncpy( name_buf, name, ESD_NAME_MAX );
+
     /* send the audio format information */
     if ( write( sock, &proto, sizeof(proto) ) != sizeof(proto) )
 	return -1;
@@ -249,7 +254,10 @@ int esd_play_stream( esd_format_t format, int rate, char *host, char *name )
 	return -1;
     if( write( sock, &rate, sizeof(rate) ) != sizeof(rate) )
 	return -1;
-    /* TODO: write name */
+    if( write( sock, name_buf, ESD_NAME_MAX ) != ESD_NAME_MAX )
+	return -1;
+
+    /* flush the socket */
     fsync( sock );
     
     return sock;
@@ -284,11 +292,16 @@ int esd_monitor_stream( esd_format_t format, int rate, char *host, char *name )
 {
     int sock;
     int proto = ESD_PROTO_STREAM_MON;
+    char name_buf[ ESD_NAME_MAX ];
 
+    /* connect to the EsounD server */
     sock = esd_open_sound( host );
     if ( sock < 0 ) 
 	return sock;
     
+    /* prepare the name buffer */
+    strncpy( name_buf, name, ESD_NAME_MAX );
+
     /* send the audio format information */
     if ( write( sock, &proto, sizeof(proto) ) != sizeof(proto) )
 	return -1;
@@ -296,7 +309,10 @@ int esd_monitor_stream( esd_format_t format, int rate, char *host, char *name )
 	return -1;
     if( write( sock, &rate, sizeof(rate) ) != sizeof(rate) )
 	return -1;
-    /* TODO: write name */
+    if( write( sock, name_buf, ESD_NAME_MAX ) != ESD_NAME_MAX )
+	return -1;
+
+    /* flush the socket */
     fsync( sock );
     
     return sock;
@@ -308,11 +324,16 @@ int esd_record_stream( esd_format_t format, int rate, char *host, char *name )
 {
     int sock;
     int proto = ESD_PROTO_STREAM_REC;
+    char name_buf[ ESD_NAME_MAX ];
 
+    /* connect to the EsounD server */
     sock = esd_open_sound( host );
     if ( sock < 0 ) 
 	return sock;
     
+    /* prepare the name buffer */
+    strncpy( name_buf, name, ESD_NAME_MAX );
+
     /* send the audio format information */
     if ( write( sock, &proto, sizeof(proto) ) != sizeof(proto) )
 	return -1;
@@ -320,7 +341,10 @@ int esd_record_stream( esd_format_t format, int rate, char *host, char *name )
 	return -1;
     if( write( sock, &rate, sizeof(rate) ) != sizeof(rate) )
 	return -1;
-    /* TODO: write name */
+    if( write( sock, name_buf, ESD_NAME_MAX ) != ESD_NAME_MAX )
+	return -1;
+
+    /* flush the socket */
     fsync( sock );
     
     return sock;
@@ -357,19 +381,25 @@ int esd_sample_cache( int esd, esd_format_t format, int rate, long size, char *n
     int id = 0;
     int proto = ESD_PROTO_SAMPLE_CACHE;
 
-    printf( "caching sample (%d) - %ld bytes\n", esd, size );
+    /* prepare the name buffer */
+    char name_buf[ ESD_NAME_MAX ];
+    strncpy( name_buf, name, ESD_NAME_MAX );
+    printf( "caching sample: %s (%d) - %ld bytes\n", name_buf, esd, size );
 
     /* send the necessary information */
     if ( write( esd, &proto, sizeof(proto) ) != sizeof(proto) )
 	return -1;
+
     if ( write( esd, &format, sizeof(format) ) != sizeof(format) )
 	return -1;
     if ( write( esd, &rate, sizeof(rate) ) != sizeof(rate) )
 	return -1;
     if ( write( esd, &size, sizeof(size) ) != sizeof(size) )
 	return -1;
-    /* TODO: write the name */
+    if ( write( esd, name_buf, ESD_NAME_MAX ) != ESD_NAME_MAX )
+	return -1;
 
+    /* flush the socket */
     fsync( esd );
 
     /* get the sample id back from the server */
@@ -436,7 +466,7 @@ int esd_sample_loop( int esd, int sample )
     int is_ok;
     int proto = ESD_PROTO_SAMPLE_LOOP;
 
-    printf( "playing sample (%d) - <%d>\n", esd, sample );
+    printf( "looping sample (%d) - <%d>\n", esd, sample );
 
     /* send the necessary information */
     if ( write( esd, &proto, sizeof(proto) ) != sizeof(proto) )
