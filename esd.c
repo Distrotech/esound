@@ -613,7 +613,9 @@ int main ( int argc, char *argv[] )
 		fprintf(stderr, "Esound version " VERSION "\n");
 		exit (0);
 	} else if ( !strcmp( argv[ arg ], "-h" ) || !strcmp( argv[ arg ], "--help" ) ) {
+	    fprintf( stderr, "Esound version " VERSION "\n\n");
 	    fprintf( stderr, "Usage: esd [options]\n\n" );
+            fprintf( stderr, "  -v --version  print version information\n" );
 	    fprintf( stderr, "  -d DEVICE     force esd to use sound device DEVICE\n" );
 	    fprintf( stderr, "  -b            run server in 8 bit sound mode\n" );
 	    fprintf( stderr, "  -r RATE       run server at sample rate of RATE\n" );
@@ -627,9 +629,9 @@ int main ( int argc, char *argv[] )
 	    fprintf( stderr, "  -trust        start esd even if use of %s can be insecure\n",
 		     ESD_UNIX_SOCKET_DIR );
 #ifdef ESDBG
-	    fprintf( stderr, "  -vt          enable trace diagnostic info\n" );
-	    fprintf( stderr, "  -vc          enable comms diagnostic info\n" );
-	    fprintf( stderr, "  -vm          enable mixer diagnostic info\n" );
+	    fprintf( stderr, "  -vt           enable trace diagnostic info\n" );
+	    fprintf( stderr, "  -vc           enable comms diagnostic info\n" );
+	    fprintf( stderr, "  -vm           enable mixer diagnostic info\n" );
 #endif
 	    fprintf( stderr, "  -port PORT   listen for connections at PORT (only for tcp/ip)\n" );
 	    fprintf( stderr, "  -bind ADDRESS binds to ADDRESS (only for tcp/ip)\n" );
@@ -699,7 +701,7 @@ int main ( int argc, char *argv[] )
     esd_audio_rate = 48000;
     ESD_AUDIO_STUFF;
     if ( esd_audio_open() < 0 ) {
-      fprintf(stderr, "Audio device open for 44.1Khz, stereo, 8bit failed\n"
+      fprintf(stderr, "Audio device open for 48Khz, stereo,16bit failed\n"
 	      "Trying 22.05Khz, 8bit stereo.\n");
       /* cant do defaults ... try 22.05 kkz 8bit stereo */
       esd_audio_format = ESD_BITS8 | ESD_STEREO;

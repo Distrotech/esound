@@ -90,7 +90,7 @@ AC_CHECK_HEADERS(sys/filio.h sys/ioctl.h)
 
 dnl see if we want to enable insanely verbose debugging
 
-AC_ARG_ENABLE(debugging,[  --enable-debugging      enable verbose diagnostic info [default=no]], , )
+AC_ARG_ENABLE(debugging,[  --enable-debugging      enable verbose diagnostic info [default=no]], , enable_debugging=no )
 
 if test "x$enable_debugging" = "xyes"; then
   AC_DEFINE(ESDBG)
@@ -293,7 +293,7 @@ fi
 
 echo "---------------------------------------------------------------------"
 
-AC_ARG_WITH(libwrap,[  --with-libwrap          use tcp wrappers])
+AC_ARG_WITH(libwrap,[  --with-libwrap          use tcp wrappers [default=no]], , wrap_ok=no)
 
 WRAP_LIB=
 if test "x$with_libwrap" = "xyes"; then
@@ -380,3 +380,13 @@ docs/esdrec.1
 docs/esdsample.1
 ])
 dnl , [case "$CONFIG_FILES" in *esd-config*) chmod +x esd-config;; esac])
+
+echo ""
+echo "Esound Configure Settings:"
+echo ""
+echo "Debugging support: $enable_debugging" 
+echo "libwrap support:   $wrap_ok"
+echo ""
+echo "LIBS=$LIBS"
+echo ""
+

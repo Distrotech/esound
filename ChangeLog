@@ -1,3 +1,9 @@
+2002-08-16  Frederic Crozat  <fcrozat@mandrakesoft.com>
+
+	* configure.in: add summary info at end of configure (Tom Prado
+	<tprado@charter.net>)
+	* esd.c: (main): Fix --help (Tom Prado <tprado@charter.net>)
+
 2002-08-07  Anju P S <anju.premachandran@wipro.com>
 
 	*esdsample.c: (main): Fixed buffer-overflows.
