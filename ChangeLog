@@ -1,8 +1,14 @@
 1998-08-09  Yo Ric Dude  <ericmit@ix.netcom.com>
 
+	* Makefile.am, acconfig.h, audio.c, configure.in: Nick Lopez - added
+	support for the Advanced Linux Sound Architecture. It seems to work 
+	just fine on my SB16 with ALSA driver 0.1.4 and lib 0.0.9.
+	still needs audio_alsa.c.
+	
 	* AUTHORS: updated list of contributors
+
 	* Makefile.am, acconfig.h, audio.c, configure.in, esd-server.h:
-	updated for MkLinux (Jeff Dubrule), still need to merge in mix.c
+	Jeff Dubrule - updated for MkLinux (still need to merge in mix.c)
 
 1998-08-08  Mandrake <mandrake@mandrake.net>
 	* fixed Makefile.am to use libtool's versioning correctly :)

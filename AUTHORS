@@ -28,5 +28,9 @@ Additional Credits:
 
     Simon Kagedal, for esdplay, a generic audio file player.
 
+    mackman, linuxppc patches.
+
+    Nick Lopez <kimo_sabe@usa.net>: ALSA port
+
     Your Name Here, simply submit a patch, or port an existing 
     application for use with this package.
