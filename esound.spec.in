@@ -62,7 +62,8 @@ rm -rf $RPM_BUILD_ROOT
 
 %files
 %defattr(-, root, root)
-%doc AUTHORS COPYING ChangeLog docs/esound.sgml INSTALL NEWS README TIPS TODO
+%doc AUTHORS COPYING ChangeLog docs/esound.sgml @DISTDOCS@
+%doc INSTALL NEWS README TIPS TODO
 %config /etc/*
 %{_prefix}/bin/esd
 %{_prefix}/bin/esdcat

@@ -1,4 +1,13 @@
+2000-03-04  Yo Ric Dude  <ricdude@toad.net>
+
+	* esound.spec.in, configure.in: don't include processed sgml docs 
+	in the rpms unless the system can process the sgml doc sources.
+
 2000-03-03  Yo Ric Dude  <ricdude@toad.net>
+
+	* esdfile.c (esd_send_file): Just in case libaudiofile feeds us an 
+	bogus frame count from a non-conforming .wav file, ignore the extra
+	data.  Thanks to Philipp Matthias Hahn <pmhahn@titan.lahn.de>
 
 	* audio_solaris.c (esd_audio_open): Solaris audio recording
 	patches, courtesy of Steve Murphy <murf@e-tools.com>

@@ -12,12 +12,21 @@ int esd_send_file( int esd, AFfilehandle au_file, int frame_length )
     /* data for transfer */
     char buf[ ESD_BUF_SIZE ];
     int frames_read;
+    int length, towrite, written;
     int buf_frames = ESD_BUF_SIZE / frame_length;
 
-    while ( ( frames_read = afReadFrames( au_file, AF_DEFAULT_TRACK, 
-					buf, buf_frames ) ) )
+    length = afGetTrackBytes( au_file, AF_DEFAULT_TRACK );
+
+    while ( length > 0 )
     {
-	if ( write ( esd, buf, frames_read * frame_length ) <= 0)
+	frames_read = afReadFrames( au_file, AF_DEFAULT_TRACK, 
+				    buf, buf_frames );
+	towrite = frames_read * frame_length;
+	if ( towrite > length )
+	    towrite = length;
+	length -= towrite;
+	written = write ( esd, buf, towrite );
+	if ( written != towrite )
 	    return 1;
     }
 
