@@ -13,6 +13,10 @@ if BUILD_ESDPLAY
 esdplay = esdplay
 endif
 
+if NEED_GETOPT
+getopt_src = getopt.c getopt1.c
+endif
+
 bin_SCRIPTS = \
 	$(esddsp)	\
 	esd-config
@@ -71,12 +75,14 @@ esd_SOURCES = 	\
 	players.c	\
 	proto.c		\
 	samples.c	\
+	$(getopt_src)   \
 	esd-server.h
 
 esdcat_SOURCES = \
 	esdcat.c
 
 esdctl_SOURCES = \
+	$(getopt_src) \
 	esdctl.c
 
 esdfilt_SOURCES = \
@@ -94,14 +100,13 @@ esdsample_SOURCES = \
 esdloop_SOURCES = \
 	esdloop.c
 
-EXTRA_esdplay_SOURCES = \
+esdplay_SOURCES = \
+	$(getopt_src) \
 	esdplay.c
 
 LDADD = libesd.la $(AUDIOFILE_LIBS)
 
-esd_LDADD = $(GETOPT_OBJS) $(WRAP_LIB) $(LDADD)
-esdctl_LDADD = $(GETOPT_OBJS) $(LDADD)
-esdplay_LDADD = $(GETOPT_OBJS) $(LDADD)
+esd_LDADD = $(WRAP_LIB) $(LDADD)
 
 m4datadir = $(datadir)/aclocal
 m4data_DATA = esd.m4

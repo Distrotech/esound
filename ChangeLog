@@ -1,3 +1,10 @@
+2002-03-12  Laszlo Peter  <laca@ireland.sun.com>
+
+	* configure.in: use AM_CONDITIONAL to control whether getopt*.c
+	is built.
+
+	* Makefile.am: include getopt*.c in the SOURCES if needed.
+
 2002-03-11  James Henstridge  <james@daa.com.au>
 
 	* autogen.sh: call libtoolize.

@@ -80,8 +80,8 @@ AC_TRY_LINK([
 
 dnl check for getopt_long, substitute the distributed versions if not
 
-AC_CHECK_FUNC(getopt_long,,[GETOPT_OBJS="getopt.o getopt1.o"])
-AC_SUBST(GETOPT_OBJS)
+AC_CHECK_FUNC(getopt_long,[have_getopt_long=yes],[have_getopt_long=no])
+AM_CONDITIONAL(NEED_GETOPT, test "x$have_getopt_long" = xno)
 
 dnl Needed for FIONBIO on Solaris at least
 
