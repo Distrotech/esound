@@ -235,7 +235,7 @@ int wait_for_clients_and_data( int listen )
     }
 
     /* if we're doing something useful, make sure we return immediately */
-    if ( esd_recorder_list || esd_playing_samples ) {
+    if ( esd_recorder || esd_playing_samples ) {
 	timeout.tv_sec = 0;
 	timeout.tv_usec = 0;
 	timeout_ptr = &timeout;
@@ -288,7 +288,7 @@ int wait_for_clients_and_data( int listen )
 	    is_paused_here = 1;
 	}
 
-	if ( !is_paused_here && !esd_playing_samples && !esd_recorder_list ) {
+	if ( !is_paused_here && !esd_playing_samples && !esd_recorder ) {
 
 	    if ( esd_autostandby_secs >= 0
 		 && ( time(NULL) > esd_last_activity + esd_autostandby_secs ) ) {

@@ -311,28 +311,24 @@ int esd_proto_stream_play( esd_client_t *client )
 }
 
 /*******************************************************************/
-/* manage recorder clients, return boolean ok */
+/* manage the single recording client, return boolean ok */
 int esd_proto_stream_recorder( esd_client_t *client )
 {
-    esd_player_t *recorder = NULL;
-    
     /* wake up if we're asleep */
     if ( esd_on_autostandby  && !esd_forced_standby ) {
 	ESDBG_TRACE( printf( "stuff to record, waking up.\n" ); );
 	esd_server_resume();
     }
 
-    /* if we're in standby mode, go away */
-    if ( esd_on_standby )
+    /* if we're already recording, or (still) in standby mode, go away */
+    if ( esd_recorder || esd_on_standby ) {
 	return 0;
+    }
 
     /* sign up the new recorder client */
-    recorder = new_stream_player( client );
-    /* we got one, right? */
-    if ( !recorder )
-	return 0;
-    
-    if (!(esd_audio_format & ESD_RECORD)) {
+    esd_recorder = new_stream_player( client );
+    if ( esd_recorder != NULL ) {
+
 	/* let the device know we want to record */
 	ESDBG_TRACE( printf( "closing audio for a sec...\n" ); );
 	esd_audio_close();
@@ -341,7 +337,8 @@ int esd_proto_stream_recorder( esd_client_t *client )
 	ESDBG_TRACE( printf( "reopening audio to record...\n" ); );
 	if (esd_audio_open() < 0) {
             /* Failed to record */
-            free_player( recorder );
+            free_player( esd_recorder );
+            esd_recorder = NULL;
             esd_audio_format &= ~ESD_RECORD;
             sleep(1);
             /* If we fail here, we have a oops */
@@ -349,18 +346,20 @@ int esd_proto_stream_recorder( esd_client_t *client )
             return 0;
         }
 	ESDBG_TRACE( printf( "reopened?\n" ); );
-    }
-    
-    add_recorder(recorder);
-    
-    /* flesh out the recorder */
-    recorder->parent = client;
-    recorder->translate_func 
-	    = get_translate_func( esd_audio_format, esd_audio_rate,
-				  recorder->format, recorder->rate );
 
-    ESDBG_TRACE( printf ( "(%02d) recording on client\n", client->fd ); );
-    
+	/* flesh out the recorder */
+	esd_recorder->parent = client;
+	esd_recorder->translate_func 
+	    = get_translate_func( esd_audio_format, esd_audio_rate,
+				  esd_recorder->format, esd_recorder->rate );
+
+	ESDBG_TRACE( printf ( "(%02d) recording on client\n", client->fd ); );
+
+    } else {
+	/* failed to initialize the recorder, kill its client */
+	return 0;
+    }
+
     client->state = ESD_STREAMING_DATA;
     return 1;
 }
