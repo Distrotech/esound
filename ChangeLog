@@ -1,3 +1,14 @@
+2000-03-03  Yo Ric Dude  <ricdude@toad.net>
+
+	* docs/Makefile.am, docs/Makefile.in, Makefile.am, configure.in:
+ 	updated configure and automake setup to generate html and
+ 	postscript docs on make dist.  Now if the documentation were
+ 	useful...  Also, the ALSA 0.5 patch was originally submitted by
+ 	Tom Prado <tprado@charter.net>.  There may be a similar patch from
+ 	someone else in my inbox, but it's a mess. Sorry if I forgot you.
+  	Many thanks to Mark Crichton for testing, tweaking, and confirming
+ 	backwards compatibility with previous ALSA releases.
+
 2000-03-02  Mark Crichton  <crichton@gimp.org>
 
 	* audio_alsa.c: Added support from Rik to add ALSA 0.5 API support
