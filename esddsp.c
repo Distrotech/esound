@@ -56,9 +56,14 @@
 
 #include "esd.h"
 
+/* BSDI has this functionality, but not define :() */
+#if defined(RTLD_NEXT)
 #define REAL_LIBC RTLD_NEXT
+#else
+#define REAL_LIBC ((void *) -1L)
+#endif
 
-#ifdef __FreeBSD__
+#if defined(__FreeBSD__) || defined(__bsdi__)
 typedef unsigned long request_t;
 #else
 typedef int request_t;

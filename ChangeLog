@@ -1,3 +1,8 @@
+Sun Aug  8 00:56:41 1999 1999 Timur Bakeyev <mc@bat.ru>
+
+	* configure.in: Add bsdi4 as a system, that supports esddsp.
+	INADDR_LOOPBACK - u_long changed to u_int32_t.
+
 1999-07-11  Raja R Harinath  <harinath@cs.umn.edu>
 
 	* acconfig.h (SUN_LEN): Add @BOTTOM@ section and move this
