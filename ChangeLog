@@ -1,3 +1,8 @@
+2002-12-05  Stanislav Brabec  <sbrabec@suse.cz>
+
+	* audio_alsa09.c: Limit maximum periods to 64 (bug #100125).
+	Prevents drop-outs for hardware allowing low period_size.
+
 2002-08-26  Frederic Crozat  <fcrozat@mandrakesoft.com>
 
 	* configure.in: Release 0.2.29

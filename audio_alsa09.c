@@ -168,6 +168,14 @@ snd_pcm_t* initAlsa(char *dev, int format, int channels, int speed, int mode)
 		return handle;
 	}
   
+	periods = 64;
+	err = snd_pcm_hw_params_set_periods_max(handle, hwparams, &periods, 0);
+	if (err < 0) {
+		if (alsadbg)
+			fprintf(stderr, "%s\n", snd_strerror(err));
+		alsaerr = -1;
+		return handle;
+	}
   
 	err = snd_pcm_hw_params_set_buffer_size_near(handle, hwparams, BUFFERSIZE); 
 	if (err < 0) { 
