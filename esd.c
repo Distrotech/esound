@@ -141,7 +141,8 @@ int main ( int argc, char *argv[] )
     int length = 0;
     int arg = 0;
 
-    void *output_buffer = NULL; 
+    void *output_buffer = NULL;
+    struct timespec restrain;
 
     /* begin test scaffolding parameters */
     /* int format = AFMT_U8; AFMT_S16_LE; */
@@ -312,8 +313,14 @@ int main ( int argc, char *argv[] )
 	    }
 	}
 
-	/* TODO: if ( esd_on_standby ) 
-	   [nano]sleep( buf_size_samples/sample_rate seconds ); */
+	if ( esd_on_standby ) {
+	    restrain.tv_sec = 0;
+	    /* funky math to make sure a long can hold it all, calulate in ms */
+	    restrain.tv_nsec = (long) esd_buf_size_samples * 1000L
+		/ (long) esd_audio_rate / 4L; 	/* divide by two for stereo */
+	    restrain.tv_nsec *= 1000000L; 	/* convert to nanoseconds */
+	    nanosleep( &restrain, NULL );
+	}
 
     }
 

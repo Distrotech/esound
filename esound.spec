@@ -1,5 +1,5 @@
 # Note that this is NOT a relocatable package
-%define ver      0.2.4
+%define ver      0.2.5
 %define rel      SNAP
 %define prefix   /usr
 
@@ -12,7 +12,7 @@ Group:     Daemons
 Source0:   esound-%{PACKAGE_VERSION}.tar.gz
 URL:       http://pw1.netcom.com/~ericmit/EsounD.html
 BuildRoot: /tmp/esound-%{PACKAGE_VERSION}-root
-Packager: Michael Fulbright <msf@redhat.com>
+Packager:  Michael Fulbright <msf@redhat.com>
 
 Docdir: %{prefix}/doc
 
@@ -78,7 +78,4 @@ rm -rf $RPM_BUILD_ROOT
 * Wed May 13 1998 Michael Fulbright <msf@redhat.com>
 
 - First try at an RPM
-
-
-
 

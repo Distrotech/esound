@@ -1,3 +1,14 @@
+1998-09-26  Yo Ric Dude  <ericmit@ix.netcom.com>
+
+	* clients.c: artistic changes 
+
+	* configure.in: add check for nanosleep, Solaris needs -lposix4
+
+	* esd.c: forced a wait in esd.c while in standby mode, so there's
+	still some CPU to go around.
+
+	* esound.spec: version number update, maybe make a esound.spec.in?
+
 Wed Sep 23 13:05:11 CDT 1998  mej <mej@mw.3com.com>
 
 	* clients.c, configure.in - Fixes needed to find FIONBIO macro,
