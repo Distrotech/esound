@@ -144,8 +144,8 @@
 esd-config \- The Enlightened Sound Daemon
 .SH "DESCRIPTION"
 .IX Header "DESCRIPTION"
-esd-config  is  a tool that is used to configure to deter­
-mine the compiler and linker flags that should be used  to
+esd-config  is  a tool that is used to configure to determine
+the compiler and linker flags that should be used  to
 compile  and  link programs that use EsounD. It is also used
 internally to the .m4 macros for  \s-1GNU\s0  autoconf  that  are
 included with EsounD.

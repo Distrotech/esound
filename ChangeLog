@@ -1,3 +1,8 @@
+2004-11-23  David Schleef  <ds@schleef.org>
+
+	* docs/esd-config.1.in: Remove word break. (bug #158839, fix
+	from Miloslav Trmac)
+
 2004-08-12  Frederic Crozat  <fcrozat@mandrakesoft.com>
 
 	* configure.in:
