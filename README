@@ -1,5 +1,5 @@
 I am pleased to announce the preliminary release of the 
-Enlightened Sound Daemon (EsounD version 0.2) for Linux.
+Enlightened Sound Daemon (EsounD version 0.2.8) for Linux.
 More details at http://www.tux.org/~ricdude/EsounD.html.
 This program is designed to mix together several digitized 
 audio streams for playback by a single device.  The current 
@@ -33,6 +33,8 @@ list of features includes the following functionality:
  o  Filters may be inserted into the audio stream, for 
     processing of the audio signal between the mixing and 
     playback stages.
+
+ o  Some server status information is available to clients.
 
 The Enlightened Sound Daemon is known to work to varying degrees
 on Linux/OSS, Linux/ALSA, Solaris, HPUX, *BSD, and IRIX operating

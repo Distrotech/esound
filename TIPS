@@ -1,7 +1,12 @@
 Playing back "other" sound formats:
 -----------------------------------
 
+The esdplay utility can be used to play a variety of audio files.
+However, it can't play everything.  The sox utility understands
+many more types of audio files.
+
 The sound utility, sox, can be used with esd in primarily two ways.
+
 Method 1:  use sox to convert the file format ahead of time.
 Method 2:  use sox to generate output on stdout, and pipe into esdcat
 
@@ -33,23 +38,34 @@ Playing back mp3 files:
 From Wayne Johnson,
 mpg123 -s sample.mp3 | esdcat
 
+NOTE: recent versions of mpg123 support esd directly.
+Type "make" to see possible executable varieties.
+
 
 Checking recording capabilities:
 --------------------------------
 
 To make sure the recoding works, try this WITHOUT esd running:
 
-dd bs=8k count=4 </dev/audio >sample.au
+dd bs=8k count=4 </dev/audio > sample.au
 
 
 Cthugha - An Oscilloscope on Acid
 ---------------------------------
 
-esd
-xcthugha --listen
-esdmon > /tmp/cthugha.com
+version 1.2:
 
-xcthugha may complain about:
+    esd
+    xcthugha --listen
+    esdmon > /tmp/cthugha.com
+
+NOTE: xcthugha may complain about:
 Can't open `/dev/dsp' for writing. (16 - Device or resource busy)
 No problem, keep on truckin'. esd gets the sound device, and 
 cthugha gets the data it needs.
+
+version 1.3:
+
+    mkfifo /tmp/cthugha.esd 
+    xcthugha --play /tmp/cthugha.esd --silent &
+    esdmon > /tmp/cthugha.esd
