@@ -137,6 +137,10 @@ int main(int argc, char **argv)
 	else if ( !strcmp( "resume", argv[ optind ] ) ) {
 	    esd_resume( esd );
 	}
+	else if ( !strcmp( "cache", argv[ optind ] ) ) {
+	    ok = esd_file_cache( esd, argv[ 0 ], argv[ ++optind ] );
+	    printf( "Sample <%d> uploaded. Name = %s:%s\n", ok, argv[ 0 ], argv[ optind ] );
+	}
 	else if ( !strcmp( "getid", argv[ optind ] ) ) {
 	    ok = esd_sample_getid( esd, argv[ ++optind ] );
 	    printf( "%d\n", ok );
@@ -146,7 +150,7 @@ int main(int argc, char **argv)
 	    printf( "%d\n", ok );
 	}
 	else if ( !strcmp( "play", argv[ optind ] ) ) {
-	    ok = esd_sample_free( esd, esd_sample_getid(esd, argv[ ++optind ]) );
+	    ok = esd_sample_play( esd, esd_sample_getid(esd, argv[ ++optind ]) );
 	    printf( "%d\n", ok );
 	}
 	else if ( !strcmp( "serverinfo", argv[ optind ] ) ) {
