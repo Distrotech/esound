@@ -182,6 +182,7 @@ int mix_from_stereo_16s( void *dest_buf, unsigned int dest_len,
 	    while ( wr_dat < dest_len )
 	    {
 		rd_dat = wr_dat * src_rate / dest_rate;
+		rd_dat &= ~1;
 
 		lsample = source_data_ss[ rd_dat++ ];
 		lsample /= 256; lsample += 127;
@@ -228,6 +229,7 @@ int mix_from_stereo_16s( void *dest_buf, unsigned int dest_len,
 	    while ( wr_dat < dest_len / sizeof(signed short) )
 	    {
 		rd_dat = wr_dat * src_rate / dest_rate;
+		rd_dat &= ~1;
 
 		lsample = source_data_ss[ rd_dat++ ];
 		rsample = source_data_ss[ rd_dat++ ];
@@ -303,6 +305,7 @@ int mix_from_stereo_8u( void *dest_buf, unsigned int dest_len,
 	    while ( wr_dat < dest_len )
 	    {
 		rd_dat = wr_dat * src_rate / dest_rate;
+		rd_dat &= ~1;
 
 		lsample = source_data_uc[ rd_dat++ ];
 		rsample = source_data_uc[ rd_dat++ ];
@@ -338,6 +341,7 @@ int mix_from_stereo_8u( void *dest_buf, unsigned int dest_len,
 	    while ( wr_dat < dest_len / sizeof(signed short) )
 	    {
 		rd_dat = wr_dat * src_rate / dest_rate;
+		rd_dat &= ~1;
 
 		lsample = source_data_uc[ rd_dat++ ] - 127;
 		rsample = source_data_uc[ rd_dat++ ] - 127;
@@ -680,8 +684,16 @@ int mix_stereo_16s_to_stereo_32s_sv( esd_player_t *player, int length )
 	while ( wr_dat < length/sizeof(signed short) )
 	{
 	    rd_dat = wr_dat * player->rate / esd_audio_rate;
+	    rd_dat &= ~1;
+
+	    sample = source_data_ss[ rd_dat ];
+	    mixed_buffer[ wr_dat ] += sample;
+	    wr_dat++;
+	    rd_dat++;
+
 	    sample = source_data_ss[ rd_dat++ ];
-	    mixed_buffer[ wr_dat++ ] += sample;
+	    mixed_buffer[ wr_dat ] += sample;
+	    wr_dat++;
 	}
     }
  
@@ -744,7 +756,7 @@ int mix_stereo_8u_to_stereo_32s( esd_player_t *player, int length )
 	while ( wr_dat < length/sizeof(signed short) )
 	{
 	    rd_dat = wr_dat * player->rate / esd_audio_rate;
-	    if ( rd_dat % 2 ) rd_dat++;
+	    rd_dat &= ~1;
 
 	    sample = source_data_uc[ rd_dat++ ];
 	    sample -= 127; sample *= 256;
@@ -814,7 +826,7 @@ int mix_stereo_16s_to_stereo_32s( esd_player_t *player, int length )
 	while ( wr_dat < length/sizeof(signed short) )
 	{
 	    rd_dat = wr_dat * player->rate / esd_audio_rate;
-	    if ( rd_dat % 2 ) rd_dat++;
+	    rd_dat &= ~1;
 
 	    sample = source_data_ss[ rd_dat++ ];
 	    sample = sample * player->left_vol_scale / ESD_VOLUME_BASE;

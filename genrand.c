@@ -66,7 +66,7 @@ handle_alarm(int signum)
   received_alarm = 1;
 }
 
-static inline unsigned char
+static unsigned char
 hashlong(long val)
 {
   unsigned char retval, *ptr;
