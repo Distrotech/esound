@@ -1,3 +1,7 @@
+2001-01-23  Gregory Leblanc  <gleblanc@cu-portland.edu>
+
+	* docs/esound.sgml: updated/tested for use with nautilus
+
 2000-11-29  Stanislav Brabec  <utx@penguin.cz>
 
 	* esd.m4: New check AM_ESD_SUPPORTS_MULTIPLE_RECORD.

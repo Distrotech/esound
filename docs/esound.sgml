@@ -1,7 +1,7 @@
-<!doctype book PUBLIC "-//Davenport//DTD DocBook V3.0//EN" [
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook V3.1//EN" [
  ]>
 
-<book>
+<book id="index">
 
   <!-- ========================================== -->
 
@@ -24,7 +24,7 @@
       <year>1998</year>
       <holder>Eric B. Mitchell</holder>
     </copyright>
-    <legalnotice>
+    <legalnotice id="legalnotice">
       <para>
 	This document can be freely redistributed according to the
 	terms of the GNU General Public License.
@@ -32,8 +32,6 @@
     </legalnotice>
   </bookinfo>
   
-  <toc></toc>
-
   <chapter id="introduction">
     <title>Introduction</title>
     
@@ -65,7 +63,7 @@
       
     </sect1>
     
-    <sect1>
+    <sect1 id="requirements">
       <title>Requirements</title>
 
       <para>
@@ -206,8 +204,7 @@
       <informaltable frame="all">
 	<tgroup cols="2">
 	  <thead>
-	    <row><entry>option</entry><entry>purpose</entry></row
-	  </thead>
+	    <row><entry>option</entry><entry>purpose</entry></thead>
 	  <tbody>
 	    <row>
 	      <entry>-nobeeps</entry>
@@ -271,8 +268,7 @@
       <informaltable frame="all">
 	<tgroup cols="2">
 	  <thead>
-	    <row><entry>commands</entry><entry>purpose</entry></row
-	  </thead>
+	    <row><entry>commands</entry><entry>purpose</entry></thead>
 	  <tbody>
 	    <row>
 	      <entry>lock</entry>
@@ -381,8 +377,7 @@
       <informaltable frame="all">
 	<tgroup cols="2">
 	  <thead>
-	    <row><entry>option</entry><entry>purpose</entry></row
-	  </thead>
+	    <row><entry>option</entry><entry>purpose</entry></thead>
 	  <tbody>
 	    <row>
 	      <entry>-s SERVER</entry>
@@ -431,8 +426,7 @@
       <informaltable frame="all">
 	<tgroup cols="2">
 	  <thead>
-	    <row><entry>option</entry><entry>purpose</entry></row
-	  </thead>
+	    <row><entry>option</entry><entry>purpose</entry></thead>
 	  <tbody>
 	    <row>
 	      <entry>-s SERVER</entry>
@@ -532,7 +526,7 @@
 	the configure style installation now works if you don't already have a
 	previous version installed.  Evil gnu automake &gt;=P
 
-	better handling of "dead" time: should use 0% cpu if it's not actually
+	better handling of "dead" time: should use 0&percnt; cpu if it's not actually
 	doing anything
       </para>
 
@@ -774,7 +768,7 @@
 	      <listitem>
 		<para>
 		  Specifies the number of elements in <replaceable
-		    class="parameter">children</replaceable>.
+ 	    class="parameter">children</replaceable>.
 		</para>
 	      </listitem>
 	    </varlistentry>
