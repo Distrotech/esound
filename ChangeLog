@@ -1,3 +1,10 @@
+1999-03-30  The Rasterman <raster@rasterman.com>
+        * esdlib.c, esd.c: added UNIX domain sockets as the "default" 
+	  (less overhead than tcp/ip for a local machine - better for
+	  less soudn breakup) - as well as =ctp option for tcp/ip mode.
+	  Also made esd auto fallback to 8bit, mono and lower sampling
+	  rates if the device cannot handle it.
+	  
 1999-03-09  The Rasterman <raster@rasterman.com>
 	* esdlib.c, esd.c: added SIGPIPE handlers and wrappign in all 
 	  libesd calls so "death" of esd and connection is trapped

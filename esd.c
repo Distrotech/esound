@@ -1,6 +1,7 @@
 #include "esd-server.h"
 
 #include <arpa/inet.h>
+#include <sys/un.h>
 
 #ifndef HAVE_NANOSLEEP
 #include <sys/time.h>
@@ -40,7 +41,8 @@ int esd_autostandby_secs = -1; 	/* timeout to release audio device, disabled <0 
 time_t esd_last_activity = 0;	/* seconds since last activity */
 int esd_on_autostandby = 0;	/* set when auto paused for auto reawaken */
 
-
+int esd_use_tcpip = 0;          /* use tcp/ip sockets instead of unix domain */
+int esd_terminate = 0;          /* terminate after the last client exits */
 /*******************************************************************/
 /* just to create the startup tones for the fun of it */
 void set_audio_buffer( void *buf, esd_format_t format,
@@ -164,11 +166,26 @@ int open_listen_socket( int port )
     /*********************/
     /* socket test setup */
     struct sockaddr_in socket_addr;
-    int socket_listen;
+    struct sockaddr_un socket_unix;
+    int socket_listen = -1;
     struct linger lin;
+    char *homedir;
+    char  s[1024];
+      
    
     /* create the socket, and set for non-blocking */
-    socket_listen=socket(AF_INET,SOCK_STREAM,0);
+    if (esd_use_tcpip)
+      socket_listen=socket(AF_INET,SOCK_STREAM,0);
+    else
+    {
+      homedir = getenv("HOME");
+      if (homedir)
+	{
+	  sprintf(s, "%s/.esdsocket", homedir);
+	  unlink(s);
+	  socket_listen=socket(AF_UNIX,SOCK_STREAM,0);
+	}
+    }
     if (socket_listen<0) 
     {
 	fprintf(stderr,"Unable to create socket\n");
@@ -196,16 +213,32 @@ int open_listen_socket( int port )
       /* if it fails, so what */
     }
 
-    /* set the listening information */
-    socket_addr.sin_family = AF_INET;
-    socket_addr.sin_port = htons( port );
-    socket_addr.sin_addr.s_addr = htonl( inet_addr("0.0.0.0") );
-    if ( bind( socket_listen,
-	       (struct sockaddr *) &socket_addr,
-	       sizeof(struct sockaddr_in) ) < 0 )
+    if (esd_use_tcpip)
     {
-	fprintf(stderr,"Unable to bind port %d\n", port );
-	exit(1);
+      /* set the listening information */
+      socket_addr.sin_family = AF_INET;
+      socket_addr.sin_port = htons( port );
+      socket_addr.sin_addr.s_addr = htonl( inet_addr("0.0.0.0") );
+      if ( bind( socket_listen,
+		(struct sockaddr *) &socket_addr,
+		sizeof(struct sockaddr_in) ) < 0 )
+	{
+	  fprintf(stderr,"Unable to bind port %d\n", port );
+	  exit(1);
+	}
+    }
+    else
+    {
+      socket_unix.sun_family=AF_UNIX;
+      strncpy(socket_unix.sun_path,s,sizeof(socket_unix.sun_path));
+      if ( bind( socket_listen,
+		(struct sockaddr *) &socket_unix,
+		sizeof(socket_unix.sun_family) + 
+		strlen(socket_unix.sun_path) ) < 0 )
+	{
+	  fprintf(stderr,"Unable to connect to UNIX socket %s\n", s );
+	  exit(1);
+	}
     }
     if (listen(socket_listen,16)<0)
     {
@@ -278,6 +311,8 @@ int main ( int argc, char *argv[] )
     int i, j, freq=440;
     int magl, magr;
 
+    int first = 1;
+
     int default_format = ESD_BITS16 | ESD_STEREO;
     /* end test scaffolding parameters */
 
@@ -344,18 +379,25 @@ int main ( int argc, char *argv[] )
 	} else if ( !strcmp( argv[ arg ], "-nobeeps" ) ) {
 	    esd_beeps = 0;
 	    fprintf( stderr, "- disabling startup beeps\n" );
+	} else if ( !strcmp( argv[ arg ], "-tcp" ) ) {
+	    esd_use_tcpip = 1;
+	    fprintf( stderr, "- using tcp/ip\n" );
+	} else if ( !strcmp( argv[ arg ], "-terminate" ) ) {
+	    esd_terminate = 1;
 	} else if ( !strcmp( argv[ arg ], "-h" ) ) {
 	    fprintf( stderr, "Usage: esd [options]\n\n" );
 	    fprintf( stderr, "  -d DEVICE   force esd to use sound device DEVICE\n" );
 	    fprintf( stderr, "  -b          run server in 8 bit sound mode\n" );
 	    fprintf( stderr, "  -r RATE     run server at sample rate of RATE\n" );
 	    fprintf( stderr, "  -as SECS    free audio device after SECS of inactivity\n" );
+	    fprintf( stderr, "  -tcp        use tcp/ip instead of unix sockets\n" );
+	    fprintf( stderr, "  -terminate  terminate esd daemone after last client exits\n" );
 #ifdef ESDBG
 	    fprintf( stderr, "  -vt         enable trace diagnostic info\n" );
 	    fprintf( stderr, "  -vc         enable comms diagnostic info\n" );
 	    fprintf( stderr, "  -vm         enable mixer diagnostic info\n" );
 #endif
-	    fprintf( stderr, "  -port PORT  listen for connections at PORT\n" );
+	    fprintf( stderr, "  -port PORT  listen for connections at PORT (only for tcp/ip)\n" );
 	    fprintf( stderr, "\nPossible devices are:  %s\n", esd_audio_devices() );
 	    exit( 0 );
 	} else {
@@ -363,24 +405,74 @@ int main ( int argc, char *argv[] )
 	}
     }
 
+#define ESD_AUDIO_STUFF \
+    esd_sample_size = ( (esd_audio_format & ESD_MASK_BITS) == ESD_BITS16 ) \
+	? sizeof(signed short) : sizeof(unsigned char); \
+    esd_buf_size_samples = default_buf_size / 2; \
+    esd_buf_size_octets = esd_buf_size_samples * esd_sample_size;
+
     /* start the initializatin process */
-    printf( "initializing...\n" );
+    printf( "ESound ESD daemon initializing...\n" );
 
     /* set the data size parameters */
     esd_audio_format = default_format;
     esd_audio_rate = default_rate;
+    ESD_AUDIO_STUFF;
 
-    esd_sample_size = ( (esd_audio_format & ESD_MASK_BITS) == ESD_BITS16 )
-	? sizeof(signed short) : sizeof(unsigned char);
-    esd_buf_size_samples = default_buf_size / 2;
-    esd_buf_size_octets = esd_buf_size_samples * esd_sample_size;
-
-    /* open and initialize the audio device, /dev/dsp */
+  /* open and initialize the audio device, /dev/dsp */
+  if ( esd_audio_open() < 0 ) {
+    /* cant do defaults ... try 44.1 kkz 8bit stereo */
+    esd_audio_format = ESD_BITS8 | ESD_STEREO;
+    esd_audio_rate = 44100;
+    ESD_AUDIO_STUFF;
     if ( esd_audio_open() < 0 ) {
-	fprintf( stderr, "fatal error configuring sound, %s\n", 
-		 "/dev/dsp" );
-	exit( 1 );	    
+      /* cant do defaults ... try 22.05 kkz 8bit stereo */
+      esd_audio_format = ESD_BITS8 | ESD_STEREO;
+      esd_audio_rate = 22050;
+      ESD_AUDIO_STUFF;
+      if ( esd_audio_open() < 0 ) {
+	/* cant do defaults ... try 44.1Khz kkz 16bit mono */
+	esd_audio_format = ESD_BITS16;
+	esd_audio_rate = 44100;
+	ESD_AUDIO_STUFF;
+	if ( esd_audio_open() < 0 ) {
+	  /* cant do defaults ... try 22.05 kkz 8bit mono */
+	  esd_audio_format = ESD_BITS8;
+	  esd_audio_rate = 22050;
+	  ESD_AUDIO_STUFF;
+	  if ( esd_audio_open() < 0 ) {
+	    /* cant to defaults ... try 11.025 kkz 8bit stereo */
+	    esd_audio_format = ESD_BITS8 | ESD_STEREO;
+	    esd_audio_rate = 11025;
+	    ESD_AUDIO_STUFF;
+	    if ( esd_audio_open() < 0 ) {
+	      /* cant to defaults ... try 11.025 kkz 8bit mono */
+	      esd_audio_format = ESD_BITS8;
+	      esd_audio_rate = 11025;
+	      ESD_AUDIO_STUFF;
+	      if ( esd_audio_open() < 0 ) {
+	        /* cant to defaults ... try 8.192 kkz 8bit mono */
+		esd_audio_format = ESD_BITS8;
+		esd_audio_rate = 8192;
+		ESD_AUDIO_STUFF;
+		if ( esd_audio_open() < 0 ) {
+		  /* cant to defaults ... try 8 kkz 8bit mono */
+		  esd_audio_format = ESD_BITS8;
+		  esd_audio_rate = 8000;
+		  ESD_AUDIO_STUFF;
+		  if ( esd_audio_open() < 0 ) {
+		    fprintf( stderr, "fatal error configuring sound, %s\n", 
+			    "/dev/dsp" );
+		    exit( 1 );
+		  }
+		}
+	      }
+	    }
+	  }
+	}
+      }
     }
+  }
 
     /* allocate and zero out buffer */
     output_buffer = (void *) malloc( esd_buf_size_octets );
@@ -429,8 +521,15 @@ int main ( int argc, char *argv[] )
 	/* accept new connections */
 	get_new_clients( listen_socket );
 
+      
+	if ((esd_clients_list == NULL) && (!first) && (esd_terminate)) {
+	  fprintf(stderr, "No clients!\n");
+	  exit(0);
+	}
+
 	/* check for new protocol requests */
 	poll_client_requests();
+	first = 0;
 
 	/* mix new requests, and output to device */
 	refresh_mix_funcs(); /* TODO: set a flag to cue when to do this */

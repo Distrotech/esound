@@ -1,3 +1,4 @@
+
 #include "config.h"
 #include "esd.h"
 #include <stdio.h>
@@ -14,6 +15,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <sys/un.h>
 
 /*******************************************************************/
 /* prototypes */
@@ -298,7 +300,8 @@ int esd_open_sound( const char *host )
     /*********************/
     /* socket test setup */
     struct sockaddr_in socket_addr;
-    int socket_out;
+    struct sockaddr_un socket_unix;
+    int socket_out = -1;
     int curstate = 1;
 
     /* TODO: find out why I don't have INET_ADDRSTRLEN in
@@ -310,115 +313,241 @@ int esd_open_sound( const char *host )
     int port = ESD_DEFAULT_PORT;
     unsigned int host_div = 0;
    
-    /* diagnostic info */
-    /*
-    if ( getenv( "ESDBG" ) )
-	printf( "esound opening: %s\n", ( host ? host : "(nil)" ) );
-    */
+    char *homedir;
+    char  s[1024];
+  
+    homedir = getenv("HOME");
+    if (homedir)
+    {
+      sprintf(s, "%s/.esdsocket", homedir);
 
-    /* see if we have a remote speaker to play to */
-    espeaker = host ? host : getenv( "ESPEAKER" );
-    if ( espeaker != NULL ) {
+      /* create the socket, and set for non-blocking */
+      socket_out = socket( AF_UNIX, SOCK_STREAM, 0 );
+      if ( socket_out < 0 ) 
+	{
+	  fprintf(stderr,"Unable to create socket\n");
+	  return( -1 );
+	}
+      
+      /* this was borrowed blindly from the Tcl socket stuff */
+      if ( fcntl( socket_out, F_SETFD, FD_CLOEXEC ) < 0 )
+	{
+	  fprintf(stderr,"Unable to set socket to non-blocking\n");
+	  return( -1 );
+	}
+      if ( setsockopt( socket_out, SOL_SOCKET, SO_REUSEADDR,
+		      &curstate, sizeof(curstate) ) < 0 ) 
+	{
+	  fprintf(stderr,"Unable to set for a fresh socket\n");
+	  return( -1 );
+	}
+      
+      /* set the connect information */
+      socket_unix.sun_family = AF_UNIX;
+      strncpy(socket_unix.sun_path, s, sizeof(socket_unix.sun_path));
+      
+      while ( connect( socket_out,
+		      (struct sockaddr *) &socket_unix,
+		      sizeof(socket_unix.sun_family) + 
+		      strlen(socket_unix.sun_path) ) < 0 )
+	{
+	  static int connect_count = 0;
+	  int pid;
+	  
+	  
+	  connect_count++;
+	  
+	  if (connect_count == 1)
+	    {
+	      /* try to run esd */
+	      
+	      if (!(pid=fork())) {
+		execl("/bin/sh", "/bin/sh", "-c", "esd -terminate -nobeeps", NULL);
+		perror("execl");
+	      }
+	    }
+	  /* if we tried more than 6 times (6 seconds) give up */
+	  else if (connect_count > 6)
+	    return -1;
+	  /* wait for esd to start */
+	  sleep(1);
+	  
+	  socket_out = socket( AF_UNIX, SOCK_STREAM, 0 );
+	  if ( socket_out < 0 ) 
+	    {
+	      fprintf(stderr,"Unable to create socket\n");
+	      return( -1 );
+	    }
+	  
+	  /* this was borrowed blindly from the Tcl socket stuff */
+	  if ( fcntl( socket_out, F_SETFD, FD_CLOEXEC ) < 0 )
+	    {
+	      fprintf(stderr,"Unable to set socket to non-blocking\n");
+	      return( -1 );
+	    }
+	  if ( setsockopt( socket_out, SOL_SOCKET, SO_REUSEADDR,
+			  &curstate, sizeof(curstate) ) < 0 ) 
+	    {
+	      fprintf(stderr,"Unable to set for a fresh socket\n");
+	      return( -1 );
+	    }
+	  
+	  /* set the connect information */
+	  socket_unix.sun_family = AF_UNIX;
+	  strncpy(socket_unix.sun_path, s, sizeof(socket_unix.sun_path));
+	}
+    }
+  if (socket_out < 0)
+    {
+      /* diagnostic info */
+      /*
+       if ( getenv( "ESDBG" ) )
+       printf( "esound opening: %s\n", ( host ? host : "(nil)" ) );
+       */
+      
+      /* see if we have a remote speaker to play to */
+      espeaker = host ? host : getenv( "ESPEAKER" );
+      if ( espeaker != NULL ) {
 	/* split the espeaker host into host:port */
 	host_div = strcspn( espeaker, ":" );
-
+	
 	/* get host */
 	if ( host_div ) {
-	    strncpy( connect_host, espeaker, host_div );
-	    connect_host[ host_div ] = '\0';
+	  strncpy( connect_host, espeaker, host_div );
+	  connect_host[ host_div ] = '\0';
 	} else {
-	    strcpy( connect_host, default_host );
+	  strcpy( connect_host, default_host );
 	}
-
+	
         /* Resolving the host name */
         if ( ( he = gethostbyname( connect_host ) ) == NULL ) {
-	    fprintf( stderr, "Can\'t resolve host name \"%s\"!\n", 
-		     connect_host);
-	    return(-1);
+	  fprintf( stderr, "Can\'t resolve host name \"%s\"!\n", 
+		  connect_host);
+	  return(-1);
         }
 	memcpy( (struct in_addr *) &socket_addr.sin_addr, he->h_addr,
 	       sizeof( struct in_addr ) );
-
+	
 	/* get port */
 	if ( host_div != strlen( espeaker ) )
-	    port = atoi( espeaker + host_div + 1 );
+	  port = atoi( espeaker + host_div + 1 );
 	if ( !port ) 
-	    port = ESD_DEFAULT_PORT;
+	  port = ESD_DEFAULT_PORT;
 	/* printf( "(remote) host is %s : %d\n", connect_host, port ); */
-    } else if( !inet_aton( default_host, &socket_addr.sin_addr ) ) {
+      } else if( !inet_aton( default_host, &socket_addr.sin_addr ) ) {
 	fprintf( stderr, "couldn't convert %s to inet address\n", 
-		 default_host );
+		default_host );
 	return -1;
+      }
+      
+      /* create the socket, and set for non-blocking */
+      socket_out = socket( AF_INET, SOCK_STREAM, 0 );
+      if ( socket_out < 0 ) 
+	{
+	  fprintf(stderr,"Unable to create socket\n");
+	  return( -1 );
+	}
+      
+      /* this was borrowed blindly from the Tcl socket stuff */
+      if ( fcntl( socket_out, F_SETFD, FD_CLOEXEC ) < 0 )
+	{
+	  fprintf(stderr,"Unable to set socket to non-blocking\n");
+	  return( -1 );
+	}
+      if ( setsockopt( socket_out, SOL_SOCKET, SO_REUSEADDR,
+		      &curstate, sizeof(curstate) ) < 0 ) 
+	{
+	  fprintf(stderr,"Unable to set for a fresh socket\n");
+	  return( -1 );
+	}
+      
+      /* set the connect information */
+      socket_addr.sin_family = AF_INET;
+      socket_addr.sin_port = htons( port );
+      
+      while ( connect( socket_out,
+		      (struct sockaddr *) &socket_addr,
+		      sizeof(struct sockaddr_in) ) < 0 )
+	{
+	  static int connect_count = 0;
+	  int pid;
+	  
+	  
+	  connect_count++;
+	  
+	  if (connect_count == 1)
+	    {
+	      /* try to run esd */
+	      
+	      if (!(pid=fork())) {
+		execl("/bin/sh", "/bin/sh", "-c", "esd -terminate -nobeeps", NULL);
+		perror("execl");
+	      }
+	    }
+	  /* if we tried more than 6 times (6 seconds) give up */
+	  else if (connect_count > 6)
+	    return -1;
+	  /* wait for esd to start */
+	  sleep(1);
+	  
+	  socket_out = socket( AF_INET, SOCK_STREAM, 0 );
+	  if ( socket_out < 0 ) 
+	    {
+	      fprintf(stderr,"Unable to create socket\n");
+	      return( -1 );
+	    }
+	  
+	  /* this was borrowed blindly from the Tcl socket stuff */
+	  if ( fcntl( socket_out, F_SETFD, FD_CLOEXEC ) < 0 )
+	    {
+	      fprintf(stderr,"Unable to set socket to non-blocking\n");
+	      return( -1 );
+	    }
+	  if ( setsockopt( socket_out, SOL_SOCKET, SO_REUSEADDR,
+			  &curstate, sizeof(curstate) ) < 0 ) 
+	    {
+	      fprintf(stderr,"Unable to set for a fresh socket\n");
+	      return( -1 );
+	    }
+	  
+	  /* set the connect information */
+	  socket_addr.sin_family = AF_INET;
+	  socket_addr.sin_port = htons( port );
+	}
     }
-
-    /* create the socket, and set for non-blocking */
-    socket_out = socket( AF_INET, SOCK_STREAM, 0 );
-    if ( socket_out < 0 ) 
-    {
-	fprintf(stderr,"Unable to create socket\n");
-	return( -1 );
-    }
-
-    /* this was borrowed blindly from the Tcl socket stuff */
-    if ( fcntl( socket_out, F_SETFD, FD_CLOEXEC ) < 0 )
-    {
-	fprintf(stderr,"Unable to set socket to non-blocking\n");
-	return( -1 );
-    }
-    if ( setsockopt( socket_out, SOL_SOCKET, SO_REUSEADDR,
-		     &curstate, sizeof(curstate) ) < 0 ) 
-    {
-	fprintf(stderr,"Unable to set for a fresh socket\n");
-	return( -1 );
-    }
-
-    /* set the connect information */
-    socket_addr.sin_family = AF_INET;
-    socket_addr.sin_port = htons( port );
-
-    if ( connect( socket_out,
-		  (struct sockaddr *) &socket_addr,
-		  sizeof(struct sockaddr_in) ) < 0 )
-    {
-	/* fprintf(stderr,"Unable to connect to EsounD server at port %d\n", 
-		port ); */
-	/* fprintf(stderr,"This generally means that the program could not talk to the esound server\n"); */
-	return -1;
-    }
-
-    /* send authorization */
-    if ( !esd_send_auth( socket_out ) ) {
-	/* couldn't send authorization key, bail */
-	close( socket_out );
-
-	/* diagnostic info */
-	/*
-	if ( getenv( "ESDBG" ) )
-	    printf( "esound opening: authorization failed\n" );
-	*/
-
-	return -1;
-    }
-
+  /* send authorization */
+  if ( !esd_send_auth( socket_out ) ) {
+    /* couldn't send authorization key, bail */
+    close( socket_out );
+    
     /* diagnostic info */
     /*
-    if ( getenv( "ESDBG" ) )
-	printf( "esound opening: assigned to %d\n", socket_out );
-    */
-
-    return socket_out;
+     if ( getenv( "ESDBG" ) )
+     printf( "esound opening: authorization failed\n" );
+     */
+    
+    return -1;
+  }
+  
+  /* diagnostic info */
+  /*
+   if ( getenv( "ESDBG" ) )
+   printf( "esound opening: assigned to %d\n", socket_out );
+   */
+  
+  return socket_out;
 }
 
 /*******************************************************************/
 /* open a socket for playing as a stream */
 int esd_play_stream( esd_format_t format, int rate, 
-		     const char *host, const char *name )
+		    const char *host, const char *name )
 {
     int sock;
     int proto = ESD_PROTO_STREAM_PLAY;
     char name_buf[ ESD_NAME_MAX ];
     void (*phandler)(int);
-  
+      
     /* connect to the EsounD server */
     sock = esd_open_sound( host );
     if ( sock < 0 ) 
