@@ -7,8 +7,8 @@ extern "C" {
 #endif
 
 /* path and name of the default EsounD domain socket */
-#define ESD_UNIX_SOCKET_DIR	"/tmp/.esd"
-#define ESD_UNIX_SOCKET_NAME	ESD_UNIX_SOCKET_DIR "/socket"
+#define ESD_UNIX_SOCKET_DIR	esd_get_socket_dirname()
+#define ESD_UNIX_SOCKET_NAME	esd_get_socket_name()
 
 /* length of the audio buffer size */
 #define ESD_BUF_SIZE (4 * 1024)
@@ -323,6 +323,13 @@ void esd_audio_pause( void );
 int esd_audio_write( void *buffer, int buf_size );
 int esd_audio_read( void *buffer, int buf_size );
 void esd_audio_flush( void );
+
+/******************************************************************/
+/* util.c utilities						  */
+
+const char *esd_get_socket_dirname();
+const char *esd_get_socket_name();
+
 
 #ifdef __cplusplus
 }

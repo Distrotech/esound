@@ -35,7 +35,8 @@ libesd_la_SOURCES = \
 	esd_config.c	\
 	audio.c		\
 	genrand.c	\
-	genrand.h
+	genrand.h	\
+	util.c
 
 # one of these gets included by audio.c
 AUDIO_BACKENDS = \
@@ -79,6 +80,7 @@ esd_SOURCES = 	\
 	proto.c		\
 	samples.c	\
 	$(getopt_src)   \
+	util.c		\
 	esd-server.h
 
 esdcat_SOURCES = \

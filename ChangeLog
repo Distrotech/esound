@@ -1,3 +1,13 @@
+2002-05-13 Stephen Browne <stephen.browne@sun.com>
+
+	* util.c: new file for esd utility functions
+		  currently only has new functions for getting the
+		  name of the unix domain socket to use.
+	* Makefile.am: added linking of util.c for esdlib and esd
+	* esd.h: changed ESD_UNIX_SOCKET_DIR and ESD_UNIX_SOCKET_NAME
+		 from static strings to function calls to get the socket 
+		 dir and name
+
 2002-05-12  Frédéric Crozat  <fred@crozat.net>
 
 	* audio_alsa.c:
