@@ -1,3 +1,9 @@
+1999-01-10  Yo Ric Dude  <ericmit@ix.netcom.com>
+
+	* esddsp.in: corrected format of LD_PRELOAD entries, and added
+	LD_PRELOAD_PATH to make things a bit cleaner.  Should correct the
+	"error loading shared libs: symbol dlsym not found" problems
+
 1998-12-30  Yo Ric Dude  <ericmit@ix.netcom.com>
 
 	* esdmgr.c, proto.c: workaround for zero additional data protocol

@@ -86,8 +86,8 @@ prefix=@prefix@
 exec_prefix=@exec_prefix@
 libdir=@libdir@
 
-LD_PRELOAD=${libdir}/libesddsp.so:${libdir}/libesd.so
-export LD_PRELOAD
+export LD_PRELOAD_PATH=${libdir}
+export LD_PRELOAD='libesddsp.so libesd.so libdl.so'
 
 # invoke the program with the args given
 exec "$@"
