@@ -110,7 +110,7 @@ esdloop_SOURCES = \
 EXTRA_esdplay_SOURCES = \
 	esdplay.c
 
-LDADD = $(AUDIOFILE_LIBS) libesd.la -lm
+LDADD = libesd.la $(AUDIOFILE_LIBS) -lm
 
 LIBOBJS = @LIBOBJS@
 

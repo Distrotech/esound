@@ -1,3 +1,8 @@
+2001-03-11  Timur Bakeyev <mc@bat.ru>
+
+	* Makefile.am: Changed the order of libraries in LDADD. Some old
+	linkers really depend from it...
+	
 2001-01-23  Gregory Leblanc  <gleblanc@cu-portland.edu>
 
 	* docs/esound.sgml: updated/tested for use with nautilus
