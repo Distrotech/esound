@@ -1,4 +1,15 @@
 ===============
+Version 0.2.32
+===============
+	* Fix build when IPv6 is disabled (Soren Jacobsen)
+	* Fix missing file in tarball (Dan Winship)
+
+===============
+Version 0.2.31
+===============
+	* Fix build on Solaris8
+
+===============
 Version 0.2.30
 ===============
 	* IPv6 support (Archana Shah)
