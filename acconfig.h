@@ -1,2 +1,7 @@
 #undef PACKAGE
 #undef VERSION
+#undef DRIVER_OSS
+#undef DRIVER_AIX
+#undef DRIVER_IRIX
+#undef DRIVER_HPUX
+#undef DRIVER_SOLARIS

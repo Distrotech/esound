@@ -8,6 +8,14 @@ libesd_la_SOURCES = \
 esdlib.c	\
 audio.c
 
+EXTRA_libesd_la_SOURCES = \
+audio_aix.c	\
+audio_hpux.c	\
+audio_irix.c	\
+audio_none.c	\
+audio_oss.c	\
+audio_solaris.c	
+
 noinst_LIBRARIES = libesd.a
 
 libesd_a_SOURCES = \

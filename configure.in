@@ -1,11 +1,43 @@
 AC_INIT(esd.h)
 AM_INIT_AUTOMAKE(esound, 0.2.1)
 AM_CONFIG_HEADER(config.h)
+AC_CANONICAL_HOST
 AM_PROG_LIBTOOL
 AC_PROG_CC
 AC_PROG_INSTALL
 AC_PROG_RANLIB
-AC_CHECK_HEADERS(sys/soundcard.h)
+AC_CHECK_HEADERS(sys/soundcard.h machine/soundcard.h sys/audio.h sys/audioio.h sys/audio.io.h sun/audioio.h dmedia/audio.h)
+
+if test "${ac_cv_header_sys_soundcard_h}" = "yes" || \
+   test "${ac_cv_header_machine_soundcard_h}" = "yes"; then
+   AC_DEFINE(DRIVER_OSS)
+fi
+
+if test "${ac_cv_header_sys_audio_h}" = "yes"; then
+   case ${host_os} in
+   hpux*)
+       AC_DEFINE(DRIVER_HPUX)
+   ;;
+   aix*)
+       AC_DEFINE(DRIVER_AIX)
+   esac
+fi
+
+if test "${ac_cv_header_sys_audioio_h}" = "yes" || \
+   test "${ac_cv_header_sys_audio_io_h}" = "yes" || \
+   test "${ac_cv_header_sun_audioio_h}" = "yes"; then
+   case ${host_os} in
+   solaris*)
+      AC_DEFINE(DRIVER_SOLARIS)
+   esac
+fi
+
+if test "${ac_cv_header_dmedia_audio_h}" = "yes"; then
+   case ${host_os} in
+   irix*)
+      AC_DEFINE(DRIVER_IRIX)
+   esac
+fi
 
 AC_PROG_MAKE_SET
 AC_OUTPUT(Makefile)

@@ -11,6 +11,15 @@
 	removed from source. functionality superceded by esdctl, called
  	with options to	lock, unlock, standby, and resume the daemon.
 
+1998-05-20  Isaac Richards <ijr@po.cwru.edu>
+
+	* audio.c, audio_*.c, configure.in, Makefile.am, acconfig.h, esd.h:
+	Added horribly broken(?) drivers for other OSs... These need fixed
+
+	*esdlib.c:
+	Need space for the \0 =)
+
+	
 1998-05-19  Yo 'Ric Dude  <ericmit@ix.netcom.com>
 
 	* clients.c, esdsample.c: 

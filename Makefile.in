@@ -79,6 +79,14 @@ libesd_la_SOURCES = \
 esdlib.c	\
 audio.c
 
+EXTRA_libesd_la_SOURCES = \
+audio_aix.c	\
+audio_hpux.c	\
+audio_irix.c	\
+audio_none.c	\
+audio_oss.c	\
+audio_solaris.c	
+
 noinst_LIBRARIES = libesd.a
 
 libesd_a_SOURCES = \
@@ -202,11 +210,13 @@ DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
 
 TAR = tar
 GZIP = --best
-DEP_FILES =  .deps/audio.P .deps/clients.P .deps/esd.P .deps/esdcat.P \
+DEP_FILES =  .deps/audio.P .deps/audio_aix.P .deps/audio_hpux.P \
+.deps/audio_irix.P .deps/audio_none.P .deps/audio_oss.P \
+.deps/audio_solaris.P .deps/clients.P .deps/esd.P .deps/esdcat.P \
 .deps/esdctl.P .deps/esdlib.P .deps/esdloop.P .deps/esdmon.P \
 .deps/esdrec.P .deps/esdsample.P .deps/mix.P .deps/players.P \
 .deps/samples.P
-SOURCES = $(libesd_a_SOURCES) $(libesd_la_SOURCES) $(esd_SOURCES) $(esdcat_SOURCES) $(esdctl_SOURCES) $(esdmon_SOURCES) $(esdrec_SOURCES) $(esdsample_SOURCES) $(esdloop_SOURCES)
+SOURCES = $(libesd_a_SOURCES) $(libesd_la_SOURCES) $(EXTRA_libesd_la_SOURCES) $(esd_SOURCES) $(esdcat_SOURCES) $(esdctl_SOURCES) $(esdmon_SOURCES) $(esdrec_SOURCES) $(esdsample_SOURCES) $(esdloop_SOURCES)
 OBJECTS = $(libesd_a_OBJECTS) $(libesd_la_OBJECTS) $(esd_OBJECTS) $(esdcat_OBJECTS) $(esdctl_OBJECTS) $(esdmon_OBJECTS) $(esdrec_OBJECTS) $(esdsample_OBJECTS) $(esdloop_OBJECTS)
 
 all: Makefile $(LIBRARIES) $(LTLIBRARIES) $(PROGRAMS) $(HEADERS) config.h
