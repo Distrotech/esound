@@ -35,6 +35,7 @@ int esd_audio_open()
     if ( (esd_audio_format & ESD_MASK_FUNC) == ESD_RECORD )
         mode = O_RDWR;
 
+    mode |= O_NONBLOCK;
     /* open the sound device */
     device = esd_audio_device ? esd_audio_device : "/dev/dsp";
     if ((afd = open(device, mode, 0)) == -1)
