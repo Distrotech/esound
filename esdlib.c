@@ -431,17 +431,15 @@ esd_connect_tcpip(const char *host)
   
     /* see if we have a remote speaker to play to */
     espeaker = host;
-    if ( espeaker != NULL ) {
+    if ( espeaker && *espeaker ) {
+	strncpy(connect_host, espeaker, sizeof(connect_host));
+
 	/* split the espeaker host into host:port */
-	host_div = strcspn( espeaker, ":" );
-    
-	/* get host */
-	if ( host_div ) {
-	    strncpy( connect_host, espeaker, host_div );
+	host_div = strcspn( connect_host, ":" );
+	if(host_div > 0 && host_div < strlen(espeaker)) {
 	    connect_host[ host_div ] = '\0';
-	} else {
-	    strcpy( connect_host, default_host );
 	}
+	connect_host[sizeof(connect_host) - 1] = '\0';
     
 	/* Resolving the host name */
 	if ( ( he = gethostbyname( connect_host ) ) == NULL ) {
@@ -453,7 +451,7 @@ esd_connect_tcpip(const char *host)
 		sizeof( struct in_addr ) );
     
 	/* get port */
-	if ( host_div != strlen( espeaker ) )
+	if ( host_div < strlen( espeaker ) )
 	    port = atoi( espeaker + host_div + 1 );
 	if ( !port ) 
 	    port = ESD_DEFAULT_PORT;
@@ -609,7 +607,7 @@ int esd_open_sound( const char *host )
     if ( !host ) host = getenv("ESPEAKER");
 
     display = getenv( "DISPLAY" );
-    if ( !host && display ) {
+    if ( !(host && *host) && display ) {
 	/* no espeaker specified, but the app should be directed to a
 	   remote display, so try routing the default port over there
 	   and see if we strike gold */
@@ -622,7 +620,7 @@ int esd_open_sound( const char *host )
 	}
     }
 
-    if ( !host ) {
+    if ( !(host && *host)) {
 	if ( access( ESD_UNIX_SOCKET_NAME, R_OK | W_OK ) == -1 )
 	    use_unix = 0;
 	else
@@ -639,7 +637,7 @@ int esd_open_sound( const char *host )
        to use, let's try spawning one. */
     /* ebm - I think this is an Inherently Bad Idea, but will leave it
        alone until I can get a good look at it */
-    if(! host) {
+    if(! (host && *host)) {
 	int childpid, mypid;
 	struct sigaction sa, sa_orig;
 	struct sigaction sa_alarm, sa_orig_alarm;
