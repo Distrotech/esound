@@ -11,6 +11,12 @@ Planned for 0.2.5:
 
 clean up esddsp.c for release with 0.2.5.
 
+compile libesddsp.so.0.2.5 for Linux.
+
+supply esddsp script that does:
+	LD_PRELOAD=/path/to/installed/libesddsp.so
+	invoke $@
+
 some semblance of documentation upgrade
 
 

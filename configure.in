@@ -96,6 +96,9 @@ if test "x$enable_local_sound" = "xyes"; then
         found_sound=yes
         AC_DEFINE(DRIVER_OSS)
       fi
+
+      dnl build the esddsp wrapper for Linux only
+      LIBESDDSP=libesddsp.la
    fi
 
    if test "${ac_cv_header_sys_audio_h}" = "yes"; then
@@ -185,6 +188,7 @@ fi
 
 echo "---------------------------------------------------------------------"
 
+
 dnl set | sort; # just for double checking the script...
 
 ESD_LIBS=$LIBS
@@ -192,9 +196,11 @@ AC_SUBST(ESD_LIBS)
 
 AC_SUBST(AF_LIB)
 AC_SUBST(ESDPLAY)
+AC_SUBST(LIBESDDSP)
 
 AC_OUTPUT([
 Makefile
 esd-config
 esound.spec
+esddsp
 ], [case "$CONFIG_FILES" in *esd-config*) chmod +x esd-config;; esac])

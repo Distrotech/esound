@@ -30,3 +30,4 @@ _libs
 esd-config
 *.da
 esound.spec
+esddsp

@@ -42,7 +42,13 @@ Additional Credits:
     Mandrake (Geoff Harrison) <mandrake@mandrake.net>: making sure
     the library revision numbers actually come out right. :)
 
-    Bibek Sahu: Improved ALSA detection algorithms
+    Bibek Sahu: Improved ALSA detection algorithms, filters, mixdown
+    optimizations. 
+
+    Jimmy Olsen <jo@hrp.no>: hpux driver fixes
+
+    Manish Singh <yosh@gimp.org>: misc autoconf hackery, the magic
+    /dev/dsp to esd rerouter.
 
     Your Name Here, simply submit a patch, or port an existing 
     application for use with this package.

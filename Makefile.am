@@ -1,6 +1,9 @@
 AF_LIB = @AF_LIB@
+LIBESDDSP = @LIBESDDSP@
 
-bin_SCRIPTS = esd-config
+bin_SCRIPTS = \
+	esd-config \
+	esddsp
 
 EXTRA_DIST = \
 	esd.m4 		\
@@ -9,16 +12,23 @@ EXTRA_DIST = \
 	test-script 	\
 	test.wav 	\
 	getopt.h 	\
-	TODO		\
-	esddsp.c
+	TODO
 
-lib_LTLIBRARIES = libesd.la
+lib_LTLIBRARIES = libesd.la @LIBESDDSP@
 
 libesd_la_SOURCES = \
 	esdlib.c	\
 	audio.c
 
 libesd_la_LDFLAGS = -version-info @ESD_VERSION_INFO@
+
+EXTRA_LTLIBRARIES = \
+	libesddsp.la
+
+libesddsp_la_LDFLAGS = -rpath $(libdir) -version-info @ESD_VERSION_INFO@
+
+libesddsp_la_SOURCES = \
+	esddsp.c
 
 EXTRA_libesd_la_SOURCES = \
 	audio_aix.c	\
