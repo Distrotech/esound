@@ -11,8 +11,8 @@
 #include <assert.h>
 #include <dmedia/audio.h>
 
-ALport outaudioport;
-ALport inaudioport;
+ALport outaudioport = (ALport) 0;
+ALport inaudioport = (ALport) 0;
 
 long rate_params[] = { AL_OUTPUT_RATE, 0, AL_INPUT_RATE, 0 };
       
@@ -149,8 +149,14 @@ void esd_audio_close()
 	select(esd_audio_fd + 1, NULL, &write_fds, NULL, NULL);
     }
     
-    ALcloseport(outaudioport);
-    ALcloseport(inaudioport);
+    if (outaudioport != (ALport) 0) {
+      ALcloseport(outaudioport);
+      outaudioport = (ALport) 0;
+    }
+    if (inaudioport != (ALport) 0) {
+      ALcloseport(inaudioport);
+      inaudioport = (ALport) 0;
+    }
 }
 
 #define ARCH_esd_audio_write
