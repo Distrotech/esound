@@ -1,5 +1,12 @@
 1999-06-19  Richard Boulton <rjb37@cam.ac.uk>
 
+	* esdlib.c, esd_config.c, esd.conf: Put time to wait for an
+	autospawn into esd.conf file, and increased default to 100ms.
+	(it was at 10ms, and about 1 time in 5 it wasn't waiting long
+	enough for me.)
+
+1999-06-19  Richard Boulton <rjb37@cam.ac.uk>
+
 	* esdlib.c: Add some gnome-doc style self documenting code comments.
 
 1999-06-17  Richard Boulton <rjb37@cam.ac.uk>

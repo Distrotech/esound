@@ -40,6 +40,7 @@ static void dummy_signal(int signum) {
 /* from esd_config.c */
 extern char esd_spawn_options[];
 extern int esd_no_spawn;
+extern int esd_spawn_wait_ms;
 void esd_config_read(void);
 
 /*******************************************************************/
@@ -640,7 +641,10 @@ int esd_open_sound( const char *host )
       waitpid(childpid, &estat, 0);
     }
 
-    for(connect_count = 0; connect_count < 10; connect_count++) {
+    /* Wait for for spawning to happen.  Time taken is system and load
+     * dependent, so read from config file.
+     */
+    for(connect_count = 0; connect_count < esd_spawn_wait_ms; connect_count++) {
 #if defined(HAVE_NANOSLEEP) && !defined(HAVE_USLEEP)
       struct timespec timewait;
 #endif
