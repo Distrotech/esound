@@ -38,6 +38,7 @@ AC_PROG_INSTALL
 dnl Check for compiler environment
 
 AC_C_CONST
+AC_C_ENDIAN
 
 dnl Check for system libs needed
 
