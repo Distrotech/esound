@@ -1,5 +1,9 @@
 2002-04-23  Frederic Crozat  <fcrozat@mandrakesoft.com>
 
+	* configure.in: release 0.2.25
+
+2002-04-23  Frederic Crozat  <fcrozat@mandrakesoft.com>
+
 	* Makefile.am:
 	* acconfig.h:
 	* audio.c:
