@@ -6,9 +6,10 @@ AM_PROG_LIBTOOL
 AC_PROG_CC
 AC_PROG_INSTALL
 AC_PROG_RANLIB
-AC_CHECK_HEADERS(sys/soundcard.h machine/soundcard.h sys/audio.h sys/audioio.h sys/audio.io.h sun/audioio.h dmedia/audio.h)
+AC_CHECK_HEADERS(soundcard.h sys/soundcard.h machine/soundcard.h sys/audio.h sys/audioio.h sys/audio.io.h sun/audioio.h dmedia/audio.h)
 
 if test "${ac_cv_header_sys_soundcard_h}" = "yes" || \
+   test "${ac_cv_header_soundcard_h}" = "yes" || \
    test "${ac_cv_header_machine_soundcard_h}" = "yes"; then
    AC_DEFINE(DRIVER_OSS)
 fi
@@ -42,6 +43,7 @@ fi
 AC_CHECK_FUNC(connect,,[AC_CHECK_LIB(socket,connect)])
 AC_CHECK_FUNC(gethostbyname,,[AC_CHECK_LIB(nsl,gethostbyname)])
 AC_CHECK_FUNC(inet_aton,,[AC_CHECK_LIB(resolv,inet_aton)])
+AC_CHECK_FUNC(_oss_ioctl,,[AC_CHECK_LIB(ossaudio,_oss_ioctl)])
 
 AC_PROG_MAKE_SET
 

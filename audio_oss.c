@@ -1,7 +1,11 @@
 #ifdef HAVE_MACHINE_SOUNDCARD_H
-#include <machine/soundcard.h>
+#  include <machine/soundcard.h>
 #else
-#include <sys/soundcard.h>
+#  ifdef HAVE_SOUNDCARD_H
+#    include <soundcard.h>
+#  else
+#    include <sys/soundcard.h>
+#  endif
 #endif
 
 #define ARCH_esd_audio_open
