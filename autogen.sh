@@ -35,7 +35,7 @@ fi
 
 THEDIR="`pwd`"
 cd $srcdir
-aclocal $ACLOCAL_FLAGS || exit 1
+aclocal -I m4 $ACLOCAL_FLAGS || exit 1
 libtoolize --force || exit 1
 autoheader || exit 1
 autoconf || exit 1

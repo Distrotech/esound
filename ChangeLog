@@ -1,3 +1,8 @@
+2005-01-18  David Schleef  <ds@schleef.org>
+
+	* acconfig.h: remove
+	* autogen.sh: use m4/ directory for aclocal
+
 2005-01-17  David Schleef  <ds@schleef.org>
 
 	Patch from igor@avtomir.ru (Igor Mokrushin)
@@ -86,13 +91,13 @@
 	Don't use C99 extensions (Bug #136038, 
 	patch from Jens Granseuer <jensgr@gmx.net>).
 
-2004-03-01  Frédéric Crozat  <fred@crozat.net>
+2004-03-01  FrÃ©dÃ©ric Crozat  <fred@crozat.net>
 
 	* NEWS:
 	* configure.in:
 	Release 0.2.33
 
-2004-03-01  Frédéric Crozat  <fred@crozat.net>
+2004-03-01  FrÃ©dÃ©ric Crozat  <fred@crozat.net>
 
 	* util.c: (esd_get_socket_dirname):
 	Fix crash when AUDIODEV doesn't contain '/' (Bug #135113,
@@ -503,7 +508,7 @@
 		 from static strings to function calls to get the socket 
 		 dir and name
 
-2002-05-12  Frédéric Crozat  <fred@crozat.net>
+2002-05-12  FrÃ©dÃ©ric Crozat  <fred@crozat.net>
 
 	* audio_alsa.c:
 	* audio_alsa09.c: (esd_audio_open):
