@@ -1,3 +1,8 @@
+1999-10-06  Russell Steinthal  <rms39@columbia.edu>
+
+	* esdlib.c (esd_connect_tcpip): Fix case in which user specifies
+	only a port number (first character of host is :)
+
 1999-09-20  Raja R Harinath  <harinath@cs.umn.edu>
 
 	* configure.in (nanosleep): Look also in -lrt.

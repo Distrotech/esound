@@ -439,6 +439,9 @@ esd_connect_tcpip(const char *host)
 	if(host_div > 0 && host_div < strlen(espeaker)) {
 	    connect_host[ host_div ] = '\0';
 	}
+	else if ( host_div == 0)
+		strcpy( connect_host, default_host );
+
 	connect_host[sizeof(connect_host) - 1] = '\0';
     
 	/* Resolving the host name */
