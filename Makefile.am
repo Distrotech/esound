@@ -40,7 +40,7 @@ libesd_la_SOURCES = \
 
 libesd_la_LDFLAGS = -version-info @ESD_VERSION_INFO@
 
-libesd_la_LIBADD = @AUDIOFILE_LIBS@ @SOUND_LIBS@ -lm
+libesd_la_LIBADD = @AUDIOFILE_LIBS@ @SOUND_LIBS@
 
 EXTRA_LTLIBRARIES = \
 	libesddsp.la
@@ -113,7 +113,7 @@ esdloop_SOURCES = \
 EXTRA_esdplay_SOURCES = \
 	esdplay.c
 
-LDADD = libesd.la $(AUDIOFILE_LIBS) -lm
+LDADD = libesd.la $(AUDIOFILE_LIBS)
 
 LIBOBJS = @LIBOBJS@
 

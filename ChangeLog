@@ -1,3 +1,8 @@
+Thu Jan 10 11:21:28 2002  Owen Taylor  <otaylor@redhat.com>
+
+	* Makefile.am: @AUDIOFILE_LIBS@ already includes -lm so
+	don't add it again.
+
 Tue Sep 04 16:28:11 2001  George Lebl <jirka@5z.com>
 
 	* configure.in, Makefile.am, esound.pc.in: add a pkg-config file
