@@ -15,9 +15,15 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
-#include <sys/un.h>
 #include <errno.h>
 #include <sys/wait.h>
+
+#include <sys/un.h>
+#ifndef SUN_LEN
+/* Evaluate to actual length of the `sockaddr_un' structure.  */
+#define SUN_LEN(ptr) ((size_t) (((struct sockaddr_un *) 0)->sun_path)         \
+                      + strlen ((ptr)->sun_path))
+#endif
 
 /*******************************************************************/
 /* prototypes */
@@ -351,7 +357,7 @@ esd_connect_tcpip(const char *host)
   unsigned int host_div = 0;
   
   /* see if we have a remote speaker to play to */
-  espeaker = host ? host : getenv( "ESPEAKER" );
+  espeaker = host;
   if ( espeaker != NULL ) {
     /* split the espeaker host into host:port */
     host_div = strcspn( espeaker, ":" );
@@ -389,21 +395,22 @@ esd_connect_tcpip(const char *host)
   socket_out = socket( AF_INET, SOCK_STREAM, 0 );
   if ( socket_out < 0 ) 
     {
-      fprintf(stderr,"Unable to create tcp socket\n");
-      return( -1 );
+      fprintf(stderr,"Unable to create TCP socket\n");
+      goto error_out;
     }
   
   /* this was borrowed blindly from the Tcl socket stuff */
   if ( fcntl( socket_out, F_SETFD, FD_CLOEXEC ) < 0 )
     {
       fprintf(stderr,"Unable to set socket to non-blocking\n");
-      return( -1 );
+      goto error_out;
     }
+
   if ( setsockopt( socket_out, SOL_SOCKET, SO_REUSEADDR,
 		  &curstate, sizeof(curstate) ) < 0 ) 
     {
       fprintf(stderr,"Unable to set for a fresh socket\n");
-      return( -1 );
+      goto error_out;
     }
   
   /* set the connect information */
@@ -413,8 +420,14 @@ esd_connect_tcpip(const char *host)
   if ( connect( socket_out,
 	       (struct sockaddr *) &socket_addr,
 	       sizeof(struct sockaddr_in) ) < 0 )
-    return -1;
-  return socket_out;	  
+    goto error_out;
+
+  return socket_out;
+
+ error_out:
+  if(socket_out >= 0)
+    close(socket_out);
+  return -1;
 }
 
 static int
@@ -429,20 +442,20 @@ esd_connect_unix(const char *host)
   if ( socket_out < 0 ) 
     {
       fprintf(stderr,"Unable to create socket\n");
-      return( -1 );
+      goto error_out;
     }
   
   /* this was borrowed blindly from the Tcl socket stuff */
   if ( fcntl( socket_out, F_SETFD, FD_CLOEXEC ) < 0 )
     {
-      fprintf(stderr,"Unable to set socket to non-blocking\n");
-      return( -1 );
+      fprintf(stderr,"Unable to set socket to close-on-exec\n");
+      goto error_out;
     }
   if ( setsockopt( socket_out, SOL_SOCKET, SO_REUSEADDR,
 		  &curstate, sizeof(curstate) ) < 0 ) 
     {
       fprintf(stderr,"Unable to set for a fresh socket\n");
-      return( -1 );
+      goto error_out;
     }
   
   /* set the connect information */
@@ -450,103 +463,83 @@ esd_connect_unix(const char *host)
   strncpy(socket_unix.sun_path, ESD_UNIX_SOCKET_NAME, sizeof(socket_unix.sun_path));
   
   if ( connect( socket_out,
-	       (struct sockaddr *) &socket_unix,
-	       sizeof(struct sockaddr_un) ) < 0 )
-    return -1;
+	       (struct sockaddr *) &socket_unix, SUN_LEN(&socket_unix)) < 0 )
+    goto error_out;
   
   return socket_out;
+
+ error_out:
+  if(socket_out >= 0)
+    close(socket_out);
+  return -1;
 }
 
 /*******************************************************************/
 /* initialize the socket to send data to the sound daemon */
 int esd_open_sound( const char *host )
 {
-  int connect_count = 0;
+  int connect_count;
   int socket_out = -1;
   char use_unix = 0;
-  
-  if (access(ESD_UNIX_SOCKET_NAME, R_OK | W_OK) == -1)
-    {
-      if (errno == EACCES) 
-	{
-	  /* not allowed access - can't init unix socket comms - esd already */
-	  /* there */
-          socket_out = esd_connect_tcpip(host);
-	}
-      else if (errno == ENOENT)
-	{
-	  use_unix = 1;
-	  /* does not exist - try tcp/ip */
-	  socket_out = esd_connect_tcpip(host);	  
-	}
-    }
-  else
-    use_unix = 1;
 
-  /* tcp/ip fialed or we havent tried unix sockets yet */
-  if (socket_out < 0)
-    {
-      if (use_unix)
-	socket_out = esd_connect_unix(host);
-      else
-	socket_out = esd_connect_tcpip(host);
-    }
+  if (! host) host = getenv("ESPEAKER");
 
-  /* try tcp/ip, if we tried via usock and it didn't work */
-  if ((socket_out < 0) && use_unix)
-    socket_out = esd_connect_tcpip(host);
+  if (! host) {
+    if (access("/tmp/.esd/socket", R_OK | W_OK) == -1)
+      use_unix = 0;
+    else
+      use_unix = 1;
+  }
 
-  /* esd basically is uncontactable - lets run it and try again */
-  if (socket_out < 0)
-    {
-      esd_config_read();
+  if (use_unix)
+    socket_out = esd_connect_unix (NULL);
+  if (socket_out >= 0) goto finish_connect;
 
-      if (!esd_no_spawn && !getenv("ESPEAKER"))
-	{
-	  int childpid;
+  socket_out = esd_connect_tcpip (host);
+  if (socket_out >= 0) goto finish_connect;
 
-	  childpid = fork();
-	  if (!childpid)
-	    {
-	      if (!fork())
-		{
-		  char *cmd;
+  /* Connections failed, period. Since nobody gave us a remote esd to use, let's try spawning one. */
+  if(! host) {
+    int childpid;
 
-		  setsid();
-		  
-		  cmd = malloc(sizeof("esd ") + strlen(esd_spawn_options));
-		  sprintf(cmd, "esd %s", esd_spawn_options);
+    esd_config_read();
 
-		  execl("/bin/sh", "/bin/sh", "-c", cmd, NULL);
-		  perror("execl");
-		  _exit(1);
-		}
-	      else
-		_exit(0);
-	    }
-	  else
-	    {
-	      int estat;
-	      waitpid(childpid, &estat, 0); /* reap zombie */
-	    }
-	}
-      else
-	return socket_out;
+    if (esd_no_spawn) goto finish_connect;
+
+    childpid = fork();
+    if(!childpid) {
+      /* child process */
+      if(!fork()) {
+	/* child of child process */
+	char *cmd;
+
+	setsid();
+	cmd = malloc(sizeof("esd ") + esd_spawn_options?strlen(esd_spawn_options):"");
+
+	sprintf(cmd, "esd %s", esd_spawn_options?esd_spawn_options:"");
+
+	execl("/bin/sh", "/bin/sh", "-c", cmd, NULL);
+	perror("execl");
+	_exit(1);
+      } else
+	_exit(0);
+
+      /* children end here */
+    } else {
+      int estat;
+      waitpid(childpid, &estat, 0);
     }
 
-  /* sit and spin for a bit to wait for esd to start - try 5 times over */
-  /* 5 seconds - if esd still hasnt started - give up */
-  while ((socket_out < 0) && (connect_count < 60))
-    {
+    for(connect_count = 0; connect_count < 10; connect_count++) {
 #if defined(HAVE_NANOSLEEP) && !defined(HAVE_USLEEP)
       struct timespec timewait;
 #endif
-      
+    
       socket_out = esd_connect_unix(host);
-      if (socket_out < 0)
-	socket_out = esd_connect_tcpip(host);
-      connect_count++;
+      if (socket_out >= 0) break;
 
+      connect_count++;
+    
 #if defined(HAVE_USLEEP)
       usleep(1000);
 #elif defined(HAVE_NANOSLEEP)
@@ -555,17 +548,14 @@ int esd_open_sound( const char *host )
       nanosleep(&timewait, NULL);
 #endif
     }
+  }
 
-  if (socket_out >= 0)
-    {
-      /* send authorization */
-      if (!esd_send_auth( socket_out )) 
-	{
-	/* couldn't send authorization key, bail */
-	close( socket_out );	
-	return -1;
-      }
-    }
+ finish_connect:
+  if (socket_out >= 0
+      && !esd_send_auth (socket_out)) {
+    close(socket_out); socket_out = -1;
+  }
+
   return socket_out;
 }
 
@@ -634,13 +624,15 @@ int esd_play_stream_fallback( esd_format_t format, int rate,
 			      const char *host, const char *name )
 {
     int socket_out;
+
     /* try to open a connection to the server */
+    if(!host) host = getenv("ESPEAKER");
     socket_out = esd_play_stream( format, rate, host, name );
     if ( socket_out >= 0 ) 
 	return socket_out;
 
-    /* if ESPEAKER is set, this is an error, bail out */
-    if ( getenv( "ESPEAKER" ) )
+    /* if host is set, this is an error, bail out */
+    if ( host )
 	return -1;
 
     /* go for /dev/dsp */
@@ -843,12 +835,13 @@ int esd_record_stream_fallback( esd_format_t format, int rate,
     int socket_out;
 
     /* try to open a connection to the server */
+    if (!host) host = getenv("ESPEAKER");
     socket_out = esd_record_stream( format, rate, host, name );
     if ( socket_out >= 0 ) 
 	return socket_out;
 
     /* if ESPEAKER is set, this is an error, bail out */
-    if ( getenv( "ESPEAKER" ) )
+    if ( host )
 	return -1;
 
     /* go for /dev/dsp */
