@@ -19,7 +19,7 @@ void clear_auth( int signum )
 {
     int i;
 
-    printf( "resetting ownership of sound daemon\n" );
+    printf( "(ca) resetting ownership of sound daemon\n" );
 
     /* reset the access rights */
     esd_is_owned = 0;
@@ -49,7 +49,9 @@ int validate_source( esd_client_t *client, struct sockaddr_in source, int owner_
 
     if( !esd_is_owned ) {
 	/* noone owns it yet, the first client claims ownership */
-	printf( "esd auth: claiming ownership of esd.\n" );
+	if ( esdbg_trace )
+	    printf( "(%02d) esd auth: claiming ownership of esd.\n", client->fd );
+
 	esd_is_locked = 1;
 	memcpy( esd_owner_key, submitted_key, ESD_KEY_LEN );
 	esd_is_owned = 1;
@@ -71,7 +73,10 @@ int validate_source( esd_client_t *client, struct sockaddr_in source, int owner_
     /* TODO: maybe check based on source ip? */
     /* if ( !owner_only ) { check_ip_etc(); } */
     /* the client is not authorized to connect to the server */
-    printf( "esd auth: NOT authorized to use esd, closing conn.\n" );
+    if ( esdbg_trace )
+	printf( "(%02d) esd auth: NOT authorized to use esd, closing conn.\n",
+		client->fd );
+
     return 0;
 
  check_endian:
@@ -87,8 +92,10 @@ int validate_source( esd_client_t *client, struct sockaddr_in source, int owner_
 	/* printf( "different endian order!\n" ); */
 	client->swap_byte_order = 1;
     } else {
-	printf( "unknown endian key: 0x%08x (same = 0x%08x, diff = 0x%08x)\n",
-		endian, ESD_ENDIAN_KEY, ESD_SWAP_ENDIAN_KEY );
+	if ( esdbg_trace ) 
+	    printf( "(%02d) unknown endian key: 0x%08x (same = 0x%08x, diff = 0x%08x)\n",
+		    endian, ESD_ENDIAN_KEY, ESD_SWAP_ENDIAN_KEY );
+	
 	return 0;
     }
 
@@ -103,7 +110,8 @@ int esd_proto_lock( esd_client_t *client )
     int ok = 1;		/* already validated, can't fail */
     int client_ok = maybe_swap_32( client->swap_byte_order, ok );
 
-    printf( "locking sound daemon\n" );
+    if ( esdbg_trace )
+	printf( "(%02d) locking sound daemon\n", client->fd );
     esd_is_locked = 1;
 
     write( client->fd, &client_ok, sizeof(client_ok) );
@@ -120,7 +128,8 @@ int esd_proto_unlock( esd_client_t *client )
     int ok = 1;		/* already validated, can't fail */
     int client_ok = maybe_swap_32( client->swap_byte_order, ok );
 
-    printf( "unlocking sound daemon\n" );
+    if ( esdbg_trace )
+	printf( "(%02d) unlocking sound daemon\n", client->fd );
     esd_is_locked = 0;
 
     write( client->fd, &client_ok, sizeof(client_ok) );
@@ -146,7 +155,9 @@ int esd_proto_standby( esd_client_t *client )
 	return ok;
     }	
 
-    printf( "setting sound daemon to standby\n" );
+    if ( esdbg_trace )
+	printf( "(%02d) setting sound daemon to standby\n", client->fd );
+
     esd_on_standby = 1;
     /* TODO: close down any recorders, too */
     esd_audio_close();
@@ -174,7 +185,9 @@ int esd_proto_resume( esd_client_t *client )
 	return ok;
     }	
 
-    printf( "resuming sound daemon\n" );
+    if ( esdbg_trace ) 
+	printf( "(%02d) resuming sound daemon\n", client->fd );
+
     esd_audio_open();
     esd_on_standby = 0;
 
@@ -226,7 +239,9 @@ int esd_proto_stream_recorder( esd_client_t *client )
 
 	/* flesh out the recorder */
 	esd_recorder->parent = client;
-	printf ( "recording on client (%d)\n", client->fd );
+
+	if ( esdbg_trace )
+	    printf ( "(%02d) recording on client\n", client->fd );
 
     } else {
 	/* failed to initialize the recorder, kill its client */
@@ -251,7 +266,9 @@ int esd_proto_stream_monitor( esd_client_t *client )
     if ( esd_monitor != NULL ) {
 	/* flesh out the monitor */
 	esd_monitor->parent = client;
-	printf ( "monitoring on client (%d)\n", client->fd );
+
+	if ( esdbg_trace )
+	    printf ( "(%02d) monitoring on client\n", client->fd );
     } else {
 	/* failed to initialize the recorder, kill its client */
 	return 0;
@@ -269,7 +286,8 @@ int esd_proto_sample_cache( esd_client_t *client )
     int length;
     int client_id;
 
-    printf( "proto: caching sample (%d)\n", client->fd );
+    if ( esdbg_trace )
+	printf( "(%02d) proto: caching sample\n", client->fd );
 
     sample = new_sample( client );
     /* add to the list of sample */
@@ -283,7 +301,8 @@ int esd_proto_sample_cache( esd_client_t *client )
 	} else
 	    add_sample( sample );
     } else {
-	printf( "not enough mem for sample, closing\n");
+	fprintf( stderr, "(%02d) not enough mem for sample, closing\n", 
+		 client->fd );
 	return 0;
     }
 
@@ -306,7 +325,8 @@ int esd_proto_sample_free( esd_client_t *client )
 
     sample_id = maybe_swap_32( client->swap_byte_order, client_id );
 
-    printf( "proto: erasing sample (%d)\n", sample_id );
+    if ( esdbg_trace )
+	printf( "(%02d) proto: erasing sample <%d>\n", client->fd, sample_id );
     erase_sample( sample_id );
 
     if ( write( client->fd, &client_id, sizeof( client_id ) ) 
@@ -329,7 +349,8 @@ int esd_proto_sample_play( esd_client_t *client )
 
     sample_id = maybe_swap_32( client->swap_byte_order, client_id );
 
-    printf( "playing sample <%d>\n", sample_id );
+    if ( esdbg_trace )
+	printf( "(%02d) proto: playing sample <%d>\n", client->fd, sample_id );
     if ( !play_sample( sample_id, 0 ) )
 	sample_id = 0;
 
@@ -353,7 +374,9 @@ int esd_proto_sample_loop( esd_client_t *client )
 
     sample_id = maybe_swap_32( client->swap_byte_order, client_id );
 
-    printf( "looping sample <%d>\n", sample_id );
+    if ( esdbg_trace )
+	printf( "(%02d) proto: looping sample <%d>\n", client->fd, sample_id );
+
     if ( !play_sample( sample_id, 1 ) )
 	sample_id = 0;
 
@@ -377,7 +400,9 @@ int esd_proto_sample_stop( esd_client_t *client )
     
     sample_id = maybe_swap_32( client->swap_byte_order, client_id );
 
-    printf( "stopping sample <%d>\n", sample_id );
+    if ( esdbg_trace )
+	printf( "(%02d) proto: stopping sample <%d>\n", client->fd, sample_id );
+
     if ( !stop_sample( sample_id ) )
 	sample_id = 0;
 
@@ -418,8 +443,8 @@ static int do_validated_action ( esd_client_t *client )
 	break;
 
     default:
-        printf( "unknown protocol request:  0x%08x (check esd.h)\n",
-	        client->request );
+        fprintf( stderr, "(%02d) proto: unknown protocol request:  0x%08x\n",
+	        client->fd, client->request );
         is_ok = 0;
         break;
     }
@@ -476,7 +501,9 @@ int poll_client_requests()
  	    }
  	    else if ( client->request != ESD_PROTO_INVALID ) {
  	        /* send failure code to client */
- 	        printf( "only owner may control sound daemon\n" );
+ 	        fprintf( stderr, 
+			 "(%02d) poll: only owner may control sound daemon\n",
+			 client->fd );
  		write( client->fd, &is_ok, sizeof(is_ok) );
 		fsync( client->fd );
  	    }
@@ -491,8 +518,9 @@ int poll_client_requests()
 
  	    if ( length <= 0 ) {
  		/* no more data available from that client, close it */
- 		printf( "no more protocol requests for client (%d)\n", 
- 			client->fd );
+		if ( esdbg_trace )
+		    printf( "(%02d) no more protocol requests for client\n", 
+			    client->fd );
  		is_ok = 0;
  
  	    } else {
@@ -543,8 +571,9 @@ int poll_client_requests()
  		    break;
  
  		default:
- 		    printf( "unknown protocol request:  0x%08x (check esd.h)\n",
- 			    client->request );
+		    fprintf( stderr, 
+			     "(%02d) proto: unknown protocol request:  0x%08x\n",
+			     client->fd, client->request );
  		    is_ok = 0;
  		    break;
  		}

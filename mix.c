@@ -102,8 +102,8 @@ int mix_from_stereo_16s( signed short *source_data_ss,
 	break;
 
     default:
-	printf( "mix from: format 0x%08x not supported (%d)\n", 
-		player->format & ESD_MASK_BITS, player->source_id );
+	fprintf( stderr, "(%02d) mix from: format 0x%08x not supported\n", 
+		 player->format & ESD_MASK_BITS, player->source_id );
 	break;
     }
 
@@ -204,8 +204,8 @@ int mix_to_stereo_32s( esd_player_t *player, int length )
 	break;
 
     default:
-	printf( "mix_to: format 0x%08x not supported (%d)\n", 
-		player->format & ESD_MASK_BITS, player->source_id );
+	fprintf( stderr, "mix_to: format 0x%08x not supported (%d)\n", 
+		 player->format & ESD_MASK_BITS, player->source_id );
 	break;
     }
 

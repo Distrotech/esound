@@ -1,3 +1,9 @@
+1998-07-11  Yo Ric Dude  <ericmit@ix.netcom.com>
+
+	* clients.c, esd-server.h, esd.c, mix.c, players.c, proto.c, samples.c:
+	tried to enforce some semblance of order on the trace/debug messages.
+	added globals esdbg_trace, and esdbg_comms, for debug msg filtering.
+
 1998-07-07  Yo Ric Dude  <ericmit@ix.netcom.com>
 
 	* esdlib.c (esd_open_sound): *always* consider an "else" clause

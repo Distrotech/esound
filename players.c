@@ -13,8 +13,10 @@ void dump_players()
 {
     esd_player_t *player = esd_players_list;
 
+    if ( !esdbg_trace ) return;
+
     while ( player != NULL ) {
-	printf( "player: (%d) [0x%p]\n", 
+	printf( "-%02d- player: [%p]\n", 
 		player->source_id, player );
 	player = player->next;
     }
@@ -34,12 +36,17 @@ void free_player( esd_player_t *player )
     } else if ( ( player->format & ESD_MASK_MODE ) == ESD_SAMPLE ) {
 	sample = (esd_sample_t *) (player->parent);
 	sample->ref_count--;
-	printf( "free player: (%d, #%d) [0x%p] ?%d\n", 
-		player->source_id, sample->ref_count, player,
-		sample->erase_when_done );
+
+	if ( esdbg_trace ) 
+	    printf( "<%02d> free player: [%p] refs=%d erase?=%d\n", 
+		    player->source_id, player, sample->ref_count, 
+		    sample->erase_when_done );
 
 	if ( sample->erase_when_done && !sample->ref_count ) {
-	    printf( "free_player: erasing sample (%d)\n", sample->sample_id );
+	    if ( esdbg_trace )
+		printf( "<%02d> free_player: erasing sample\n", 
+			sample->sample_id );
+
 	    erase_sample( sample->sample_id );
 	}
     }
@@ -57,7 +64,7 @@ void free_player( esd_player_t *player )
 /* add a complete new player into the list of players at head */
 void add_player( esd_player_t *player )
 {
-    /* printf ( "adding player 0x%p\n", new_player ); */
+    /* printf ( "adding player %p\n", new_player ); */
     player->next = esd_players_list;
     esd_players_list = player;
     return;
@@ -96,7 +103,7 @@ void erase_player( esd_player_t *player )
     }
 
     /* hmm, we didn't find the desired player, just get on with life */
-    printf( "player not found (%d)\n", player->source_id );
+    if ( esdbg_trace ) printf( "-%02d- player not found\n", player->source_id );
     return;
 }
 
@@ -144,7 +151,7 @@ int read_player( esd_player_t *player )
 
     case ESD_SAMPLE:
 
-	/* printf( "player [0x%p], pos = %d, format = 0x%08x\n", 
+	/* printf( "player [%p], pos = %d, format = 0x%08x\n", 
 		player, player->last_pos, player->format ); */
 	
 	/* only keep going if we didn't want to stop looping */
@@ -206,8 +213,9 @@ int read_player( esd_player_t *player )
 	break;
 
     default:
-	printf( "read_player: format 0x%08x not supported\n", 
-		player->format );
+	if ( esdbg_trace ) 
+	    printf( "-%02d- read_player: format 0x%08x not supported\n", 
+		    player->source_id, player->format );
 	return -1;
     }
 
@@ -241,7 +249,8 @@ void monitor_write() {
 
     if ( length < 0 ) {
 	/* error on write, close it down */
-	printf( "closing monitor (%d)\n", esd_monitor->source_id );
+	if ( esdbg_trace ) 
+	    printf( "(%02d) closing monitor\n", esd_monitor->source_id );
 	erase_client( esd_monitor->parent );
 	free_player( esd_monitor );
 	esd_monitor = NULL;
@@ -275,7 +284,8 @@ void recorder_write() {
 
     if ( length < 0 ) {
 	/* couldn't send anything, close it down */
-	printf( "closing recorder (%d)\n", esd_recorder->source_id );
+	if ( esdbg_trace )
+	    printf( "(%02d) closing recorder\n", esd_recorder->source_id );
 
 	/* stop recording */
 	esd_audio_close();
@@ -319,8 +329,9 @@ esd_player_t *new_stream_player( esd_client_t *client )
     read( client->fd, player->name, ESD_NAME_MAX );
     player->name[ ESD_NAME_MAX - 1 ] = '\0';
 
-    printf( "stream %s: 0x%08x at %d Hz\n", player->name, 
-	    player->format, player->rate );
+    if ( esdbg_trace ) 
+	printf( "(%02d) stream %s: 0x%08x at %d Hz\n", client ->fd, 
+		player->name, player->format, player->rate );
 
     /* calculate buffer length to match the mix buffer duration */
     player->buffer_length = ESD_BUF_SIZE * player->rate / 44100;
@@ -344,8 +355,8 @@ esd_player_t *new_stream_player( esd_client_t *client )
     /* everything's ok, return the allocated player */
     /* player->last_read = time(NULL); */
 
-    printf( "player: (%d) [0x%p]\n", 
-	    player->source_id, player );
+    if ( esdbg_trace )
+	printf( "(%02d) player: [%p]\n", player->source_id, player );
 
     return player;
 }
@@ -387,8 +398,9 @@ esd_player_t *new_sample_player( int sample_id, int loop )
     player->rate = sample->rate;
     player->source_id = sample->sample_id;
 
-    printf( "connection format: 0x%08x at %d Hz\n", 
-	    player->format, player->rate );
+    if ( esdbg_trace )
+	printf( "<%02d> connection format: 0x%08x at %d Hz\n", 
+		player->source_id, player->format, player->rate );
 
     /* calculate buffer length to match the mix buffer duration */
     player->buffer_length = ESD_BUF_SIZE * player->rate / 44100;
@@ -414,8 +426,9 @@ esd_player_t *new_sample_player( int sample_id, int loop )
     sample->ref_count++;
     sample->erase_when_done = 0;
 
-    printf( "new player : (%d, #%d) [0x%p]\n", 
-	    player->source_id, sample->ref_count, player );
+    if ( esdbg_trace ) 
+	printf( "<%02d> new player: refs=%d [%p]\n", 
+		player->source_id, sample->ref_count, player );
 
     return player;
 }

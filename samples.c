@@ -13,9 +13,12 @@ void dump_samples()
 {
     esd_sample_t *sample = esd_samples_list;
 
+    if ( !esdbg_trace ) return;
+
     while ( sample != NULL ) {
-	printf( "sample: (%d) [0x%p] - %d bytes\n", 
-		sample->sample_id, sample, sample->sample_length );
+	printf( "<%02d> %s: %d bytes [%p] \n", 
+		sample->sample_id, sample->name, 
+		sample->sample_length, sample  );
 	sample = sample->next;
     }
     return;
@@ -32,7 +35,8 @@ void free_sample( esd_sample_t *sample )
 
     /* free the sample memory itself */
     free( sample );
-    printf( "freed sample: [0x%p]\n", sample );
+    if ( esdbg_trace )
+	printf( "<%02d> freed sample: [0x%p]\n", sample->sample_id, sample );
     return;
 }
 
@@ -54,7 +58,7 @@ void erase_sample( int id )
     esd_sample_t *previous = NULL;
     esd_sample_t *current = esd_samples_list;
 
-    printf( "erasing sample (%d)\n", id );
+    if ( esdbg_trace ) printf( "<%02d> erasing sample\n", id );
 
     /* iterate until we hit a NULL */
     while ( current != NULL )
@@ -64,7 +68,8 @@ void erase_sample( int id )
 
 	    /* if the ref count is non-zero, just flag it for deletion */
 	    if ( current->ref_count ) {
-		printf( "erasing sample (%d) - deferred\n", id );
+		if ( esdbg_trace ) 
+		    printf( "<%02d> erasing sample - deferred\n", id );
 		current->erase_when_done = 1;
 		return;
 	    }
@@ -90,7 +95,7 @@ void erase_sample( int id )
     }
 
     /* hmm, we didn't find the desired sample, just get on with life */
-    printf( "sample not found (%d)\n", id );
+    printf( "<%02d> sample not found\n", id );
     return;
 }
 
@@ -108,7 +113,8 @@ int read_sample( esd_sample_t *sample )
     }
 
     /* TODO: what if total != sample_length ? */
-    printf( "%d bytes total\n", total );
+    if ( esdbg_trace ) 
+	printf( "<%02d> %d bytes total\n", sample->sample_id, total );
     return total;
 }
 
@@ -145,8 +151,9 @@ esd_sample_t *new_sample( esd_client_t *client )
 
     sample->sample_id = esd_next_sample_id++;
 
-    printf( "sample %s: 0x%08x at %d Hz\n", sample->name, 
-	    sample->format, sample->rate );
+    if ( esdbg_trace )
+	printf( "<%02d> sample %s: 0x%08x at %d Hz\n", sample->sample_id, 
+		sample->name, sample->format, sample->rate );
 
     /* force to an even multiple of 4, do it in the player */
     sample->data_buffer
@@ -161,8 +168,9 @@ esd_sample_t *new_sample( esd_client_t *client )
     /* set ref. count */
     sample->ref_count = 0;
 
-    printf( "sample: <%d> [0x%p] - %d bytes\n", 
-	    sample->sample_id, sample, sample->sample_length );
+    if ( esdbg_trace )
+	printf( "<%02d> sample %s: [0x%p] - %d bytes\n", sample->sample_id, 
+		sample->name, sample, sample->sample_length );
 
     client_id = maybe_swap_32( client->swap_byte_order, 
 			       sample->sample_id );
@@ -191,13 +199,13 @@ int stop_sample( int id )
 {
     esd_player_t *player = esd_players_list;
 
-    printf( "stopping sample (%d)\n", id );
+    if ( esdbg_trace ) printf( "{ss} stopping sample <%02d>\n", id );
 
     /* iterate until we hit a NULL */
     while ( player != NULL )
     {
-	printf( "checking player [0x%p], format = 0x%08x, id = %d\n",
-		player, player->format, player->source_id );
+	/* printf( "checking player [0x%p], format = 0x%08x, id = %d\n",
+		player, player->format, player->source_id ); */
 
 	/* see if we hit the target sample, and it's really a sample */
 	if ( ( ( (player->format) & ESD_MASK_MODE ) == ESD_SAMPLE )
@@ -207,8 +215,8 @@ int stop_sample( int id )
 	    player->format &= ~ESD_MASK_FUNC;
 	    player->format |= ESD_STOP;
 
-	    printf( "found sample (%d), prepared for removal - 0x%08x\n",
-		    id, player->format );
+	    if ( esdbg_trace ) 
+		printf( "<%02d> player found, prepared for removal\n", id );
 	    
 	    return 1;
 	}
@@ -218,7 +226,7 @@ int stop_sample( int id )
     }
 
     /* hmm, we didn't find the desired sample, just get on with life */
-    printf( "player for sample <%d> not found\n", id );
+    printf( "{ss} player for sample <%02d> not found\n", id );
     return 0;
 }
 

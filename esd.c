@@ -5,9 +5,12 @@
 
 /*******************************************************************/
 /* globals */
-int esd_on_standby = 0;	/* set to 1 to dump all audio to /dev/null */
+int esd_on_standby = 0;	/* set to 1 to route all audio to /dev/null */
+int esdbg_trace = 0;		/* show warm fuzzy debug messages */
+int esdbg_comms = 0;		/* show protocol level debuig messages */
 
 volatile int esd_terminate = 0;	/* signals set this for a clean exit */
+int esd_beeps = 1;		/* whether or not to beep on startup */
 
 /*******************************************************************/
 /* just to create the startup tones for the fun of it */
@@ -41,8 +44,9 @@ void set_audio_buffer( void *buf, esd_format_t format,
 	}
 	break;
     default:
-	printf( "unsupported format for set_audio_buffer: %d\n", 
-		format );
+	fprintf( stderr, 
+		 "unsupported format for set_audio_buffer: 0x%08x\n", 
+		 format );
 	exit( 1 );
     }
 
@@ -156,12 +160,23 @@ int main ( int argc, char *argv[] )
 		esd_port = atoi( argv[ arg ] );
 		if ( !esd_port ) {
 		    esd_port = ESD_DEFAULT_PORT;
-		    printf( "- could not determine port: %s\n", argv[ arg ] );
+		    fprintf( stderr, "- could not determine port: %s\n", 
+			     argv[ arg ] );
 		}
-		printf( "- will accept connections on port %d\n", esd_port );
+		fprintf( stderr, "- accepting connections on port %d\n", 
+			 esd_port );
 	    }
+	} else if ( !strcmp( argv[ arg ], "-vt" ) ) {
+	    esdbg_trace = 1;
+	    fprintf( stderr, "- enabling trace diagnostic info\n" );
+	} else if ( !strcmp( argv[ arg ], "-vc" ) ) {
+	    esdbg_comms = 1;
+	    fprintf( stderr, "- enabling comms diagnostic info\n" );
+	} else if ( !strcmp( argv[ arg ], "-nobeeps" ) ) {
+	    esd_beeps = 0;
+	    fprintf( stderr, "- disabling startup beeps\n" );
 	} else {
-	    printf( "unrecognized option: %s\n", argv[ arg ] );
+	    fprintf( stderr, "unrecognized option: %s\n", argv[ arg ] );
 	}
     }
 
@@ -195,17 +210,20 @@ int main ( int argc, char *argv[] )
 
     /* send some sine waves just to check the sound connection */
     i = 0;
-    for ( freq = 55 ; freq < rate/2 ; freq *= 2, i++ ) {
-	/* repeat the freq for a few buffer lengths */
-	for ( j = 0 ; j < rate / 2 / buf_size ; j++ ) {
-	    set_audio_buffer( output_buffer, format, 
-			      ( (i%2) ? magl : 0 ), 
-			      ( (i%2) ? 0 : magr ),
-			      freq, rate, buf_size, 
-			      j * buf_size / sizeof(signed short) );
-	    esd_audio_write( output_buffer, buf_size );
+    if ( esd_beeps ) {
+	for ( freq = 55 ; freq < rate/2 ; freq *= 2, i++ ) {
+	    /* repeat the freq for a few buffer lengths */
+	    for ( j = 0 ; j < rate / 2 / buf_size ; j++ ) {
+		set_audio_buffer( output_buffer, format, 
+				  ( (i%2) ? magl : 0 ), 
+				  ( (i%2) ? 0 : magr ),
+				  freq, rate, buf_size, 
+				  j * buf_size / sizeof(signed short) );
+		esd_audio_write( output_buffer, buf_size );
+	    }
 	}
     }
+
     /* pause the sound output */
     esd_audio_pause();
 

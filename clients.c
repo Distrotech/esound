@@ -15,16 +15,18 @@ void dump_clients()
     short port;
     esd_client_t *clients = esd_clients_list;
 
-    /* printf ( "adding client 0x%08x\n", new_client ); */
+    if ( !esdbg_trace ) return;
+
     while ( clients != NULL ) {
 	port = ntohs( clients->source.sin_port );
 	addr = ntohl( clients->source.sin_addr.s_addr );
-	printf( "client from: %u.%u.%u.%u:%d (%d) [0x%p]\n", 
-		(unsigned int) addr >> 24, 
+
+	printf( "(%02d) client from: %03u.%03u.%03u.%03u:%05d [%08p]\n", 
+		clients->fd, (unsigned int) addr >> 24, 
 		(unsigned int) (addr >> 16) % 256, 
 		(unsigned int) (addr >> 8) % 256, 
-		(unsigned int) addr % 256, 
-		port, clients->fd, clients );
+		(unsigned int) addr % 256, port, clients );
+
 	clients = clients->next;
     }
     return;
@@ -69,8 +71,10 @@ void erase_client( esd_client_t *client )
 		esd_clients_list = current->next;
 	    }
 
-	    printf ( "closing client connection (%d)\n", 
-		     client->fd );
+	    if ( esdbg_trace ) {
+		printf ( "(%02d) closing client connection\n", 
+			 client->fd );
+	    }
 	    close( client->fd );
 	    free_client( client );
 
@@ -83,7 +87,7 @@ void erase_client( esd_client_t *client )
     }
 
     /* hmm, we didn't find the desired client, just get on with life */
-    printf( "client not found (%d)\n", client->fd );
+    if ( esdbg_trace ) printf( "(%02d) client not found\n", client->fd );
     return;
 }
 
@@ -106,13 +110,15 @@ int get_new_clients( int listen )
 	if ( fd > 0 ) {
 	    port = ntohs( incoming.sin_port );
 	    addr = ntohl( incoming.sin_addr.s_addr );
-	    printf( "new client from: %u.%u.%u.%u:%d (%d)\n", 
-		    (unsigned int) addr >> 24, 
-		    (unsigned int) (addr >> 16) % 256, 
-		    (unsigned int) (addr >> 8) % 256, 
-		    (unsigned int) addr % 256, 
-		    port, fd );
-	    
+
+	    if ( esdbg_trace ) {
+		printf( "(%02d) new client from: %03u.%03u.%03u.%03u:%05d\n", 
+			fd, (unsigned int) addr >> 24, 
+			(unsigned int) (addr >> 16) % 256, 
+			(unsigned int) (addr >> 8) % 256, 
+			(unsigned int) addr % 256, port );
+	    }
+
 	    /* make sure we have the memory to save the client... */
 	    new_client = (esd_client_t*) malloc( sizeof(esd_client_t) );
 	    if ( new_client == NULL ) {

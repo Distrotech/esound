@@ -87,6 +87,8 @@ typedef struct esd_sample {
 
 /* esd.c - global variables */
 extern int esd_on_standby;
+extern int esdbg_trace;
+extern int esdbg_comms;
 
 /* clients.c - manage the client connections */
 extern esd_client_t *esd_clients_list;
