@@ -2,8 +2,10 @@ AF_LIB = @AF_LIB@
 LIBESDDSP = @LIBESDDSP@
 
 bin_SCRIPTS = \
-	esd-config \
-	esddsp
+	@ESDDSP@	\
+	esd-config
+
+EXTRA_SCRIPTS = esddsp
 
 EXTRA_DIST = \
 	esd.m4 		\
@@ -26,6 +28,8 @@ EXTRA_LTLIBRARIES = \
 	libesddsp.la
 
 libesddsp_la_LDFLAGS = -rpath $(libdir) -version-info @ESD_VERSION_INFO@
+
+libesddsp_la_LIBADD = -lm
 
 libesddsp_la_SOURCES = \
 	esddsp.c
@@ -94,6 +98,7 @@ LDADD = libesd.la -lm
 
 LIBOBJS = @LIBOBJS@
 
+esd_LDADD = $(LIBOBJS) $(WRAP_LIB) $(LDADD)
 esdctl_LDADD = $(LIBOBJS) $(LDADD)
 esdplay_LDADD = $(LIBOBJS) $(AF_LIB) $(LDADD)
 

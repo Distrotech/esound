@@ -34,6 +34,11 @@
    Just rename "app" to "app.real" and drop in the above script as "app"
  */
 
+/* This lets you run multiple instances of x11amp by setting the X11AMPNUM
+   environment variable. Only works on glibc2.
+ */
+/* #define MULTIPLE_X11AMP */
+
 #include <string.h>
 #include <sys/types.h>
 #include <sys/soundcard.h>
@@ -87,15 +92,18 @@ int ioctl (int fd, int request, void *argp)
       switch (request)
 	{
         case SNDCTL_DSP_SETFMT:
-	  fmt |= (*arg & 0x30) ? ESD_BITS16 : ESD_BITS8; settings |= 1;
+	  fmt |= (*arg & 0x30) ? ESD_BITS16 : ESD_BITS8;
+	  settings |= 1;
 	  break;
 
 	case SNDCTL_DSP_SPEED:
-	  speed = *arg; settings |= 2;
+	  speed = *arg;
+	  settings |= 2;
 	  break;
 
 	case SNDCTL_DSP_STEREO:
-	  fmt &= ~ESD_MONO, fmt |= (*arg) ? ESD_STEREO : ESD_MONO;
+	  fmt &= ~ESD_MONO;
+	  fmt |= (*arg) ? ESD_STEREO : ESD_MONO;
 	  break;
 
 	case SNDCTL_DSP_GETBLKSIZE:
@@ -103,7 +111,11 @@ int ioctl (int fd, int request, void *argp)
 	  break;
 
 	case SNDCTL_DSP_GETFMTS:
-	  *arg = 0x3f;
+	  *arg = 0x38;
+	  break;
+
+	case SNDCTL_DSP_GETCAPS:
+	  *arg = 0;
 	  break;
 
 	default:
@@ -115,7 +127,7 @@ int ioctl (int fd, int request, void *argp)
 
       if (settings == 3 && !done)
 	{
-  	  int proto = ESD_PROTO_STREAM_PLAY;
+	  int proto = ESD_PROTO_STREAM_PLAY;
 	  char buf[ESD_NAME_MAX] = "dsp";
 
 	  done = 1;
@@ -131,7 +143,7 @@ int ioctl (int fd, int request, void *argp)
 
 	  fsync (sndfd);
 
-  	  fmt = ESD_STREAM | ESD_PLAY | ESD_MONO;
+	  fmt = ESD_STREAM | ESD_PLAY | ESD_MONO;
 	  speed = 0;
 	}
 
@@ -140,3 +152,69 @@ int ioctl (int fd, int request, void *argp)
 
   return 0;
 }
+
+#ifdef MULTIPLE_X11AMP
+
+#include <stdlib.h>
+#include <socketbits.h>
+#include <sys/param.h>
+#include <sys/un.h>
+
+extern int __unlink (const char *filename);
+extern int __bind (int fd, struct sockaddr *addr, int len);
+extern int __connect (int fd, struct sockaddr *addr, int len);
+
+#define ENVSET "X11AMPNUM"
+
+int unlink (const char *filename)
+{
+  char *num;
+
+  if (!strcmp (filename, "/tmp/X11Amp_CTRL") && (num = getenv(ENVSET)))
+    {
+      char buf[PATH_MAX] = "/tmp/X11Amp_CTRL";
+      strcat (buf, num);
+      return __unlink (buf); 
+    }
+  else
+    return __unlink (filename);
+}
+
+typedef int (*SockAddrFunc) (int fd, struct sockaddr *addr, int len);
+
+int sockaddr_mangle (SockAddrFunc func, int fd, struct sockaddr *addr, int len)
+{
+  char *num;
+
+  if (!strcmp (((struct sockaddr_un *) addr)->sun_path, "/tmp/X11Amp_CTRL")
+      && (num = getenv(ENVSET)))
+    {
+      int ret;
+      char buf[PATH_MAX] = "/tmp/X11Amp_CTRL";
+
+      struct sockaddr_un *new_addr = malloc (len);
+
+      strcat (buf, num);
+      memcpy (new_addr, addr, len);
+      strcpy (new_addr->sun_path, buf);
+
+      ret = func (fd, (struct sockaddr *) new_addr, len);
+
+      free (new_addr);
+      return ret;
+    } 
+  else
+    return func (fd, addr, len);
+}
+
+int bind (int fd, struct sockaddr *addr, int len)
+{
+  return sockaddr_mangle (__bind, fd, addr, len);
+}
+
+int connect (int fd, struct sockaddr *addr, int len)
+{
+  return sockaddr_mangle (__connect, fd, addr, len);
+}
+
+#endif

@@ -31,3 +31,4 @@ esd-config
 *.da
 esound.spec
 esddsp
+libesddsp.la

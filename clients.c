@@ -1,10 +1,18 @@
-
 #include "esd-server.h"
+
 #ifdef HAVE_SYS_IOCTL_H
 # include <sys/ioctl.h>
 #endif
 #ifdef HAVE_SYS_FILIO_H
 # include <sys/filio.h>
+#endif
+
+#ifdef USE_LIBWRAP
+#include <tcpd.h>
+#include <syslog.h>
+
+int allow_severity = LOG_INFO;
+int deny_severity = LOG_WARNING;
 #endif
 
 /*******************************************************************/
@@ -124,6 +132,27 @@ int get_new_clients( int listen )
 			(unsigned int) (addr >> 8) % 256, 
 			(unsigned int) addr % 256, port );
 	    }
+
+#ifdef USE_LIBWRAP
+	    {
+		struct request_info req;
+		struct servent *serv;
+
+		request_init( &req, RQ_DAEMON, "esound", RQ_FILE, fd, NULL );
+		fromhost( &req );
+
+		if ( !hosts_access( &req )) {
+		    if ( esdbg_trace ) {
+			printf( "connection from %s refused by tcp_wrappers\n",
+				eval_client( &req ) );
+		    }
+
+		    close( fd );
+		    continue;
+		}
+	    }
+#endif
+
 	    if ( esdbg_comms ) printf( "================================\n" );
 
 	    /* make sure we have the memory to save the client... */

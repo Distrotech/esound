@@ -2,10 +2,12 @@
 # esddsp - wrapper script to allow *some* binary only programs to use esd
 
 # setup esd to hijack calls made to /dev/dsp
-export prefix=@prefix@
-export exec_prefix=@exec_prefix@
-export libdir=@libdir@
-export LD_PRELOAD=${libdir}/libesddsp.so:${libdir}/libesd.so
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+libdir=@libdir@
+
+LD_PRELOAD=${libdir}/libesddsp.so:${libdir}/libesd.so
+export LD_PRELOAD
 
 # invoke the program with the args given
-"$@"
+exec "$@"

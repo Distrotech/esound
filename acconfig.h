@@ -11,3 +11,4 @@
 #undef DRIVER_NONE
 #undef HAVE_INET_ATON
 #undef HAVE_NANOSLEEP
+#undef USE_LIBWRAP
