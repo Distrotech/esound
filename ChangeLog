@@ -1,3 +1,11 @@
+1998-12-27  Yo Ric Dude  <ricdude@ix.netcom.com>
+
+	* proto.c: missed one code path for setting is_ok...
+	* clients.c, esd-server.h, esd.c, esd.h, esdloop.c, esdsample.c, 
+	filter.c, mix.c, players.c, proto.c: moved some prototypes to
+	more logical locations, and general -ansi -Wall -pedantic stuff.
+	* esd.c: added -h option for usage.
+
 1998-12-22  Yo Ric Dude  <ricdude@ix.netcom.com>
 
 	* audio_alsa.c, clients.c: from bibek, more alsa patches and a

@@ -15,7 +15,7 @@ static char esd_owner_key[ESD_KEY_LEN];
 
 /*******************************************************************/
 /* prototypes */
-int esd_check_endian( esd_client_t *client, int *endian );
+int esd_check_endian( esd_client_t *client, unsigned int *endian );
 int esd_validate_source( esd_client_t *client, 
 			 octet *submitted_key, int owner_only );
 int esd_proto_unimplemented( esd_client_t *client );
@@ -48,39 +48,40 @@ typedef int esd_proto_handler_t( esd_client_t *client );
 typedef struct esd_proto_handler_info {
     int 		data_length;
     esd_proto_handler_t *handler;
+    const char *        description;
 } esd_proto_handler_info_t;
 
 /* the biug map of protocol handler info */
 esd_proto_handler_info_t esd_proto_map[ ESD_PROTO_MAX ] = 
 {
-    { ESD_KEY_LEN + sizeof(int), &esd_proto_connect }, 	/* connect */
-    { ESD_KEY_LEN + sizeof(int), &esd_proto_lock }, 	/* lock */
-    { ESD_KEY_LEN + sizeof(int), &esd_proto_unlock }, 	/* unlock */
+    { ESD_KEY_LEN + sizeof(int), &esd_proto_connect, "connect" },
+    { ESD_KEY_LEN + sizeof(int), &esd_proto_lock, "lock" },
+    { ESD_KEY_LEN + sizeof(int), &esd_proto_unlock, "unlock" },
 
-    { ESD_KEY_LEN + 2 * sizeof(int), &esd_proto_stream_play }, 	/* stream play */
-    { ESD_KEY_LEN + 2 * sizeof(int), &esd_proto_stream_recorder }, /* stream rec */
-    { ESD_KEY_LEN + 2 * sizeof(int), &esd_proto_stream_monitor }, /* stream mon */
+    { ESD_KEY_LEN + 2 * sizeof(int), &esd_proto_stream_play, "stream play" },
+    { ESD_KEY_LEN + 2 * sizeof(int), &esd_proto_stream_recorder, "stream rec" },
+    { ESD_KEY_LEN + 2 * sizeof(int), &esd_proto_stream_monitor, "stream mon" },
 
-    { ESD_NAME_MAX + 3 * sizeof(int), &esd_proto_sample_cache }, /* sample cache */
-    { sizeof(int), &esd_proto_sample_free }, 		/* sample free */
-    { sizeof(int), &esd_proto_sample_play }, 		/* sample play */
-    { sizeof(int), &esd_proto_sample_loop }, 		/* sample loop */
-    { sizeof(int), &esd_proto_sample_stop }, 		/* sample stop */
-    { -1, &esd_proto_unimplemented }, 			/* TODO: sample kill */
+    { ESD_NAME_MAX + 3 * sizeof(int), &esd_proto_sample_cache, "sample cache" },
+    { sizeof(int), &esd_proto_sample_free, "sample free" },
+    { sizeof(int), &esd_proto_sample_play, "sample play" },
+    { sizeof(int), &esd_proto_sample_loop, "sample loop" },
+    { sizeof(int), &esd_proto_sample_stop, "sample stop" },
+    { -1, &esd_proto_unimplemented, "TODO: sample kill" },
 
-    { ESD_KEY_LEN + sizeof(int), &esd_proto_standby }, 	/* standby */
-    { ESD_KEY_LEN + sizeof(int), &esd_proto_resume }, 	/* resume */
+    { ESD_KEY_LEN + sizeof(int), &esd_proto_standby, "standby" },
+    { ESD_KEY_LEN + sizeof(int), &esd_proto_resume, "resume" },
 
-    { ESD_NAME_MAX, &esd_proto_sample_getid }, 		/* sample getid */
-    { ESD_KEY_LEN + 2 * sizeof(int), &esd_proto_stream_filter }, /* stream filter */
+    { ESD_NAME_MAX, &esd_proto_sample_getid, "sample getid" },
+    { ESD_KEY_LEN + 2 * sizeof(int), &esd_proto_stream_filter, "stream filter" },
 
-    { 0, &esd_proto_server_info }, 			/* server info */
-    { 0, &esd_proto_all_info }, 			/* all info */
-    { -1, &esd_proto_unimplemented },			/* TODO: subscribe */
-    { -1, &esd_proto_unimplemented },			/* TODO: unsubscribe */
+    { 0, &esd_proto_server_info, "server info" },
+    { 0, &esd_proto_all_info, "all info" },
+    { -1, &esd_proto_unimplemented, "TODO: subscribe" },
+    { -1, &esd_proto_unimplemented, "TODO: unsubscribe" },
 
-    { 3 * sizeof(int), &esd_proto_stream_pan} , 	/* stream pan */
-    { 3 * sizeof(int), &esd_proto_sample_pan }, 	/* sample pan */
+    { 3 * sizeof(int), &esd_proto_stream_pan, "stream pan"},
+    { 3 * sizeof(int), &esd_proto_sample_pan, "sample pan" },
 
 };
 
@@ -114,7 +115,7 @@ void clear_auth( int signum )
 
 /*******************************************************************/
 /* checks for client/server endianness */
-int esd_check_endian( esd_client_t *client, int *endian )
+int esd_check_endian( esd_client_t *client, unsigned int *endian )
 {
     if ( *endian == ESD_ENDIAN_KEY ) {
 	ESDBG_TRACE( printf( "(%02d) same endian order.\n", client->fd ); );
@@ -125,7 +126,7 @@ int esd_check_endian( esd_client_t *client, int *endian )
     } else {
 	ESDBG_TRACE( 
 	    printf( "(%02d) unknown endian key: 0x%08x (same = 0x%08x, diff = 0x%08x)\n",
-		    client->fd, endian, ESD_ENDIAN_KEY, ESD_SWAP_ENDIAN_KEY ); );
+		    client->fd, *endian, ESD_ENDIAN_KEY, ESD_SWAP_ENDIAN_KEY ); );
 	
 	return 0;
     }
@@ -217,6 +218,7 @@ int esd_proto_lock( esd_client_t *client )
     }
 
     ESD_WRITE_INT( client->fd, &client_ok, sizeof(client_ok), actual, "lock ok" );
+    
     return ok;
 }
 
@@ -436,14 +438,14 @@ int esd_proto_sample_cache( esd_client_t *client )
 /* check for an existing sample name */
 int esd_proto_sample_getid(esd_client_t *client)
 {
-    int client_id, actual, length;
+    int client_id, length;
     esd_sample_t *sample = esd_samples_list;
     char namebuf[ESD_NAME_MAX];
 
-    ESDBG_TRACE( printf( "(%02d) proto: getting sample ID\n", client->fd ); );
-
     strncpy( namebuf, client->proto_data, ESD_NAME_MAX );
     namebuf[ESD_NAME_MAX - 1] = '\0';
+
+    ESDBG_TRACE( printf( "(%02d) proto: getting sample ID: %s\n", client->fd, namebuf ); );
 
     while(sample) {
 	if(!strcmp(sample->name, namebuf))
@@ -760,52 +762,14 @@ int esd_proto_sample_pan( esd_client_t *client )
 
 
 /*******************************************************************/
-/* now that we trust the client, do it's bidding, return boolean ok */
-static int do_validated_action ( esd_client_t *client )
-{
-    int is_ok;
-    
-    switch ( client->request ) {
-    case ESD_PROTO_LOCK:
-        is_ok = esd_proto_lock( client );
-        break;
-
-    case ESD_PROTO_UNLOCK:
-        is_ok = esd_proto_unlock( client );
-        break;
-
-    case ESD_PROTO_STANDBY:
-        is_ok = esd_proto_standby( client );
-        break;
-
-    case ESD_PROTO_RESUME:
-        is_ok = esd_proto_resume( client );
-        break;
-
-    case ESD_PROTO_CONNECT:
-        /* this was initial validation of client */
-        is_ok = 1;
-	break;
-
-    default:
-        fprintf( stderr, "(%02d) proto: unknown protocol request:  0x%08x\n",
-	        client->fd, client->request );
-        is_ok = 0;
-        break;
-    }
-
-    return is_ok;
-}
-
-/*******************************************************************/
 /* checks for new client requiests - returns 1 */
 int poll_client_requests()
 {
+    int can_read, length, is_ok = 0;
     esd_client_t *client = NULL;
     esd_client_t *erase = NULL;
     fd_set rd_fds;
     struct timeval timeout;
-    int can_read, length, is_ok;
 
     /* for each readable socket in the FD_SET, check protocol reqs? */
     /* check all, as some may become readable between the previous */
@@ -866,8 +830,9 @@ int poll_client_requests()
 	    if ( client->proto_data_length 
 		 == esd_proto_map[ client->request ].data_length )
 	    {
-		ESDBG_TRACE( printf( "(%02d) handling request %d.\n", 
-				     client->fd, client->request ); );
+		ESDBG_TRACE( printf( "(%02d) handling request %d, %s.\n", 
+				     client->fd, client->request, 
+				     esd_proto_map[ client->request ].description ); );
 		client->state = ESD_NEXT_REQUEST; /* handler may override */
 		is_ok = esd_proto_map[ client->request ].handler( client );
 	    } else {
@@ -879,6 +844,7 @@ int poll_client_requests()
 
 	case ESD_NEXT_REQUEST:
  	    /* make sure there's a request as EOF may return as readable */
+	    
 	    ESDBG_COMMS( printf( "--------------------------------\n" ); );
 	    ESD_READ_INT( client->fd, &client->request, sizeof(client->request), 
 			  length, "request" );
@@ -899,6 +865,7 @@ int poll_client_requests()
 		client->state = ESD_NEEDS_REQDATA;
 		client->proto_data_length = 0;
 		/* TODO: do one read, and handle if we get all the data */
+		is_ok = 1;
 	    } 
 	    else {
 		ESDBG_TRACE( printf( "(%02d) invalid request: %d\n",
@@ -916,6 +883,9 @@ int poll_client_requests()
 
 	/* if there was a problem, erase the client */
 	if ( !is_ok ) {
+	    ESDBG_TRACE( printf( "(%02d) error handling request %d, %s.\n", 
+				 client->fd, client->request, 
+				 esd_proto_map[ client->request ].description ); );
 	    erase = client; 
 	}
 

@@ -9,6 +9,14 @@
 #endif
 
 /*******************************************************************/
+/* esd.c - prototypes */
+void set_audio_buffer( void *buf, esd_format_t format, int magl, int magr, 
+		int freq, int speed, int length, long offset );
+void clean_exit(int signum);
+void reset_signal(int signum);
+int open_listen_socket( int port );
+
+/*******************************************************************/
 /* globals */
 int esd_on_standby = 0;	/* set to 1 to route all audio to /dev/null */
 int esdbg_trace = 0;		/* show warm fuzzy debug messages */
@@ -203,18 +211,30 @@ int main ( int argc, char *argv[] )
 		    fprintf( stderr, "- could not determine rate: %s\n", 
 			     argv[ arg ] );
 		}
-		fprintf( stderr, "- server_format: sample rate = %d Hz\n", 
+		fprintf( stderr, "- server format: sample rate = %d Hz\n", 
 			 default_rate );
 	    }
+#ifdef ESDBG
 	} else if ( !strcmp( argv[ arg ], "-vt" ) ) {
 	    esdbg_trace = 1;
 	    fprintf( stderr, "- enabling trace diagnostic info\n" );
 	} else if ( !strcmp( argv[ arg ], "-vc" ) ) {
 	    esdbg_comms = 1;
 	    fprintf( stderr, "- enabling comms diagnostic info\n" );
+#endif
 	} else if ( !strcmp( argv[ arg ], "-nobeeps" ) ) {
 	    esd_beeps = 0;
 	    fprintf( stderr, "- disabling startup beeps\n" );
+	} else if ( !strcmp( argv[ arg ], "-h" ) ) {
+	    fprintf( stderr, "Usage: esd [options]\n\n" );
+	    fprintf( stderr, "  -b            run server in 8 bit sound mode\n" );
+	    fprintf( stderr, "  -r RATE       run server at sample rate of RATE\n" );
+#ifdef ESDBG
+	    fprintf( stderr, "  -vt           enable trace diagnostic info\n" );
+	    fprintf( stderr, "  -vc           enable comms diagnostic info\n" );
+#endif
+	    fprintf( stderr, "  -port PORT    listen for connections at PORT\n" );
+	    exit( 0 );
 	} else {
 	    fprintf( stderr, "unrecognized option: %s\n", argv[ arg ] );
 	}

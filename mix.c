@@ -636,7 +636,7 @@ int mix_players_16s( void *output, int length )
 	    if ( actual > max ) max = actual;
 	    
 	} else if ( actual == 0 ) {
-	    ESDBG_TRACE( printf( "no data available from player (%d)\n", 
+	    ESDBG_TRACE( printf( "(%02d) no data available from player [%p]\n", 
 				 iterator->source_id, iterator ); );
 	} else {
 	    /* actual < 0 means erase the player */

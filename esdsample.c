@@ -8,9 +8,13 @@
 #include <unistd.h>
 #include <sys/stat.h>
 
+/* prototype(s) */
+void clean_exit(int signum);
+
 volatile int terminate = 0;
 
 void clean_exit(int signum) {
+    fprintf( stderr, "received signal %d: terminating...\n", signum );
     terminate = 1;
     return;
 }

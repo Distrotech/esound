@@ -381,7 +381,6 @@ void recorder_write() {
 esd_player_t *new_stream_player( esd_client_t *client )
 {
     esd_player_t *player;
-    int actual;
 
     /* make sure we have the memory to save the client... */
     player = (esd_player_t*) malloc( sizeof(esd_player_t) );

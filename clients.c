@@ -43,7 +43,7 @@ void dump_clients()
 	port = ntohs( clients->source.sin_port );
 	addr = ntohl( clients->source.sin_addr.s_addr );
 
-	printf( "(%02d) client from: %03u.%03u.%03u.%03u:%05d [%08p]\n", 
+	printf( "(%02d) client from: %03u.%03u.%03u.%03u:%05d [%p]\n", 
 		clients->fd, (unsigned int) addr >> 24, 
 		(unsigned int) (addr >> 16) % 256, 
 		(unsigned int) (addr >> 8) % 256, 

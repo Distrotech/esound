@@ -23,7 +23,7 @@ extern "C" {
 
 /* a magic number to identify the relative endianness of a client */
 #define ESD_ENDIAN_KEY \
-	( ('E' << 24) + ('N' << 16) + ('D' << 8) + ('N') )
+	( (unsigned int) ( ('E' << 24) + ('N' << 16) + ('D' << 8) + ('N') ) )
 
 #define ESD_VOLUME_BASE (256)
 
@@ -293,18 +293,6 @@ void esd_audio_pause(void);
 int esd_audio_write( void *buffer, int buf_size );
 int esd_audio_read( void *buffer, int buf_size );
 void esd_audio_flush(void);
-
-/*******************************************************************/
-/* esd.c - stuff from that file :) */
-void set_audio_buffer( void *buf, esd_format_t format, int magl, int magr, 
-		int freq, int speed, int length, long offset );
-void clean_exit(int signum);
-void reset_signal(int signum);
-int open_listen_socket( int port );
-
-/*******************************************************************/
-/* filter.c */
-int filter_write( void *buffer, int size, esd_format_t format, int rate );
 
 #ifdef __cplusplus
 }

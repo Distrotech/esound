@@ -177,6 +177,10 @@ int mix_players_16s( void *mixed, int length );
 int mix_players_8s( void *mixed, int length );
 
 /*******************************************************************/
+/* filter.c */
+int filter_write( void *buffer, int size, esd_format_t format, int rate );
+
+/*******************************************************************/
 /* evil evil macros */
 
 /* switch endian order for cross platform playing */
@@ -198,21 +202,23 @@ int mix_players_8s( void *mixed, int length );
 
 #define ESDBG_TRACE(x) \
 	do { \
-	    if ( esdbg_trace ) \
+	    if ( esdbg_trace ) { \
 		printf( ":trace: [%s,%d] \t", __FILE__, __LINE__ ); \
     		x; \
+	    } \
 	} while( 0 );
 
 #define ESDBG_COMMS(x) \
 	do { \
-	    if ( esdbg_comms ) \
+	    if ( esdbg_comms ) { \
 		printf( ":comms: [%s,%d] \t", __FILE__, __LINE__ ); \
     		x; \
+	    } \
 	} while( 0 );
 
 #define ESD_READ_INT(s,a,l,r,d) \
 	do { \
-	    int esd_ri; \
+	    unsigned int esd_ri; \
     	    r = read( s, a, l ); \
     	    if ( esdbg_comms ) { \
 		printf( "---> rd [%s,%d] \t%-10s: %2d, %4d = %4d  (%d)     (", \
@@ -225,7 +231,7 @@ int mix_players_8s( void *mixed, int length );
 
 #define ESD_READ_BIN(s,a,l,r,d) \
 	do { \
-	    int esd_rb; \
+	    unsigned int esd_rb; \
     	    r = read( s, a, l ); \
     	    if ( esdbg_comms ) { \
 		printf( "---> rd [%s,%d] \t%-10s: %2d, %4d = %4d  (", \
@@ -238,7 +244,7 @@ int mix_players_8s( void *mixed, int length );
 
 #define ESD_WRITE_INT(s,a,l,r,d) \
 	do { \
-	    int esd_wi; \
+	    unsigned int esd_wi; \
     	    r = write( s, a, l ); \
     	    if ( esdbg_comms ) { \
 		printf( "<--- wr [%s,%d] \t%-10s: %2d, %4d = %4d  (%d)     (", \
@@ -251,7 +257,7 @@ int mix_players_8s( void *mixed, int length );
 
 #define ESD_WRITE_BIN(s,a,l,r,d) \
 	do { \
-	    int esd_wb; \
+	    unsigned int esd_wb; \
     	    r = write( s, a, l ); \
     	    if ( esdbg_comms ) { \
 		printf( "<--- wr [%s,%d] \t%-10s: %2d, %4d = %4d  (", \
@@ -267,25 +273,10 @@ int mix_players_8s( void *mixed, int length );
 #define ESDBG_TRACE(x)
 #define ESDBG_COMMS(x)
 
-#define ESD_READ_INT(s,a,l,r,d) \
-	do { \
-    	    r = read( s, a, l ); \
-        } while ( 0 );
-
-#define ESD_READ_BIN(s,a,l,r,d) \
-	do { \
-    	    r = read( s, a, l ); \
-        } while ( 0 );
-
-#define ESD_WRITE_INT(s,a,l,r,d) \
-	do { \
-    	    r = write( s, a, l ); \
-        } while ( 0 );
-
-#define ESD_WRITE_BIN(s,a,l,r,d) \
-	do { \
-    	    r = write( s, a, l ); \
-        } while ( 0 );
+#define ESD_READ_INT(s,a,l,r,d)	 r = read( s, a, l );
+#define ESD_READ_BIN(s,a,l,r,d)  r = read( s, a, l );
+#define ESD_WRITE_INT(s,a,l,r,d) r = write( s, a, l );
+#define ESD_WRITE_BIN(s,a,l,r,d) r = write( s, a, l );
 
 #endif /* #ifdef ESDBG */
 

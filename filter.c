@@ -67,7 +67,7 @@ int filter_write( void *buffer, int size, esd_format_t format, int rate )
 		data_format = filter->format;
 		data_rate = filter->rate;
 	    } else if ( actual == 0 ) {
-		ESDBG_TRACE( printf( "no data available from filter (%d)\n", 
+		ESDBG_TRACE( printf( "-%02d- no data available from filter [%p]\n", 
 				     filter->source_id, filter ); );
 		data_buffer = filter->data_buffer;
 		data_size = 0;
