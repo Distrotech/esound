@@ -160,5 +160,7 @@ int main ()
   fi
   AC_SUBST(ESD_CFLAGS)
   AC_SUBST(ESD_LIBS)
+  AC_DEFINE(HAVE_ESD)
+  AC_SUBST(HAVE_ESD)
   rm -f conf.esdtest
 ])
