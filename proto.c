@@ -80,14 +80,6 @@ int esd_proto_lock( esd_client_t *client )
 {
     int ok = 0;
 
-    /* can only be locked by owner */
-    if( !validate_source( client->fd, client->source, 1 ) ) {
-	/* connection refused, shut down the client connection */
-	printf( "only owner may lock sound daemon\n" );
-	write( client->fd, &ok, sizeof(ok) );
-	return ok;
-    }
-
     printf( "locking sound daemon\n" );
     esd_is_locked = 1;
     ok = 1;
@@ -100,14 +92,6 @@ int esd_proto_lock( esd_client_t *client )
 int esd_proto_unlock( esd_client_t *client )
 {
     int ok = 0;
-
-    /* can only be unlocked by owner */
-    if( !validate_source( client->fd, client->source, 1 ) ) {
-	/* connection refused, shut down the client connection */
-	printf( "only owner may unlock sound daemon\n" );
-	write( client->fd, &ok, sizeof(ok) );
-	return ok;
-    }
 
     printf( "unlocking sound daemon\n" );
     esd_is_locked = 0;
@@ -130,14 +114,6 @@ int esd_proto_standby( esd_client_t *client )
 	return ok;
     }	
 
-    /* can only be set to standby by owner */
-    if( !validate_source( client->fd, client->source, 1 ) ) {
-	/* connection refused, shut down the client connection */
-	printf( "only owner may set sound daemon to standby\n" );
-	write( client->fd, &ok, sizeof(ok) );
-	return ok;
-    }
-
     printf( "setting sound daemon to standby\n" );
     esd_on_standby = 1;
     /* TODO: close down any recorders, too */
@@ -159,14 +135,6 @@ int esd_proto_resume( esd_client_t *client )
 	write( client->fd, &ok, sizeof(ok) );
 	return ok;
     }	
-
-    /* can only be resumed by owner */
-    if( !validate_source( client->fd, client->source, 1 ) ) {
-	/* connection refused, shut down the client connection */
-	printf( "only owner may tell sound daemon to resume\n" );
-	write( client->fd, &ok, sizeof(ok) );
-	return ok;
-    }
 
     printf( "resuming sound daemon\n" );
     esd_audio_open();
@@ -358,6 +326,42 @@ int esd_proto_sample_stop( esd_client_t *client )
     return 1;
 }
 
+static int do_validated_action ( esd_client_t *client )
+{
+    int is_ok;
+    
+    switch ( client->request ) {
+    case ESD_PROTO_LOCK:
+        is_ok = esd_proto_lock( client );
+        break;
+
+    case ESD_PROTO_UNLOCK:
+        is_ok = esd_proto_unlock( client );
+        break;
+
+    case ESD_PROTO_STANDBY:
+        is_ok = esd_proto_standby( client );
+        break;
+
+    case ESD_PROTO_RESUME:
+        is_ok = esd_proto_resume( client );
+        break;
+
+    case ESD_PROTO_INVALID:
+        /* this was initial validation of client */
+        is_ok = 1;
+	break;
+
+    default:
+        printf( "unknown protocol request:  %d (check esd.h)\n",
+	        client->request );
+        is_ok = 0;
+        break;
+    }
+
+    return is_ok;
+}
+
 /*******************************************************************/
 /* checks for new client requiests - returns 1 */
 int poll_client_requests()
@@ -396,77 +400,88 @@ int poll_client_requests()
 	    continue;
 	}
 
-	/* make sure there's a request as EOF may return as readable */
-	length = read( client->fd, &client->request, 
-		      sizeof(client->request) );
+ 	if ( client->need_validation ) {
+ 	    /* validate client */
+ 	    is_ok = validate_source( client->fd, client->source, 0 );
+ 
+ 	    if ( is_ok ) {
+ 	        client->need_validation = 0;
+ 		is_ok = do_validated_action( client );
+ 	    }
+ 	    else if ( client->request != ESD_PROTO_INVALID ) {
+ 	        /* send failure code to client */
+ 	        printf( "only owner may control sound daemon\n" );
+ 		write( client->fd, &is_ok, sizeof(is_ok) );
+ 	    }
+ 	}
+ 	else {
+ 
+ 	    /* make sure there's a request as EOF may return as readable */
+ 	    length = read( client->fd, &client->request, 
+			   sizeof(client->request) );
+ 
+ 	    if ( length <= 0 ) {
+ 		/* no more data available from that client, close it */
+ 		printf( "no more protocol requests for client (%d)\n", 
+ 			client->fd );
+ 		is_ok = 0;
+ 
+ 	    } else {
+ 
+ 		/* find out what we want to do next */
+ 		switch ( client->request )
+ 		{
+ 		case ESD_PROTO_LOCK:
+ 		case ESD_PROTO_UNLOCK:
+ 		case ESD_PROTO_STANDBY:
+ 		case ESD_PROTO_RESUME:
+ 		    /* these requests need validation -- the validation */
+ 		    /* key will appear in the next read */
+ 		    client->need_validation = 1;
+ 		    is_ok = 1;
+ 		    break;
 
-	if ( length <= 0 ) {
-	    /* no more data available from that client, close it */
-	    printf( "no more protocol requests for client (%d)\n", 
-		    client->fd );
-	    is_ok = 0;
-
-	} else {
-
-	    /* find out what we want to do next */
-	    switch ( client->request )
-	    {
-	    case ESD_PROTO_LOCK:
-		is_ok = esd_proto_lock( client );
-		break;
-		
-	    case ESD_PROTO_UNLOCK:
-		is_ok = esd_proto_unlock( client );
-		break;
-		
-	    case ESD_PROTO_STANDBY:
-		is_ok = esd_proto_standby( client );
-		break;
-		
-	    case ESD_PROTO_RESUME:
-		is_ok = esd_proto_resume( client );
-		break;
-		
-	    case ESD_PROTO_STREAM_PLAY:
-		is_ok = esd_proto_stream_play( client );
-		break;
-		
-	    case ESD_PROTO_STREAM_REC:
-		is_ok = esd_proto_stream_recorder( client );
-		break;
-		
-	    case ESD_PROTO_STREAM_MON:
-		is_ok = esd_proto_stream_monitor( client );
-		break;
-		
-	    case ESD_PROTO_SAMPLE_CACHE:
-		is_ok = esd_proto_sample_cache( client );
-		break;
-		
-	    case ESD_PROTO_SAMPLE_FREE:
-		is_ok = esd_proto_sample_free( client );
-		break;
-		
-	    case ESD_PROTO_SAMPLE_PLAY:
-		is_ok = esd_proto_sample_play( client );
-		break;
-		
-	    case ESD_PROTO_SAMPLE_LOOP:
-		is_ok = esd_proto_sample_loop( client );
-		break;
-		
-	    case ESD_PROTO_SAMPLE_STOP:
-		is_ok = esd_proto_sample_stop( client );
-		break;
-		
-	    default:
-		printf( "unknown protocol request:  %d (check esd.h)\n",
-			client->request );
-		is_ok = 0;
-		break;
-	    }
-	}
-
+ 		case ESD_PROTO_STREAM_PLAY:
+		    is_ok = esd_proto_stream_play ( client );
+ 		    break;
+ 
+ 		case ESD_PROTO_STREAM_REC:
+ 		    is_ok = esd_proto_stream_recorder( client );
+ 		    break;
+ 
+ 		case ESD_PROTO_STREAM_MON:
+ 		    is_ok = esd_proto_stream_monitor( client );
+ 		    break;
+ 
+ 		case ESD_PROTO_SAMPLE_CACHE:
+ 		    is_ok = esd_proto_sample_cache( client );
+ 		    break;
+ 
+ 		case ESD_PROTO_SAMPLE_FREE:
+ 		    is_ok = esd_proto_sample_free( client );
+ 		    break;
+ 
+ 		case ESD_PROTO_SAMPLE_PLAY:
+ 		    is_ok = esd_proto_sample_play( client );
+ 		    break;
+ 
+ 		case ESD_PROTO_SAMPLE_LOOP:
+ 		    is_ok = esd_proto_sample_loop( client );
+ 		    break;
+ 
+ 		case ESD_PROTO_SAMPLE_STOP:
+ 		    is_ok = esd_proto_sample_stop( client );
+ 		    break;
+ 
+ 		default:
+ 		    printf( "unknown protocol request:  %d (check esd.h)\n",
+ 			    client->request );
+ 		    is_ok = 0;
+ 		    break;
+ 		}
+ 	    }
+ 	}
+ 	
 	/* if there was a problem, erase the client */
 	if ( !is_ok ) {
 	    erase = client; 

@@ -1,3 +1,21 @@
+1998-06-28  Raja R Harinath  <harinath@cs.umn.edu>
+
+	* clients.c (wait_for_clients_and_data): Return 0.
+	(get_new_clients): Remove validation code.  Moved to
+	`poll_client_requests' (in proto.c).	
+	* proto.c: (esd_proto_lock): Likewise.
+	(esd_proto_unlock): Likewise.
+	(esd_proto_standby): Likewise.
+	(esd_proto_resume): Likewise.
+	(poll_client_requests): Centralize validation.  Move invocation of
+	`esd_proto_{lock,unlock,standby,resume}' ...
+	(do_validated_action): ... here.
+
+	* esd-server.h (struct esd_client): New flag `need_validation'.
+
+	* esdlib.c (esd_lock): Send `ESD_PROTO_LOCK' message, not
+	`ESD_PROTO_UNLOCK'. 
+
 1998-06-13  Yo Ric Dude  <ericmit@ix.netcom.com>
 
 	* mix.c: removed core-dump causing optimization, thx to keebler.
@@ -29,6 +47,7 @@
 	* mix.c: added integral ratio of sample rates optimization.
 
 1998-06-05  Myth  <frb@umr.edu>
+
 	* esd.h: removed reference to config.h.
 
 	* audio.c: added reference to config.h.
@@ -75,16 +94,14 @@
 	* audio.c, audio_*.c, configure.in, Makefile.am, acconfig.h, esd.h:
 	Added horribly broken(?) drivers for other OSs... These need fixed
 
-	*esdlib.c:
-	Need space for the \0 =)
-
+	* esdlib.c: Need space for the \0 =)
 	
 1998-05-19  Yo 'Ric Dude  <ericmit@ix.netcom.com>
 
-	* clients.c, esdsample.c: 
-	corrected a problem playing samples without a simultaneous stream
-	which was instigated by the "better" blocking algorithm.  Added
-	simple multiple trigger capability to esdsample.c program.
+	* clients.c, esdsample.c: corrected a problem playing samples
+	without a simultaneous stream which was instigated by the "better"
+	blocking algorithm.  Added simple multiple trigger capability to
+	esdsample.c program.
 
 
 1998-05-16  Raja R Harinath  <harinath@cs.umn.edu>
@@ -96,7 +113,8 @@ Mon Apr 27 23:58:52 1998  Yo 'Ric Dude  <ricdude@piranha>
 
 	* esd.c, esd.h, mix.c: moved clipping into mix.c
 
-	* clients.c, esd.c, esd.h, mix.c, samples.c: clipping patches entered
+	* clients.c, esd.c, esd.h, mix.c, samples.c: clipping patches
+	entered
 
 	* LICENSE: updates
 
@@ -123,8 +141,8 @@ Thu Apr 16 04:11:25 1998  Yo 'Ric Dude  <ricdude@piranha>
 
 	* esdloop.c: Initial revision
 
-	* EsounD.html, EsounD.lsm, LICENSE, TODO, clients.c, esd.c, esd.h, esdlib.c, srcfiles:
-	preparation for v0.2
+	* EsounD.html, EsounD.lsm, LICENSE, TODO, clients.c, esd.c, esd.h,
+	esdlib.c, srcfiles: preparation for v0.2
 
 Wed Apr 15 03:28:19 1998  Yo 'Ric Dude  <ricdude@piranha>
 
@@ -142,7 +160,8 @@ Sat Apr 11 16:03:53 1998  Yo 'Ric Dude  <ricdude@piranha>
 
 	* DOCUMENTATION, TODO: Initial revision
 
-	* clients.c, esd.c, players.c: created TODO file for random thoughts
+	* clients.c, esd.c, players.c: created TODO file for random
+	thoughts
 
 	* srcfiles: new files
 
@@ -161,6 +180,7 @@ Sat Apr  4 19:57:07 1998  Yo 'Ric Dude  <ricdude@piranha>
 
 	* players.c: reworked logic for detecting end of stream players
 
-	* esd.h, esdmon.c, esdsample.c, samples.c, audio.c, clients.c, esd.c, esdcat.c, esdlib.c, esdlock.c, esdrec.c, esdunlock.c, mix.c, players.c:
-	Initial revision
+	* esd.h, esdmon.c, esdsample.c, samples.c, audio.c, clients.c,
+	esd.c, esdcat.c, esdlib.c, esdlock.c, esdrec.c, esdunlock.c,
+	mix.c, players.c: Initial revision
 

@@ -79,7 +79,7 @@ int esd_send_auth( int socket )
 /*******************************************************************/
 /* lock/unlock will disable/enable foreign clients from connecting */
 int esd_lock( int esd ) {
-    int proto = ESD_PROTO_UNLOCK;
+    int proto = ESD_PROTO_LOCK;
     int ok = 0;
 
     write( esd, &proto, sizeof(proto) );

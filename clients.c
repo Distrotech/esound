@@ -120,17 +120,10 @@ int get_new_clients( int listen )
 		return -1;
 	    }
 
-	    /* authenticate user... */
-	    if( !validate_source( fd, incoming, 0 ) ) {
-		/* connection refused, try next client connection */
-		free( new_client ); new_client = NULL;
-		close( fd );
-		continue;
-	    }
-
 	    /* fill in the new_client structure - sockaddr = works!? */
 	    /* request = ..._INVALID forces polling client next time */
 	    new_client->next = NULL;
+	    new_client->need_validation = 1;
 	    new_client->request = ESD_PROTO_INVALID;
 	    new_client->fd = fd;
 	    new_client->source = incoming; 
@@ -179,5 +172,5 @@ int wait_for_clients_and_data( int listen )
 
     select( max_fd+1, &rd_fds, NULL, NULL, timeout_ptr );
 
-    return;
+    return 0;
 }

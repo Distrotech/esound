@@ -19,6 +19,9 @@
 typedef struct esd_client {
     struct esd_client *next; 	/* it's a list, eh? link 'em */
 
+    int need_validation;	/* does the client need validation before */
+				/* `request' can be processed */
+  
     esd_proto_t request;	/* current request for this client */
     int fd;			/* the clients protocol stream */
     struct sockaddr_in source;	/* data maintained about source */
