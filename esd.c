@@ -30,6 +30,34 @@ extern int h_errno;
 /* max arguments (argc + tokenized esd.conf) can't be more than this */
 #define MAX_OPTS 128
 
+typedef const char *(*audio_devices_t)(void);
+typedef int (*audio_open_t)(void);
+typedef void (*audio_close_t)(void);
+typedef void (*audio_pause_t)(void);
+typedef void (*audio_flush_t)(void);
+typedef int (*audio_write_t)( void *buffer, int buf_size );
+typedef int (*audio_read_t)( void *buffer, int buf_size );
+
+audio_devices_t impl_esd_audio_devices = esd_audio_devices;
+audio_open_t impl_esd_audio_open = esd_audio_open;
+audio_close_t impl_esd_audio_close = esd_audio_close;
+audio_pause_t impl_esd_audio_pause = esd_audio_pause;
+audio_flush_t impl_esd_audio_flush = esd_audio_flush;
+audio_write_t impl_esd_audio_write = esd_audio_write;
+audio_read_t impl_esd_audio_read = esd_audio_read;
+
+#define esd_audio_devices impl_esd_audio_devices
+#define esd_audio_open impl_esd_audio_open
+#define esd_audio_close impl_esd_audio_close
+#define esd_audio_pause impl_esd_audio_pause
+#define esd_audio_flush impl_esd_audio_flush
+#define esd_audio_write impl_esd_audio_write
+#define esd_audio_read impl_esd_audio_read
+
+#ifdef DRIVER_ARTS
+#include "audio_arts.c"
+#endif
+
 /*******************************************************************/
 /* esd.c - prototypes */
 void set_audio_buffer( void *buf, esd_format_t format, int magl, int magr,
@@ -609,6 +637,10 @@ int main ( int argc, char *argv[] )
     /* end test scaffolding parameters */
 
     programname = *argv;
+
+#ifdef DRIVER_ARTS
+    artschk();
+#endif
 
     /* read in esd.conf, ~/.esd.conf, ESD_SPAWN_OPTIONS or ESD_OPTIONS*/
     esd_config_read();
