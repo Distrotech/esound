@@ -1,4 +1,3 @@
-
 #include "esd-server.h"
 #include <stdlib.h>
 #include <dirent.h>
@@ -8,8 +7,6 @@
 #include <arpa/inet.h>
 
 #ifndef HAVE_INET_ATON
-#include <netinet/in.h>
-#include <string.h>
 int inet_aton(const char *cp, struct in_addr *inp)
 {
     union {

@@ -6,13 +6,6 @@
 #include <fcntl.h>
 #include <sys/ioctl.h>
 
-/* socket stuff */
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <signal.h>
-#include <sys/time.h>
-#include <sys/types.h>
-
 /* for math functions */
 #include <math.h>
 

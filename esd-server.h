@@ -4,6 +4,11 @@
 /* get public information from the public header file */
 #include <esd.h>
 #include <config.h>
+#include <netinet/in.h>
+#include <sys/socket.h>
+#include <signal.h>
+#include <sys/time.h>
+#include <sys/types.h>
 
 /*******************************************************************/
 /* sound daemon data structures */

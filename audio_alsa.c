@@ -1,7 +1,7 @@
 /* Advanced Linux Sounds Architecture support for EsounD
    7-19-98: Nick Lopez( kimo_sabe@usa.net ) - it starts!
 */
-#include "esd-server.h"
+#include "esd.h"
 
 #if defined(DRIVER_NEWALSA)
 #  include <sys/asoundlib.h>

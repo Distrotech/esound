@@ -1,3 +1,12 @@
+Mon Oct 12 23:12:03 CDT 1998 Frank Belew <frb@umr.edu>
+
+	* esd.h: removed anything resembling a socket header
+	* esd-server.h: added everything removed from esd.h
+	* audio_alsa.c: #include esd.h instead of esd-server.h since sockets 
+	are not needed.
+	* esdlib.c: removed superfluous headers that are already included from
+	esd-server.h
+
 1998-10-10  Yo Ric Dude  <ricdude@ix.netcom.com>
 
 	* esd-server.h, esd.c, esd.h, esdlib.c, mix.c, proto.c, filter.c,
