@@ -1,5 +1,6 @@
 #! /bin/sh
 aclocal $ACLOCAL_FLAGS
-automake
+autoheader
+automake --gnu --add-missing
 autoconf
 ./configure $*
