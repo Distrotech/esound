@@ -6,6 +6,8 @@
  	when we shut down the server
 	* samples.c, players.c: check for addition of NULL
  	samples/players.
+	* players.c: helps if you put the recorder stream's, writeable
+	fd_set mask in the proper place within the select call - thx. Chutt
 
 1999-02-10  Yo Ric Dude  <ericmit@ix.netcom.com>
 
