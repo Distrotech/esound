@@ -143,7 +143,7 @@ dist-hook: doc esound.spec
 	cp $(SPEC_FILE) $(distdir)
 	test -d $(distdir)/docs || mkdir $(distdir)/docs 
 	cp $(srcdir)/docs/esound.sgml $(distdir)/docs
-	cp -r docs/esound $(distdir)/docs/html
+	cp -r $(srcdir)/docs/esound $(distdir)/docs/html
 	cp $(srcdir)/docs/esound.ps $(distdir)/docs
 
 CLEANFILES=esound.spec esound.pc

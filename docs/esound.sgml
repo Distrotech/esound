@@ -204,7 +204,7 @@
       <informaltable frame="all">
 	<tgroup cols="2">
 	  <thead>
-	    <row><entry>option</entry><entry>purpose</entry></thead>
+	    <row><entry>option</entry><entry>purpose</entry></row></thead>
 	  <tbody>
 	    <row>
 	      <entry>-nobeeps</entry>
@@ -268,7 +268,7 @@
       <informaltable frame="all">
 	<tgroup cols="2">
 	  <thead>
-	    <row><entry>commands</entry><entry>purpose</entry></thead>
+	    <row><entry>commands</entry><entry>purpose</entry></row></thead>
 	  <tbody>
 	    <row>
 	      <entry>lock</entry>
@@ -377,7 +377,7 @@
       <informaltable frame="all">
 	<tgroup cols="2">
 	  <thead>
-	    <row><entry>option</entry><entry>purpose</entry></thead>
+	    <row><entry>option</entry><entry>purpose</entry></row></thead>
 	  <tbody>
 	    <row>
 	      <entry>-s SERVER</entry>
@@ -426,7 +426,7 @@
       <informaltable frame="all">
 	<tgroup cols="2">
 	  <thead>
-	    <row><entry>option</entry><entry>purpose</entry></thead>
+	    <row><entry>option</entry><entry>purpose</entry></row></thead>
 	  <tbody>
 	    <row>
 	      <entry>-s SERVER</entry>
