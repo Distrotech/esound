@@ -1,3 +1,8 @@
+2002-06-19  Frederic Crozat  <fcrozat@mandrakesoft.com>
+
+	* clients.c: (get_new_clients): don't use tcp wrapper for unix socket
+	(Debian)
+
 2002-06-17  Frederic Crozat  <fcrozat@mandrakesoft.com>
 
 	* esd.c: (main):
@@ -69,7 +74,7 @@
 
 	* players.c: (read_player):
 	Fix locking at end of audio stream (bug #81864 and Ximian bug 24717)
-	(Patch from Staniago Otero <siryurian@terra.es>)
+	(Patch from Santiago Otero <siryurian@terra.es>)
 
 2002-05-13  Frederic Crozat  <fcrozat@mandrakesoft.com>
 

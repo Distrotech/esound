@@ -18,6 +18,7 @@ int deny_severity = LOG_WARNING;
 
 /*******************************************************************/
 /* globals */
+extern int esd_use_tcpip; 
 
 /* the list of the currently connected clients */
 esd_client_t *esd_clients_list;
@@ -141,6 +142,7 @@ int get_new_clients( int listen )
 			(unsigned int) addr % 256, port ); );
 
 #ifdef USE_LIBWRAP
+	    if (esd_use_tcpip)
 	    {
 		struct request_info req;
 		struct servent *serv;
