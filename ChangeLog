@@ -1,3 +1,13 @@
+2002-08-26  Frederic Crozat  <fcrozat@mandrakesoft.com>
+
+	* audio_alsa09.c: (initAlsa): Ensure device is closed if initialisation
+	failed (was preventing future initialisations)
+	(esd_audio_devices):list avaible ALSA cards when using -help (bug
+	#89964) 
+	(esd_audio_open): list available card add support for alsa cards 
+	selection using -d command-line parameter (bug #89962)
+	All patches from Tom Prado <tprado@charter.net>
+
 2002-08-21  Elliot Lee  <sopwith@redhat.com>
 
 	* audio.c: set esd_audio_fd = -1 when we esd_audio_close()

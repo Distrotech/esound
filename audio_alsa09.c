@@ -32,10 +32,6 @@ int alsaerr = 0;
 static snd_pcm_t *alsa_playback_handle = NULL;
 static snd_pcm_t *alsa_capture_handle = NULL;
 
-static char *dev =  "hw:0,0"; 
-
-
-
 static snd_output_t *output = NULL;
 
 #define ACS  SND_PCM_ACCESS_RW_INTERLEAVED
@@ -114,7 +110,7 @@ snd_pcm_t* initAlsa(char *dev, int format, int channels, int speed, int mode)
 		if (alsadbg)
 			fprintf(stderr, "%s\n", snd_strerror(err));
 		alsaerr = -1;
-		return NULL;
+		return handle;
 	}
   
 	err = snd_pcm_hw_params_set_access(handle, hwparams, ACS);
@@ -122,7 +118,7 @@ snd_pcm_t* initAlsa(char *dev, int format, int channels, int speed, int mode)
 		if (alsadbg)
 			fprintf(stderr, "%s\n", snd_strerror(err));
 		alsaerr = -1;
-		return NULL;
+		return handle;
 	}
   
 	err = snd_pcm_hw_params_set_format(handle, hwparams, format);
@@ -130,7 +126,7 @@ snd_pcm_t* initAlsa(char *dev, int format, int channels, int speed, int mode)
 		if (alsadbg)
 			fprintf(stderr, "%s\n", snd_strerror(err));
 		alsaerr = -1;
-		return NULL;
+		return handle;
 	}
   
 	err = snd_pcm_hw_params_set_channels(handle, hwparams,  channels);
@@ -138,7 +134,7 @@ snd_pcm_t* initAlsa(char *dev, int format, int channels, int speed, int mode)
 		if (alsadbg)
 			fprintf(stderr, "%s\n", snd_strerror(err));
 		alsaerr = -1;
-		return NULL;
+		return handle;
 	}
   
 	err = snd_pcm_hw_params_set_rate_near(handle, hwparams, speed, 0);
@@ -146,13 +142,13 @@ snd_pcm_t* initAlsa(char *dev, int format, int channels, int speed, int mode)
 		if (alsadbg)
 			fprintf(stderr, "%s\n", snd_strerror(err));
 		alsaerr = -1;
-		return NULL;
+		return handle;
 	}
 	if (err != speed) {
 		if (alsadbg)
 			fprintf(stderr, "Rate not avaliable %i != %i\n", speed, err);
 		alsaerr = -1;
-		return NULL;
+		return handle;
 	}
   
 	err = snd_pcm_hw_params_set_periods_integer(handle, hwparams);
@@ -160,7 +156,7 @@ snd_pcm_t* initAlsa(char *dev, int format, int channels, int speed, int mode)
 		if (alsadbg)
 			fprintf(stderr, "%s\n", snd_strerror(err));
 		alsaerr = -1;
-		return NULL;
+		return handle;
 	}
   
 	periods = 2;
@@ -169,7 +165,7 @@ snd_pcm_t* initAlsa(char *dev, int format, int channels, int speed, int mode)
 		if (alsadbg)
 			fprintf(stderr, "%s\n", snd_strerror(err));
 		alsaerr = -1;
-		return NULL;
+		return handle;
 	}
   
   
@@ -178,19 +174,91 @@ snd_pcm_t* initAlsa(char *dev, int format, int channels, int speed, int mode)
 		if (alsadbg)
 			fprintf(stderr, "Buffersize:%s\n", snd_strerror(err)); 
 		alsaerr = -1;
-		return NULL; 
+		return handle; 
 	} 
 	err = snd_pcm_hw_params(handle, hwparams); 
 	if (err < 0) { 
 		if (alsadbg)
 			fprintf(stderr, "%s\n", snd_strerror(err));
 		alsaerr = -1;
-		return NULL;
+		return handle;
 	}
 	if (alsadbg)
 		snd_pcm_dump(handle, output);
 	alsaerr = 0;
 	return handle;
+}
+
+#define ARCH_esd_audio_devices
+
+const char *esd_audio_devices()
+{
+        int card, err;
+        static char *all_alsa_cards=0;
+        char *alsa_card_tmp;
+        snd_ctl_t *handle;
+        snd_ctl_card_info_t *info;
+
+        snd_ctl_card_info_alloca(&info);
+
+        if(all_alsa_cards)
+        {
+                free(all_alsa_cards);
+                all_alsa_cards = 0;
+        }
+
+	card = -1;
+        if(snd_card_next(&card) < 0 || card < 0)
+        {
+                /* No cards found */
+        }
+        else
+        {
+                while( card >= 0 )
+                {
+                        char name[32];
+                        sprintf( name, "hw:%d", card );
+                        err = snd_ctl_open(&handle, name, 0);
+                        if( err < 0 )
+                        {
+                                fprintf( stderr, "audio_alsa: Error: control open (%i): %s\n", card, snd_strerror(err));
+                                continue;
+                        }
+                        err = snd_ctl_card_info(handle, info);
+                        if( err < 0 )
+                        {
+                                fprintf( stderr, "audio_alsa: Error: control hardware info (%i): %s\n", card, snd_strerror(err));
+                                snd_ctl_close(handle);
+                                continue;
+                        }
+                        alsa_card_tmp = malloc(strlen(snd_ctl_card_info_get_name(info))+20);
+                        sprintf( alsa_card_tmp, "hw:%d  (%s)\n", card, snd_ctl_card_info_get_name(info) );
+                        if(all_alsa_cards)
+                        {
+                                all_alsa_cards = realloc(all_alsa_cards, strlen(all_alsa_cards)+strlen(alsa_card_tmp)+30);
+				strcat(all_alsa_cards, "                       ");
+                                strcat(all_alsa_cards, alsa_card_tmp);
+                                free(alsa_card_tmp);
+                        }
+                        else
+                        {
+                                all_alsa_cards = alsa_card_tmp;
+                        }
+                        snd_ctl_close(handle);
+                        if(snd_card_next(&card) < 0)
+                        {
+                                break;
+                        }
+                }
+        }
+        if(all_alsa_cards)
+        {
+                return(all_alsa_cards);
+        }
+        else
+        {
+                return("No available cards found");
+        }
 }
 
 
@@ -201,6 +269,8 @@ int esd_audio_open()
   
 	int channels;
 	int format;
+	int card;
+	char *dev;
   
 	if (alsadbg)
 		fprintf(stderr, "esd_audio_open\n");
@@ -215,16 +285,40 @@ int esd_audio_open()
 	else channels = 1;
   
   
-  
 	snd_output_stdio_attach(&output, stderr, 0);
   
+	if(esd_audio_device)
+        {
+		dev = (char*) malloc(strlen(esd_audio_device)+1);
+		strcpy(dev, esd_audio_device);
+        }
+        else
+        {
+                card = -1;
+                if( snd_card_next(&card) < 0 || card < 0 )
+                {
+                        fprintf( stderr, "audio_alsa: no cards found!\n" );
+                        esd_audio_fd = -1;
+                        return -2 ;
+                }
+		dev = (char*) malloc(10);
+		sprintf(dev, "hw:%i", card);
+        }
+
+
+	if (alsadbg)
+		fprintf(stderr, "dev=%s\n",dev);
+
 	alsa_playback_handle = initAlsa(dev, format, channels, 
 									esd_audio_rate, SND_PCM_STREAM_PLAYBACK);
-	if ( alsa_playback_handle == NULL) {
+	if(alsaerr) 
+	{
+		if(alsaerr == -1) snd_pcm_close(alsa_playback_handle);
 		if (alsadbg)
 			fprintf(stderr, "Error opening device for playback\n");
 
 		esd_audio_fd = -1;
+		free(dev);
 		return alsaerr;
 	}
 	if (alsadbg)
@@ -233,12 +327,14 @@ int esd_audio_open()
 	if ( (esd_audio_format & ESD_MASK_FUNC) == ESD_RECORD ) {
 		alsa_capture_handle = initAlsa(dev, format, channels, 
 									   esd_audio_rate, SND_PCM_STREAM_CAPTURE);
-		if ( alsa_capture_handle == NULL) {
+		if (alsaerr) {
+			if (alsaerr==-1) snd_pcm_close(alsa_capture_handle);
 			if (alsadbg)
 				fprintf(stderr, "Error opening device for capture\n");
 
 			snd_pcm_close(alsa_playback_handle);
 			esd_audio_fd = -1;
+			free(dev);
 			return alsaerr;
 		}
 
@@ -247,6 +343,7 @@ int esd_audio_open()
 
 	}
 	esd_audio_fd = 0;
+	free(dev);
 	if (alsadbg)
 		print_state();
 
