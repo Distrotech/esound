@@ -46,12 +46,13 @@
 
 #include <esd.h>
 
+#define O_NONBLOCK 04000
+
 extern int __open (const char *pathname, int flags, mode_t mode);
 extern int __ioctl (int fd, int request, ...);
 extern int __close (int fd);
 
 extern ssize_t write (int fd, const void *buf, size_t count);
-extern int fsync (int fd);
 
 static int sndfd = -1;
 
@@ -59,18 +60,17 @@ static int settings, done;
 
 int open (const char *pathname, int flags, mode_t mode)
 {
-  int ret = -1;
-
-  if (getenv ("ESPEAKER"))
+  if (!strcmp (pathname, "/dev/dsp"))
     {
-      if (strcmp (pathname, "/dev/dsp"))
-	ret = __open (pathname, flags, mode);
-    }
-  else
-    ret = __open (pathname, flags, mode);
+      if (!getenv ("ESPEAKER"))
+	{
+          int ret;
 
-  if (ret == -1 && !strcmp (pathname, "/dev/dsp"))
-    {
+	  flags |= O_NONBLOCK;
+	  if ((ret = __open (pathname, flags, mode)) >= 0)
+	    return ret;
+	}
+
       settings = done = 0;
 
 #ifdef DSP_DEBUG
@@ -80,7 +80,7 @@ int open (const char *pathname, int flags, mode_t mode)
       return (sndfd = esd_open_sound (NULL));
     }
   else
-    return ret;
+    return __open (pathname, flags, mode);
 }
 
 int ioctl (int fd, int request, void *argp)
@@ -140,8 +140,8 @@ int ioctl (int fd, int request, void *argp)
 	  int proto = ESD_PROTO_STREAM_PLAY;
 	  char buf[ESD_NAME_MAX];
 	  strncpy (buf, /* use environment variable for alternate name */
-		   (getenv ("ESDDSP_NAME") ? getenv ("ESDDSP_NAME") : "esddsp"), 
-		   ESD_NAME_MAX );
+		   (getenv ("ESDDSP_NAME") ? getenv ("ESDDSP_NAME") : "esddsp"),
+		   ESD_NAME_MAX);
 
 	  done = 1;
 
@@ -153,8 +153,6 @@ int ioctl (int fd, int request, void *argp)
 	    return -1;
 	  if (write (sndfd, buf, ESD_NAME_MAX) != ESD_NAME_MAX)
 	    return -1;
-
-	  fsync (sndfd);
 
 	  fmt = ESD_STREAM | ESD_PLAY | ESD_MONO;
 	  speed = 0;

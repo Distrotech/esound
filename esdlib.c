@@ -97,7 +97,7 @@ int esd_send_auth( int sock )
 	goto exit_fd;
 
     /* we've run the gauntlet, everything's ok, proceed as usual */
-    fsync( sock );
+    /* fsync( sock ); */
     retval = 1;
 
  exit_fd:
@@ -296,7 +296,7 @@ int esd_play_stream( esd_format_t format, int rate, char *host, char *name )
 	return -1;
 
     /* flush the socket */
-    fsync( sock );
+    /* fsync( sock ); */
     
     return sock;
 }
@@ -354,7 +354,7 @@ int esd_monitor_stream( esd_format_t format, int rate, char *host, char *name )
 	return -1;
 
     /* flush the socket */
-    fsync( sock );
+    /* fsync( sock ); */
     
     return sock;
 }
@@ -389,7 +389,7 @@ int esd_filter_stream( esd_format_t format, int rate, char *host, char *name )
 	return -1;
 
     /* flush the socket */
-    fsync( sock );
+    /* fsync( sock ); */
     
     return sock;
 }
@@ -424,7 +424,7 @@ int esd_record_stream( esd_format_t format, int rate, char *host, char *name )
 	return -1;
 
     /* flush the socket */
-    fsync( sock );
+    /* fsync( sock ); */
     
     return sock;
 }
@@ -483,7 +483,7 @@ int esd_sample_cache( int esd, esd_format_t format, int rate, int size, char *na
 	return -1;
 
     /* flush the socket */
-    fsync( esd );
+    /* fsync( esd ); */
 
     /* get the sample id back from the server */
     if ( read( esd, &id, sizeof(id) ) != sizeof(id) )
@@ -529,7 +529,7 @@ int esd_sample_getid( int esd, const char *name)
 	return -1;
 
     /* flush the socket */
-    fsync( esd );
+    /* fsync( esd ); */
 
     /* get the sample id back from the server */
     if ( read( esd, &id, sizeof(id) ) != sizeof(id) )
@@ -553,7 +553,7 @@ int esd_sample_free( int esd, int sample )
 	return -1;
     if ( write( esd, &sample, sizeof(sample) ) != sizeof(sample) )
 	return -1;
-    fsync( esd );
+    /* fsync( esd ); */
 
     /* get the sample id back from the server */
     if ( read( esd, &id, sizeof(id) ) != sizeof(id) )
@@ -577,7 +577,7 @@ int esd_sample_play( int esd, int sample )
 	return -1;
     if ( write( esd, &sample, sizeof(sample) ) != sizeof(sample) )
 	return -1;
-    fsync( esd );
+    /* fsync( esd ); */
 
     /* get the sample id back from the server */
     if ( read( esd, &is_ok, sizeof(is_ok) ) != sizeof(is_ok) )
@@ -602,7 +602,7 @@ int esd_sample_loop( int esd, int sample )
 	return -1;
     if ( write( esd, &sample, sizeof(sample) ) != sizeof(sample) )
 	return -1;
-    fsync( esd );
+    /* fsync( esd ); */
 
     /* get the sample id back from the server */
     if ( read( esd, &is_ok, sizeof(is_ok) ) != sizeof(is_ok) )
@@ -626,7 +626,7 @@ int esd_sample_stop( int esd, int sample )
 	return -1;
     if ( write( esd, &sample, sizeof(sample) ) != sizeof(sample) )
 	return -1;
-    fsync( esd );
+    /* fsync( esd ); */
 
     /* get the sample id back from the server */
     if ( read( esd, &is_ok, sizeof(is_ok) ) != sizeof(is_ok) )
