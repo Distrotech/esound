@@ -1,3 +1,11 @@
+Thu Oct  1 22:58:03 CEST 1998 Jochen Friedrich <jochen@scram.de>
+
+	* esdlib.c: added kludge to esd_sample_cache() to make it
+	work under Alpha. Problem was to send a long and receive an int.
+	On Alpha this makes extra 4 bytes of crap enough to bring
+	client and server out of sync. Probably a better solution is
+	to change the prototype for size from long to int.
+
 1998-10-01  Raja R Harinath  <harinath@cs.umn.edu>
 
 	* configure.in (esd-config): Turn on execute bit only if

@@ -427,9 +427,11 @@ int esd_sample_cache( int esd, esd_format_t format, int rate, long size, char *n
 {
     int id = 0;
     int proto = ESD_PROTO_SAMPLE_CACHE;
+    int mysize;
 
     /* prepare the name buffer */
     char name_buf[ ESD_NAME_MAX ];
+    mysize = size;
     if ( name )
 	strncpy( name_buf, name, ESD_NAME_MAX );
     else
@@ -445,7 +447,7 @@ int esd_sample_cache( int esd, esd_format_t format, int rate, long size, char *n
 	return -1;
     if ( write( esd, &rate, sizeof(rate) ) != sizeof(rate) )
 	return -1;
-    if ( write( esd, &size, sizeof(size) ) != sizeof(size) )
+    if ( write( esd, &size, sizeof(mysize) ) != sizeof(mysize) )
 	return -1;
     if ( write( esd, name_buf, ESD_NAME_MAX ) != ESD_NAME_MAX )
 	return -1;
