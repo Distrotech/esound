@@ -48,6 +48,7 @@
 
 extern int __open (const char *pathname, int flags, mode_t mode);
 extern int __ioctl (int fd, int request, ...);
+extern int __close (int fd);
 
 extern ssize_t write (int fd, const void *buf, size_t count);
 extern int fsync (int fd);
@@ -155,6 +156,14 @@ int ioctl (int fd, int request, void *argp)
     }
 
   return 0;
+}
+
+int close (int fd)
+{
+  if (fd == sndfd)
+    sndfd = -1;
+
+  __close (fd);
 }
 
 #ifdef MULTIPLE_X11AMP
