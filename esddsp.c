@@ -18,9 +18,10 @@
  */
 
 /* To build and use:
-   gcc -O2 -pipe -c -fPIC esdamp.c 
-   gcc -shared -Wl,-soname -Wl,libesdamp.so.0 -o libesdamp.so.0.0.0 esdamp.o -lesd -lm -lc
-   then set LD_PRELOAD=/path/to/libesdamp.so.0.0.0 before launching x11amp
+   gcc -O2 -pipe -c -fPIC esddsp.c 
+   gcc -shared -Wl,-soname -Wl,libesddsp.so.0 -o libesddsp.so.0.0.0 esddsp.o -lesd -lm -lc
+
+   then set LD_PRELOAD=/path/to/libesddsp.so.0.0.0 before launching x11amp, etc.
  */
 
 #include <string.h>

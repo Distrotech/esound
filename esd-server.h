@@ -138,7 +138,7 @@ esd_player_t *new_sample_player( int id, int loop );
 
 int read_player( esd_player_t *player );
 void recorder_write();
-void monitor_write();
+void monitor_write( void *output_buffer, int length );
 
 /* samples.c - manage the players, recorder, and monitor */
 extern esd_sample_t *esd_samples_list;

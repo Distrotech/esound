@@ -318,11 +318,8 @@ int main ( int argc, char *argv[] )
 	/* if someone's monitoring the sound stream, send them data */
 	/* mix_players, above, forces buffer to zero if no players */
 	/* this clears out any leftovers from recording, below */
-	if ( esd_monitor_list && !esd_on_standby ) {
-	    /* TODO: maybe the last parameter here should be length? */
-	    if( length )
-		monitor_write( output_buffer );
-
+	if ( esd_monitor_list && !esd_on_standby && length ) {
+	    monitor_write( output_buffer, length );
 	}
 
 	/* if someone's recording the sound stream, send them data */
