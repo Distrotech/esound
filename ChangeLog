@@ -1,3 +1,9 @@
+2003-07-05  Frederic Crozat  <fcrozat@mandrakesoft.com>
+
+	* audio_solaris.c: (fill_play_info), (esd_audio_open):
+	allow simultaneous play and record on Solaris (bug #116742).
+	Patch from Balamurali Viswanathan <balamurali.viswanathan@wipro.com>
+
 2003-07-05  Frederic Crozat <fcrozat@mandrakesoft.com>
 
 	IPv6 support (bug #109324), 

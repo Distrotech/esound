@@ -8,7 +8,7 @@ libtool
 ltmain.sh
 ltconfig
 config.status
-stamp-h
+stamp-h*
 Makefile
 Makefile.in
 aclocal.m4

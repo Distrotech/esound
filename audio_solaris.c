@@ -235,12 +235,80 @@ void dump_audio_info(audio_info_t *t, int play)
  */
 
 #define ARCH_esd_audio_open
+int fill_play_info (audio_info_t *ainfo)
+{
+    /*
+     * Volume, balance and output device should be controlled by
+     * an external program - that way the user can set his preferences
+     * for all players  -- dave@arsdigita.com
+    */
+
+    /* int gain = 64;       /* Range: 0 - 255 */
+    int port;
+    int bsize = 8180;
+    if ( esd_audio_device == NULL )
+	/* Don't change the output device unless specificaly requested */
+	port = 0;
+    else if ( !strcmp( esd_audio_device, "lineout" ) )
+	port = AUDIO_LINE_OUT;
+    else if ( !strcmp( esd_audio_device, "speaker" ) )
+	port = AUDIO_SPEAKER;
+    else if ( !strcmp( esd_audio_device, "headphone" ) )
+	port = AUDIO_HEADPHONE;
+	/*
+	* The #ifdefs below are for the older OS releases. They won't have
+	* these things defined, so the compilation would break without them.
+	*/
+#ifdef AUDIO_SPDIF_OUT
+    else if ( !strcmp( esd_audio_device, "spdif" ) )
+	port = AUDIO_SPDIF_OUT;
+#endif
+#ifdef AUDIO_AUX1_OUT
+    else if ( !strcmp( esd_audio_device, "aux1" ) )
+	port = AUDIO_AUX1_OUT;
+#endif
+#ifdef AUDIO_AUX2_OUT
+    else if ( !strcmp( esd_audio_device, "aux2" ) )
+	port = AUDIO_AUX2_OUT;
+#endif
+    else {
+	return -1;
+    }
+
+    ainfo->play.sample_rate = esd_audio_rate;
+
+    if ((esd_audio_format & ESD_MASK_CHAN) == ESD_STEREO)
+	ainfo->play.channels = 2;
+    else
+	ainfo->play.channels = 1;
+
+    if ((esd_audio_format & ESD_MASK_BITS) == ESD_BITS16)
+	ainfo->play.precision = 16;
+    else
+	ainfo->play.precision = 8;
+
+    ainfo->play.encoding = AUDIO_ENCODING_LINEAR;
+    /* ainfo->play.gain = gain; */
+    if(port)
+	ainfo->play.port = port;
+    /* ainfo->play.balance = AUDIO_MID_BALANCE; */
+    ainfo->play.buffer_size = bsize;
+    ainfo->output_muted = 0;
+
+#ifdef ESDBG_DRIVER
+    dump_audio_info(ainfo,1);
+#endif
+
+   return 1;
+}
+
 int esd_audio_open()
 {
     int afd = -1, cafd = -1;
     audio_device_t adev;
     char *device, *devicectl;
     int err;
+    int ret;
 
     /*
      * Recording code needs access to the control device, but the playing
@@ -337,6 +405,15 @@ int esd_audio_open()
 	    ainfo.record.port = port;
 	    ainfo.record.balance = AUDIO_MID_BALANCE;
 	    ainfo.record.buffer_size = bsize;
+	    ret = fill_play_info (&ainfo);
+	    if (ret < 0) {
+		fprintf(stderr, "esd: Unknown output device `%s'.\n",
+			esd_audio_device);
+		close(afd);
+		esd_audio_fd = -1;
+		return -1;
+	    }
+
 	    /* actually, it doesn't look like we need to set any
 	       settings here-- they always seem to be the default, no
 	       matter what else was spec.  
@@ -348,7 +425,7 @@ int esd_audio_open()
 	}
                
 	do {
-	    afd = open(device, O_RDONLY);
+	    afd = open(device, O_RDWR);
 	} while (afd == -1 && errno == EINTR);
 	if (afd == -1) {
 	    fprintf(stderr, "esd: Opening %s device failed: %s\n",
@@ -431,75 +508,19 @@ int esd_audio_open()
     }
 
     {
-        /*
-	 * Volume, balance and output device should be controlled by
-	 * an external program - that way the user can set his preferences
-	 * for all players  -- dave@arsdigita.com
-	 */
-	/* int gain = 64;	/* Range: 0 - 255 */
-	int port;
-	int bsize = 8180;
 	audio_info_t ainfo;
       
-	if ( esd_audio_device == NULL )
-	    /* Don't change the output device unless specificaly requested */
-	    port = 0;
-	else if ( !strcmp( esd_audio_device, "lineout" ) )
-	    port = AUDIO_LINE_OUT;
-	else if ( !strcmp( esd_audio_device, "speaker" ) )
-	    port = AUDIO_SPEAKER;
-	else if ( !strcmp( esd_audio_device, "headphone" ) )
-	    port = AUDIO_HEADPHONE;
-	/*
-	 * The #ifdefs below are for the older OS releases. They won't have
-	 * these things defined, so the compilation would break without them.
-	 */
-#ifdef AUDIO_SPDIF_OUT
-	else if ( !strcmp( esd_audio_device, "spdif" ) )
-	    port = AUDIO_SPDIF_OUT;
-#endif
-#ifdef AUDIO_AUX1_OUT
-	else if ( !strcmp( esd_audio_device, "aux1" ) )
-	    port = AUDIO_AUX1_OUT;
-#endif
-#ifdef AUDIO_AUX2_OUT
-	else if ( !strcmp( esd_audio_device, "aux2" ) )
-	    port = AUDIO_AUX2_OUT;
-#endif
-	else {
-	    fprintf(stderr, "esd: Unknown output device `%s'.\n",
-		    esd_audio_device);
-	    close(afd);
-	    esd_audio_fd = -1;
-	    return -1;
-	}
-
 	AUDIO_INITINFO(&ainfo);
       
-	ainfo.play.sample_rate = esd_audio_rate;
-      
-	if ((esd_audio_format & ESD_MASK_CHAN) == ESD_STEREO)
-	    ainfo.play.channels = 2;
-	else
-	    ainfo.play.channels = 1;
-      
-	if ((esd_audio_format & ESD_MASK_BITS) == ESD_BITS16)
-	    ainfo.play.precision = 16;
-	else
-	    ainfo.play.precision = 8;
-      
-	ainfo.play.encoding = AUDIO_ENCODING_LINEAR;
-	/* ainfo.play.gain = gain; */
-	if(port)
-	    ainfo.play.port = port;
-	/* ainfo.play.balance = AUDIO_MID_BALANCE; */
-	ainfo.play.buffer_size = bsize;
-	ainfo.output_muted = 0;
-      
-#ifdef ESDBG_DRIVER
-	dump_audio_info(&ainfo,1);
-#endif
-      
+	ret = fill_play_info (&ainfo);
+	if (ret < 0) {
+		fprintf(stderr, "esd: Unknown output device `%s'.\n",
+			esd_audio_device);
+		close(afd);
+		esd_audio_fd = -1;
+		return -1;
+	}
+
 	do {
 	    err = ioctl(afd, AUDIO_SETINFO, &ainfo);
 	} while (err == -1 && errno == EINTR);
