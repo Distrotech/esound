@@ -187,8 +187,6 @@ AM_PATH_AUDIOFILE(0.1.5, [
 
 ESDPLAY=esdplay
 echo "--- libaudiofile found. Building esound with audiofile support"
-LIBS="$LIBS -laudiofile"
-
 ],[
 
 echo "--- ERROR: The audiofile library was not found on your system."
@@ -254,7 +252,7 @@ dnl build the esddsp wrapper for Linux only
 dsp_ok=no ESDDSP=
 AC_MSG_CHECKING([if your platform supports esddsp])
 case "$host_os" in
-  linux*)
+  linux* | freebsd* )
     LIBESDDSP=libesddsp.la
     ESDDSP=esddsp
     dsp_ok=yes
@@ -263,9 +261,6 @@ esac
 AC_MSG_RESULT($dsp_ok)
 
 # set | sort; # just for double checking the script...
-
-ESD_LIBS=$LIBS
-AC_SUBST(ESD_LIBS)
 
 AC_SUBST(WRAP_LIB)
 AC_SUBST(AUDIOFILE_LIBS)

@@ -29,12 +29,14 @@ libesd_la_SOURCES = \
 
 libesd_la_LDFLAGS = -version-info @ESD_VERSION_INFO@
 
+libesd_la_LIBADD = @AUDIOFILE_LIBS@ -lm
+
 EXTRA_LTLIBRARIES = \
 	libesddsp.la
 
 libesddsp_la_LDFLAGS = -rpath $(libdir) -version-info @ESD_VERSION_INFO@
 
-libesddsp_la_LIBADD = -lm
+libesddsp_la_LIBADD = -ldl -lm
 
 libesddsp_la_SOURCES = \
 	esddsp.c

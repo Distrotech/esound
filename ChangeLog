@@ -1,3 +1,14 @@
+Tue Dec  8 23:32:52 PST 1998 Manish Singh <yosh@gimp.org>
+
+	* Makefile.am
+	* configure.in
+	* esd-config.in: correctly handle AUDIOFILE_* vars
+
+	* Makefile.am
+	* configure.in
+	* esddsp.c: use dlsym instead of __func. Now works with glibc 2.1
+	and FreeBSD (maybe others? testers wanted)
+
 1998-12-08  Yo Ric Dude  <ricdude@ix.netcom.com>
 
 	* acconfig.h, configure.in, esd-server.h: use autoconf to turn

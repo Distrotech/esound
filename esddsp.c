@@ -17,49 +17,60 @@
  * Boston, MA 02111-1307, USA.
  */
 
-/* To build and use:
-   gcc -shared -O2 -pipe -fPIC esddsp.c -o libesddsp.so -lesd -lm
-
-   set LD_PRELOAD=/path/to/libesddsp.so
-   launch x11amp, etc.
-
-   For frequently used programs, you can use a wrapper script:
-
-   --- cut here ---
-   #!/bin/sh
-   export LD_PRELOAD=/path/to/libesddsp.so
-   exec /path/to/my/app.real $*
-   --- cut here ---
-
-   Just rename "app" to "app.real" and drop in the above script as "app"
- */
+/* #define DSP_DEBUG */
 
 /* This lets you run multiple instances of x11amp by setting the X11AMPNUM
    environment variable. Only works on glibc2.
  */
 /* #define MULTIPLE_X11AMP */
 
+#include "config.h"
+
+#include <dlfcn.h>
+#include <stdarg.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
+#include <fcntl.h>
 #include <sys/types.h>
-#include <sys/soundcard.h>
 
-#include <esd.h>
+#ifdef HAVE_MACHINE_SOUNDCARD_H
+#  include <machine/soundcard.h>
+#else
+#  ifdef HAVE_SOUNDCARD_H
+#    include <soundcard.h>
+#  else
+#    include <sys/soundcard.h>
+#  endif
+#endif
 
-#define O_NONBLOCK 04000
+#include "esd.h"
 
-extern int __open (const char *pathname, int flags, mode_t mode);
-extern int __ioctl (int fd, int request, ...);
-extern int __close (int fd);
+#define REAL_LIBC RTLD_NEXT
 
-extern ssize_t write (int fd, const void *buf, size_t count);
+#ifdef __FreeBSD__
+typedef unsigned long request_t;
+#else
+typedef int request_t;
+#endif
 
 static int sndfd = -1;
+static int settings = 0, done = 0;
 
-static int settings, done;
-
-int open (const char *pathname, int flags, mode_t mode)
+int
+open (const char *pathname, int flags, ...)
 {
+  static int (*func) (const char *, int, mode_t) = NULL;
+  va_list args;
+  mode_t mode;
+
+  if (!func)
+    func = (int (*) (const char *, int, mode_t)) dlsym (REAL_LIBC, "open");
+
+  va_start (args, flags);
+  mode = va_arg (args, mode_t);
+  va_end (args);
+
   if (!strcmp (pathname, "/dev/dsp"))
     {
       if (!getenv ("ESPEAKER"))
@@ -67,7 +78,7 @@ int open (const char *pathname, int flags, mode_t mode)
           int ret;
 
 	  flags |= O_NONBLOCK;
-	  if ((ret = __open (pathname, flags, mode)) >= 0)
+	  if ((ret = (*func) (pathname, flags, mode)) >= 0)
 	    return ret;
 	}
 
@@ -80,16 +91,27 @@ int open (const char *pathname, int flags, mode_t mode)
       return (sndfd = esd_open_sound (NULL));
     }
   else
-    return __open (pathname, flags, mode);
+    return (*func) (pathname, flags, mode);
 }
 
-int ioctl (int fd, int request, void *argp)
+int
+ioctl (int fd, request_t request, ...)
 {
+  static int (*func) (int, request_t, void *) = NULL;
+  va_list args;
+  void *argp;
+
   static esd_format_t fmt = ESD_STREAM | ESD_PLAY | ESD_MONO;
   static int speed;
 
+  if (!func)                                                                    
+    func = (int (*) (int, request_t, void *)) dlsym (REAL_LIBC, "ioctl");             
+  va_start (args, request);
+  argp = va_arg (args, void *);
+  va_end (args);
+
   if (fd != sndfd)
-    return __ioctl (fd, request, argp);
+    return (*func) (fd, request, argp);
   else if (sndfd != -1)
     {
       int *arg = (int *) argp;
@@ -164,12 +186,18 @@ int ioctl (int fd, int request, void *argp)
   return 0;
 }
 
-int close (int fd)
+int
+close (int fd)
 {
+  static int (*func) (int) = NULL;
+
+  if (!func)
+    func = (int (*) (int)) dlsym (REAL_LIBC, "close");
+
   if (fd == sndfd)
     sndfd = -1;
 
-  __close (fd);
+  return (*func) (fd);
 }
 
 #ifdef MULTIPLE_X11AMP
@@ -178,29 +206,31 @@ int close (int fd)
 #include <sys/param.h>
 #include <sys/un.h>
 
-extern int __unlink (const char *filename);
-extern int __bind (int fd, struct sockaddr *addr, int len);
-extern int __connect (int fd, struct sockaddr *addr, int len);
-
 #define ENVSET "X11AMPNUM"
 
-int unlink (const char *filename)
+int
+unlink (const char *filename)
 {
+  static int (*func) (const char *) = NULL;
   char *num;
 
-  if (!strcmp (filename, "/tmp/X11Amp_CTRL") && (num = getenv(ENVSET)))
+  if (!func)
+    func = (int (*) (const char *)) dlsym (REAL_LIBC, "unlink");
+
+  if (!strcmp (filename, "/tmp/X11Amp_CTRL") && (num = getenv (ENVSET)))
     {
       char buf[PATH_MAX] = "/tmp/X11Amp_CTRL";
       strcat (buf, num);
-      return __unlink (buf); 
+      return (*func) (buf); 
     }
   else
-    return __unlink (filename);
+    return (*func) (filename);
 }
 
-typedef int (*SAFunc) (int fd, struct sockaddr *addr, int len);
+typedef int (*sa_func_t) (int, struct sockaddr *, int);
 
-static int sockaddr_mangle (SAFunc func, int fd, struct sockaddr *addr, int len)
+static int
+sockaddr_mangle (sa_func_t func, int fd, struct sockaddr *addr, int len)
 {
   char *num;
 
@@ -216,23 +246,33 @@ static int sockaddr_mangle (SAFunc func, int fd, struct sockaddr *addr, int len)
       memcpy (new_addr, addr, len);
       strcpy (new_addr->sun_path, buf);
 
-      ret = func (fd, (struct sockaddr *) new_addr, len);
+      ret = (*func) (fd, (struct sockaddr *) new_addr, len);
 
       free (new_addr);
       return ret;
     } 
   else
-    return func (fd, addr, len);
+    return (*func) (fd, addr, len);
 }
 
-int bind (int fd, struct sockaddr *addr, int len)
+int
+bind (int fd, struct sockaddr *addr, int len)
 {
-  return sockaddr_mangle (__bind, fd, addr, len);
+  static sa_func_t func = NULL;
+
+  if (!func)
+    func = (sa_func_t) dlsym (REAL_LIBC, "bind");
+  return sockaddr_mangle (func, fd, addr, len);
 }
 
-int connect (int fd, struct sockaddr *addr, int len)
+int
+connect (int fd, struct sockaddr *addr, int len)
 {
-  return sockaddr_mangle (__connect, fd, addr, len);
+  static sa_func_t func = NULL;
+
+  if (!func)
+    func = (sa_func_t) dlsym (REAL_LIBC, "connect");
+  return sockaddr_mangle (func, fd, addr, len);
 }
 
 #endif /* MULTIPLE_X11AMP */

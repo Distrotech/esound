@@ -1,5 +1,8 @@
 #!/bin/sh
 
+audiofile_libs="@AUDIOFILE_LIBS@"
+audiofile_cflags="@AUDIOFILE_CFLAGS@"
+
 prefix=@prefix@
 exec_prefix=@exec_prefix@
 exec_prefix_set=no
@@ -41,12 +44,27 @@ while test $# -gt 0; do
     --cflags)
       if test @includedir@ != /usr/include ; then
         includes=-I@includedir@
+        for i in $audiofile_cflags ; do
+          if test $i = -I@includedir@ ; then
+            includes=""
+          fi
+        done      
       fi
-      echo $includes
+      echo $includes $audiofile_cflags
       ;;
     --libs)
+      my_audiofile_libs=
       libdirs=-L@libdir@
-      echo $libdirs -lesd @ESD_LIBS@ -lm
+      for i in $audiofile_libs ; do
+        if test $i != -L@libdir@ ; then
+          if test -z "$my_audiofile_libs" ; then
+            my_audiofile_libs="$i"
+          else
+            my_audiofile_libs="$my_audiofile_libs $i"
+          fi
+        fi
+      done
+      echo $libdirs -lesd $my_audiofile_libs -lm
       ;;
     *)
       echo "${usage}" 1>&2
