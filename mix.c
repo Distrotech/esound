@@ -6,6 +6,11 @@
 /* ESD_BUF_SIZE is the maximum possible number of samples */
 signed int mixed_buffer[ ESD_BUF_SIZE ];
 
+/* prototype for compiler */;
+int mix_to_stereo_32s( esd_player_t *player, int length );
+void clip_mix_to_output_16s( signed short *output, int length );
+void clip_mix_to_output_8u( signed char *output, int length );
+
 /* TODO: straighten out the mix algorithm comment annotations */
 /* TOTO: i don't think we're in kansas anymore... */
 
@@ -39,10 +44,11 @@ int mix_and_copy( void *dest_buf, int dest_len,
 
 /*******************************************************************/
 /* takes the 16 bit signed source waveform, and mixes to player */
-int mix_from_stereo_16s( void *dest_buf, int dest_len, int dest_rate, esd_format_t dest_format, 
+int mix_from_stereo_16s( void *dest_buf, unsigned int dest_len, int dest_rate, esd_format_t dest_format, 
 			signed short *source_data_ss, int src_len, int src_rate )
 {
-    int wr_dat = 0, rd_dat = 0, bytes_written = 0;
+    int rd_dat = 0, bytes_written = 0;
+    unsigned int wr_dat = 0;
     register unsigned char *target_data_uc = NULL;
     register signed short *target_data_ss = NULL;
     signed short lsample, rsample;
@@ -151,10 +157,11 @@ int mix_from_stereo_16s( void *dest_buf, int dest_len, int dest_rate, esd_format
 
 /*******************************************************************/
 /* takes the 8 bit unsigned source waveform, and mixes to player */
-int mix_from_stereo_8u( void *dest_buf, int dest_len, int dest_rate, esd_format_t dest_format, 
+int mix_from_stereo_8u( void *dest_buf, unsigned int dest_len, int dest_rate, esd_format_t dest_format, 
 			unsigned char *source_data_uc, int src_len, int src_rate )
 {
-    int wr_dat = 0, rd_dat = 0, bytes_written = 0;
+    int rd_dat = 0, bytes_written = 0;
+    unsigned int wr_dat = 0;
     register unsigned char *target_data_uc = NULL;
     register signed short *target_data_ss = NULL;
     signed short lsample, rsample;
@@ -257,10 +264,11 @@ int mix_from_stereo_8u( void *dest_buf, int dest_len, int dest_rate, esd_format_
 
 /*******************************************************************/
 /* takes the 16 bit mono signed source waveform, and mixes to player */
-int mix_from_mono_16s( void *dest_buf, int dest_len, int dest_rate, esd_format_t dest_format, 
+int mix_from_mono_16s( void *dest_buf, unsigned int dest_len, int dest_rate, esd_format_t dest_format, 
 			signed short *source_data_ss, int src_len, int src_rate )
 {
-    int wr_dat = 0, rd_dat = 0, bytes_written = 0;
+    int rd_dat = 0, bytes_written = 0;
+    unsigned int wr_dat = 0;
     register unsigned char *target_data_uc = NULL;
     register signed short *target_data_ss = NULL;
     signed short lsample;
@@ -361,10 +369,11 @@ int mix_from_mono_16s( void *dest_buf, int dest_len, int dest_rate, esd_format_t
 
 /*******************************************************************/
 /* takes the 8 bit mono unsigned source waveform, and mixes to player */
-int mix_from_mono_8u( void *dest_buf, int dest_len, int dest_rate, esd_format_t dest_format, 
+int mix_from_mono_8u( void *dest_buf, unsigned int dest_len, int dest_rate, esd_format_t dest_format, 
 			unsigned char *source_data_uc, int src_len, int src_rate )
 {
-    int wr_dat = 0, rd_dat = 0, bytes_written = 0;
+    int rd_dat = 0, bytes_written = 0;
+    unsigned int wr_dat = 0;
     register unsigned char *target_data_uc = NULL;
     register signed short *target_data_ss = NULL;
     signed short lsample;
@@ -466,7 +475,8 @@ int mix_from_mono_8u( void *dest_buf, int dest_len, int dest_rate, esd_format_t 
 /* takes the input player, and mixes to 16 bit signed waveform */
 int mix_to_stereo_32s( esd_player_t *player, int length )
 {
-    int wr_dat = 0, rd_dat = 0, count = 0, step = 0;
+    int rd_dat = 0;
+    unsigned int wr_dat=0;
     register unsigned char *source_data_uc = NULL;
     register signed short *source_data_ss = NULL;
     signed short sample;

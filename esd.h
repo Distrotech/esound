@@ -1,5 +1,6 @@
 #ifndef ESD_H
 #define ESD_H
+#include <audiofile.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -116,6 +117,9 @@ typedef unsigned char octet;
 /* server = listen socket (localhost:5001, 192.168.168.0:9999 */
 /* rate, format = (bits | channels | stream | func) */
 int esd_open_sound( const char *host );
+
+/* send the authorization cookie, create one if needed */
+int esd_send_auth( int sock );
 
 /* lock/unlock will disable/enable foreign clients from connecting */
 int esd_lock( int esd );
@@ -272,6 +276,8 @@ int esd_set_default_sample_pan( int esd, int sample_id,
 
 /*******************************************************************/
 /* esdfile.c - audiofile wrappers for sane handling of files */
+
+int esd_send_file( int esd, AFfilehandle au_file, int frame_length );
 int esd_play_file( const char *name_prefix, const char *filename, int fallback );
 int esd_file_cache( int esd, const char *name_prefix, const char *filename );
 
@@ -281,12 +287,24 @@ int esd_file_cache( int esd, const char *name_prefix, const char *filename );
 extern esd_format_t esd_audio_format;
 extern int esd_audio_rate;
 
-int esd_audio_open();
-void esd_audio_close();
-void esd_audio_pause();
+int esd_audio_open(void);
+void esd_audio_close(void);
+void esd_audio_pause(void);
 int esd_audio_write( void *buffer, int buf_size );
 int esd_audio_read( void *buffer, int buf_size );
-void esd_audio_flush();
+void esd_audio_flush(void);
+
+/*******************************************************************/
+/* esd.c - stuff from that file :) */
+void set_audio_buffer( void *buf, esd_format_t format, int magl, int magr, 
+		int freq, int speed, int length, long offset );
+void clean_exit(int signum);
+void reset_signal(int signum);
+int open_listen_socket( int port );
+
+/*******************************************************************/
+/* filter.c */
+int filter_write( void *buffer, int size, esd_format_t format, int rate );
 
 #ifdef __cplusplus
 }

@@ -185,7 +185,7 @@ int esd_open_sound( const char *host )
     char default_host[] = "0.0.0.0";
     char connect_host[64];
     int port = ESD_DEFAULT_PORT;
-    int host_div = 0;
+    unsigned int host_div = 0;
    
     /* see if we have a remote speaker to play to */
     espeaker = host ? host : getenv( "ESPEAKER" );

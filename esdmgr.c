@@ -1,6 +1,8 @@
 
 #include <esd.h>
+#include <stdlib.h>
 #include <stdio.h>
+#include <unistd.h>
 
 /*********************************************************************/
 /* print server into to stdout */
@@ -80,7 +82,6 @@ void esd_print_all_info( esd_info_t *all_info )
 esd_server_info_t *esd_get_server_info( int esd )
 {
     int proto = ESD_PROTO_SERVER_INFO;
-    int ok = 0;
 
     /* allocate the server info structure */
     esd_server_info_t *server_info 
@@ -118,7 +119,6 @@ void esd_free_server_info( esd_server_info_t *server_info )
 esd_info_t *esd_get_all_info( int esd )
 {
     int proto = ESD_PROTO_ALL_INFO;
-    int ok = 0;
     esd_server_info_t *server_info;
     esd_player_info_t *player_info;
     esd_sample_info_t *sample_info;
@@ -215,6 +215,9 @@ esd_info_t *esd_get_all_info( int esd )
 esd_info_t *esd_subscribe_all_info( int esd )
 {
     fprintf( stderr, "- esd_subscribe_all_info: not yet implemented!\n" );
+	if(esd) {
+		fprintf(stderr, "but you passed me something anyways\n");
+	}
     return NULL;
 }
 
@@ -224,6 +227,10 @@ esd_info_t *esd_update_info( int esd, esd_info_t *info,
 			     esd_update_info_callbacks_t *callbacks )
 {
     fprintf( stderr, "- esd_update_info: not yet implemented!\n" );
+	if(esd)
+		if(info) 
+			if(callbacks)
+				fprintf(stderr, "but you passed me something anyways\n");
     return NULL;
 }
 
@@ -232,6 +239,8 @@ esd_info_t *esd_update_info( int esd, esd_info_t *info,
 esd_info_t *esd_unsubscribe_info( int esd )
 {
     fprintf( stderr, "- esd_unsubscribe_info: not yet implemented!\n" );
+	if(esd)
+		fprintf(stderr, "but you passed me something anyways\n");
     return NULL;
 }
 

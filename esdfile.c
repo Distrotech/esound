@@ -1,6 +1,7 @@
 #include <esd.h>
-#include <audiofile.h>
 #include <stdio.h>
+#include <unistd.h>
+#include <string.h>
 
 /*******************************************************************/
 /* esdfile.c - audiofile wrappers for sane handling of files */
@@ -12,8 +13,8 @@ int esd_send_file( int esd, AFfilehandle au_file, int frame_length )
     int frames_read;
     int buf_frames = ESD_BUF_SIZE / frame_length;
 
-    while ( frames_read = afReadFrames( au_file, AF_DEFAULT_TRACK, 
-					buf, buf_frames ) )
+    while ( ( frames_read = afReadFrames( au_file, AF_DEFAULT_TRACK, 
+					buf, buf_frames ) ) )
     {
 	if ( write ( esd, buf, frames_read * frame_length ) <= 0)
 	    return 1;

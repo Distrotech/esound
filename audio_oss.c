@@ -8,6 +8,7 @@
 #  endif
 #endif
 
+
 /* FreeBSD uses a different identifier? what other BSDs? */
 #ifdef __FreeBSD__
 #define SNDCTL_DSP_SETDUPLEX DSP_CAP_DUPLEX

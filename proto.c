@@ -23,7 +23,7 @@ void clear_auth( int signum )
        work on your compiler, please email ericmit@ix.netcom.com with info */
     /* if ( esdbg_trace ) 
 	printf( "(ca) resetting ownership of sound daemon\n" ); */
-    ESDBG_TRACE( printf( "(ca) resetting ownership of sound daemon\n" ); );
+    ESDBG_TRACE( printf( "(ca) resetting ownership of sound daemon on signal %d\n",signum ); );
 
     /* reset the access rights */
     esd_is_owned = 0;

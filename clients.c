@@ -22,7 +22,15 @@ int deny_severity = LOG_WARNING;
 esd_client_t *esd_clients_list;
 
 /*******************************************************************/
+/* prototypes */
+void dump_clients(void);
+void free_client( esd_client_t *client );
+
+
+/*******************************************************************/
 /* for debugging purposes, dump the list of the clients and data */
+
+
 void dump_clients()
 {
     long addr;

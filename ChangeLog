@@ -1,3 +1,9 @@
+Sat Dec 19 14:02:41 EST 1998 Mandrake <mandrake@mandrake.net>
+	* cleaned up warnings and a little bit of code here and there.
+	(when you've got as many compiler warning flags turned on as I do
+	this code was starting to look a bit horrendous compiling)  I'm
+	not 100% done, but this is a good start.
+
 Thu Dec 10 20:55:43 PST 1998 Manish Singh <yosh@gimp.org>
 
 	* esd.c: use nanosleep if we have it, it seems to work better
