@@ -1,5 +1,10 @@
 2004-01-14  Frederic Crozat  <fcrozat@mandrakesoft.com>
 
+	* esd.c: Fix build on AIX. Patch from
+        Albert Chin-A-Young <china@thewrittenword.com>.
+
+2004-01-14  Frederic Crozat  <fcrozat@mandrakesoft.com>
+
 	* audio_osf.c: Fix build on OSF. Patch from 
 	Albert Chin-A-Young <china@thewrittenword.com>.
 

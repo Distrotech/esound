@@ -22,6 +22,11 @@
 #define gethostbyname2(host, family) gethostbyname((host))
 #endif /* HAVE_GETHOSTBYNAME2 */
 
+/* AIX defines this */
+#ifndef h_errno
+extern int h_errno;
+#endif
+
 /* max arguments (argc + tokenized esd.conf) can't be more than this */
 #define MAX_OPTS 128
 
