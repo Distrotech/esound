@@ -1,8 +1,17 @@
 #include "esd.h"
 
 #include <stdio.h>
+#include <unistd.h>
+#include <stdlib.h>
 #include <string.h>
 #include <getopt.h>
+
+/*****************************************************************/
+/* prototypes */
+void exit_usage( const char *who, int errcode, const char *why, const char *what );
+
+
+/*****************************************************************/
 
 void exit_usage( const char *who, int errcode, const char *why, const char *what )
 {

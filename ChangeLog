@@ -1,3 +1,8 @@
+Sat Dec 19 21:19:51 EST 1998 Mandrake <mandrake@mandrake.net>
+	* down to just 7 warnings compiling on my system now -- everything
+	works pretty well now, I think, too.  still a few 8bit sound problems
+	with samples, which I may look into later this weekend.
+
 Sat Dec 19 14:02:41 EST 1998 Mandrake <mandrake@mandrake.net>
 	* cleaned up warnings and a little bit of code here and there.
 	(when you've got as many compiler warning flags turned on as I do

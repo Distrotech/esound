@@ -14,6 +14,30 @@ static int esd_is_locked = 1;
 static char esd_owner_key[ESD_KEY_LEN];
 
 /*******************************************************************/
+/* prototypes */
+int check_endian( esd_client_t *client );
+int validate_source( esd_client_t *client, struct sockaddr_in source, int owner_only );
+int esd_proto_lock( esd_client_t *client );
+int esd_proto_unlock( esd_client_t *client );
+int esd_proto_standby( esd_client_t *client );
+int esd_proto_resume( esd_client_t *client );
+int esd_proto_stream_play( esd_client_t *client );
+int esd_proto_stream_recorder( esd_client_t *client );
+int esd_proto_stream_monitor( esd_client_t *client );
+int esd_proto_stream_filter( esd_client_t *client );
+int esd_proto_sample_cache( esd_client_t *client );
+int esd_proto_sample_getid(esd_client_t *client);
+int esd_proto_sample_free( esd_client_t *client );
+int esd_proto_sample_play( esd_client_t *client );
+int esd_proto_sample_loop( esd_client_t *client );
+int esd_proto_sample_stop( esd_client_t *client );
+int esd_proto_server_info( esd_client_t *client );
+int esd_proto_all_info( esd_client_t *client );
+int esd_proto_stream_pan( esd_client_t *client );
+int esd_proto_sample_pan( esd_client_t *client );
+int poll_client_requests(void);
+
+/*******************************************************************/
 /* resets ownership of the sound daemon */
 void clear_auth( int signum )
 {

@@ -1,6 +1,7 @@
 #include "esd.h"
 
 #include <stdio.h>
+#include <unistd.h>
 #include <stdlib.h>
 #include <dirent.h>
 #include <sys/stat.h>
@@ -42,7 +43,7 @@ int main(int argc, char **argv)
 	} else {
 	    name = argv[ arg ];
 	    if ( (source = fopen( name, "r" )) == NULL ) {
-		printf( "couldn't open sound file: %s\n", argv[0], name );
+		printf( "%s: couldn't open sound file: %s\n", argv[0], name );
 		return 1;
 	    }
 	}

@@ -4,6 +4,8 @@
 #include <stdlib.h>
 #include <dirent.h>
 #include <signal.h>
+#include <string.h>
+#include <unistd.h>
 #include <sys/stat.h>
 
 volatile int terminate = 0;
@@ -122,7 +124,7 @@ printf( "name is \'%s\'.\n", filename );
     
 	/* if we see any of these, terminate */
 	if ( sample_id < 0 ) {
-	    printf( "error while caching sample <%d>: confirm value != sample_id, %d\n",
+	    printf( "error while caching sample <%d>: confirm value != sample_id\n",
 		    sample_id );
 	    exit( 1 );
 	}

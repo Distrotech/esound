@@ -8,6 +8,11 @@ esd_sample_t *esd_samples_list = NULL;
 static int esd_next_sample_id = 1;	/* sample id = 0 is an error */
 
 /*******************************************************************/
+/* prototypes */
+void free_sample( esd_sample_t *sample );
+void dump_samples(void);
+
+/*******************************************************************/
 /* for debugging purposes, dump the list of the clients and data */
 void dump_samples()
 {

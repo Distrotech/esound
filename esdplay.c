@@ -116,6 +116,7 @@ static int
 play_file (const char *filename)
 {
     esd_play_file( program_name, filename, 1 );
+	return 0;
 }
 
 #endif
@@ -130,7 +131,10 @@ usage_exit (int ret_code)
 	  "  -h, --help\tdisplay this help and exit\n"
 	  "  -v, --version\toutput version information and exit\n",
 	  program_name);
-  exit (0);
+  if(ret_code)
+	  exit(ret_code);
+  else 
+  	exit (0);
 }
 
 int 

@@ -2,6 +2,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include <dirent.h>
 #include <sys/stat.h>
 
@@ -17,7 +18,6 @@ int main(int argc, char **argv)
 
     FILE *target = NULL;
     char *host = NULL;
-    char *name = NULL;
     
     for ( arg = 1 ; arg < argc ; arg++)
     {

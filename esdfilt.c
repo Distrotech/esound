@@ -2,6 +2,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include <dirent.h>
 #include <sys/stat.h>
 
@@ -17,7 +18,6 @@ int main(int argc, char **argv)
 
     FILE *target = NULL;
     char *host = NULL;
-    char *name = NULL;
     
     for ( arg = 1 ; arg < argc ; arg++)
     {
@@ -65,7 +65,7 @@ int main(int argc, char **argv)
     {
 	/* fprintf( stderr, "read %d\n", length ); */
 	if ( length > 0 ) {
-	    if( target && ( fwrite( buf, 1, length, target ) < 0 ) )
+	    if( target && ( fwrite( buf, 1, length, target ) <= 0 ) )
 		return 1;
 	    write( sock, buf, length );
 	    printf( "\rtotal bytes streamed: %d", total );
