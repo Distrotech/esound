@@ -1,3 +1,8 @@
+Tue Oct  6 20:57:37 PDT 1998 Manish Singh <yosh@gimp.org>
+
+	* esd.c: nanosleep in the no data ready case too, so we don't
+	suck up CPU
+
 Sat Oct  3 13:31:29 PDT 1998 Manish Singh <yosh@gimp.org>
 
 	* audio.c: added driver_trace variable for sound driver debug

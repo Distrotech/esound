@@ -159,7 +159,9 @@ int main ( int argc, char *argv[] )
     int arg = 0;
 
     void *output_buffer = NULL;
+
     struct timespec restrain;
+    int do_sleep = 0;
 
     /* begin test scaffolding parameters */
     /* int format = AFMT_U8; AFMT_S16_LE; */
@@ -285,6 +287,7 @@ int main ( int argc, char *argv[] )
 	/* mix new requests, and output to device */
 	length = mix_players_16s( output_buffer, esd_buf_size_octets );
 	if ( length > 0 /* || esd_monitor */ ) {
+	    do_sleep = 0;
 	    if ( !esd_on_standby ) {
 		/* standby check goes in here, so esd will eat sound data */
 		/* TODO: eat a round of data with a better algorithm */
@@ -296,6 +299,7 @@ int main ( int argc, char *argv[] )
 	    }
 	} else {
 	    /* be very quiet, and wait for a wabbit to come along */
+	    do_sleep = 1;
 	    esd_audio_pause();
 	}
 
@@ -330,7 +334,7 @@ int main ( int argc, char *argv[] )
 	    }
 	}
 
-	if ( esd_on_standby ) {
+	if ( esd_on_standby  || do_sleep ) {
 	    restrain.tv_sec = 0;
 	    /* funky math to make sure a long can hold it all, calulate in ms */
 	    restrain.tv_nsec = (long) esd_buf_size_samples * 1000L
