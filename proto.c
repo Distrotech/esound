@@ -445,7 +445,7 @@ int esd_proto_sample_free( esd_client_t *client )
     ESDBG_TRACE( printf( "(%02d) proto: erasing sample <%d>\n", 
 			 client->fd, sample_id ); );
 
-    erase_sample( sample_id );
+    erase_sample( sample_id, 0 );
 
     ESD_WRITE_INT( client->fd, &client_id, sizeof(client_id), 
 		   actual, "smp free" );

@@ -112,7 +112,7 @@ void reset_daemon( int signum )
     /* free samples */
     while ( esd_samples_list != NULL )
     {
-	erase_sample( esd_samples_list->sample_id );
+	erase_sample( esd_samples_list->sample_id, 1 );
 	/* TODO: kill_sample, so it stops playing */
 	/* a looping sample will get stuck */
     }

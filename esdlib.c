@@ -146,6 +146,12 @@ int esd_lock( int esd ) {
     int proto = ESD_PROTO_LOCK;
     int ok = 0;
 
+    /* diagnostic info */
+    /*
+    if ( getenv( "ESDBG" ) )
+        printf( "esound locking\n" );
+    */
+
     write( esd, &proto, sizeof(proto) );
     esd_send_auth( esd );
 
@@ -158,6 +164,12 @@ int esd_lock( int esd ) {
 int esd_unlock( int esd ){
     int proto = ESD_PROTO_UNLOCK;
     int ok = 0;
+
+    /* diagnostic info */
+    /*
+    if ( getenv( "ESDBG" ) )
+	printf( "esound unlocking\n" );
+    */
 
     write( esd, &proto, sizeof(proto) );
     esd_send_auth( esd );
@@ -175,6 +187,12 @@ int esd_standby( int esd )
     int proto = ESD_PROTO_STANDBY;
     int ok = 0;
 
+    /* diagnostic info */
+    /*
+    if ( getenv( "ESDBG" ) )
+	printf( "esound standing by\n" );
+    */
+
     write( esd, &proto, sizeof(proto) );
     esd_send_auth( esd );
 
@@ -188,6 +206,12 @@ int esd_resume( int esd )
 {
     int proto = ESD_PROTO_RESUME;
     int ok = 0;
+
+    /* diagnostic info */
+    /*
+    if ( getenv( "ESDBG" ) )
+	printf( "esound resuming\n" );
+    */
 
     write( esd, &proto, sizeof(proto) );
     esd_send_auth( esd );
@@ -220,6 +244,12 @@ int esd_open_sound( const char *host )
     int port = ESD_DEFAULT_PORT;
     unsigned int host_div = 0;
    
+    /* diagnostic info */
+    /*
+    if ( getenv( "ESDBG" ) )
+	printf( "esound opening: %s\n", ( host ? host : "(nil)" ) );
+    */
+
     /* see if we have a remote speaker to play to */
     espeaker = host ? host : getenv( "ESPEAKER" );
     if ( espeaker != NULL ) {
@@ -294,8 +324,21 @@ int esd_open_sound( const char *host )
     if ( !esd_send_auth( socket_out ) ) {
 	/* couldn't send authorization key, bail */
 	close( socket_out );
+
+	/* diagnostic info */
+	/*
+	if ( getenv( "ESDBG" ) )
+	    printf( "esound opening: authorization failed\n" );
+	*/
+
 	return -1;
     }
+
+    /* diagnostic info */
+    /*
+    if ( getenv( "ESDBG" ) )
+	printf( "esound opening: assigned to %d\n", socket_out );
+    */
 
     return socket_out;
 }
@@ -336,6 +379,12 @@ int esd_play_stream( esd_format_t format, int rate,
     /* flush the socket */
     /* fsync( sock ); */
     
+    /* diagnostic info */
+    /*
+    if ( getenv( "ESDBG" ) )
+	printf( "esound playing stream\n" );
+    */
+
     return sock;
 }
 
@@ -358,6 +407,12 @@ int esd_play_stream_fallback( esd_format_t format, int rate,
     esd_audio_format = format;
     esd_audio_rate = rate;
     socket_out = esd_audio_open();
+
+    /* diagnostic info */
+    /*
+    if ( getenv( "ESDBG" ) )
+	printf( "esound playing stream fallback\n" );
+    */
 
     /* we either got it, or we didn't */
     return socket_out;
@@ -399,6 +454,12 @@ int esd_monitor_stream( esd_format_t format, int rate,
     /* flush the socket */
     /* fsync( sock ); */
     
+    /* diagnostic info */
+    /*
+    if ( getenv( "ESDBG" ) )
+	printf( "esound monitoring stream\n" );
+    */
+
     return sock;
 }
 
@@ -438,6 +499,12 @@ int esd_filter_stream( esd_format_t format, int rate,
     /* flush the socket */
     /* fsync( sock ); */
     
+    /* diagnostic info */
+    /*
+    if ( getenv( "ESDBG" ) )
+	printf( "esound filterng stream\n" );
+    */
+
     return sock;
 }
 
@@ -477,6 +544,12 @@ int esd_record_stream( esd_format_t format, int rate,
     /* flush the socket */
     /* fsync( sock ); */
     
+    /* diagnostic info */
+    /*
+    if ( getenv( "ESDBG" ) )
+	printf( "esound recording stream\n" );
+    */
+
     return sock;
 }
 
@@ -503,6 +576,12 @@ int esd_record_stream_fallback( esd_format_t format, int rate,
 
     /* Reduce buffers on sockets to the minimum needed */
     esd_set_socket_buffers( socket_out, format, rate, 44100 );
+
+    /* diagnostic info */
+    /*
+    if ( getenv( "ESDBG" ) )
+	printf( "esound recording stream fallback\n" );
+    */
 
     /* we either got it, or we didn't */
     return socket_out;
@@ -545,6 +624,12 @@ int esd_sample_cache( int esd, esd_format_t format, int rate,
     if ( read( esd, &id, sizeof(id) ) != sizeof(id) )
 	return -1;
 
+    /* diagnostic info */
+    /*
+    if ( getenv( "ESDBG" ) )
+	printf( "esound caching sample\n" );
+    */
+
     /* return the sample id to the client */
     return id;
 }
@@ -559,6 +644,12 @@ int esd_confirm_sample_cache( int esd )
     /* get the sample id back from the server */
     if ( read( esd, &id, sizeof(id) ) != sizeof(id) )
 	return -1;
+
+    /* diagnostic info */
+    /*
+    if ( getenv( "ESDBG" ) )
+	printf( "esound confirming cached sample\n" );
+    */
 
     /* return the sample id to the client */
     return id;
@@ -591,6 +682,13 @@ int esd_sample_getid( int esd, const char *name)
     if ( read( esd, &id, sizeof(id) ) != sizeof(id) )
 	return -1;
 
+    /* diagnostic info */
+    /*
+    if ( getenv( "ESDBG" ) )
+	printf( "esound getting cached sample id: \'%s\' = %d\n",
+		name, id );
+    */
+    
     /* return the sample id to the client */
     return id;
 }
@@ -615,6 +713,12 @@ int esd_sample_free( int esd, int sample )
     if ( read( esd, &id, sizeof(id) ) != sizeof(id) )
 	return -1;
 
+    /* diagnostic info */
+    /*
+    if ( getenv( "ESDBG" ) )
+        printf( "esound freeing sample\n" );
+    */
+
     /* return the id to the client (0 = error, 1 = ok) */
     return id;
 }
@@ -638,6 +742,12 @@ int esd_sample_play( int esd, int sample )
     /* get the sample id back from the server */
     if ( read( esd, &is_ok, sizeof(is_ok) ) != sizeof(is_ok) )
 	return -1;
+
+    /* diagnostic info */
+    /*
+    if ( getenv( "ESDBG" ) )
+	printf( "esound playing sample\n" );
+    */
 
     /* return the id to the client (0 = error, 1 = ok) */
     return is_ok;
@@ -664,6 +774,12 @@ int esd_sample_loop( int esd, int sample )
     if ( read( esd, &is_ok, sizeof(is_ok) ) != sizeof(is_ok) )
 	return -1;
 
+    /* diagnostic info */
+    /*
+    if ( getenv( "ESDBG" ) )
+	printf( "esound looping sample\n" );
+    */
+
     /* return the id to the client (0 = error, 1 = ok) */
     return is_ok;
 }
@@ -688,6 +804,12 @@ int esd_sample_stop( int esd, int sample )
     if ( read( esd, &is_ok, sizeof(is_ok) ) != sizeof(is_ok) )
 	return -1;
 
+    /* diagnostic info */
+    /*
+    if ( getenv( "ESDBG" ) )
+	printf( "esound stopping sample\n" );
+    */
+
     /* return the id to the client (0 = error, 1 = ok) */
     return is_ok;
 }
@@ -696,5 +818,11 @@ int esd_sample_stop( int esd, int sample )
 /* closes fd, previously obtained by esd_open */
 int esd_close( int esd )
 {
+    /* diagnostic info */
+    /*
+    if ( getenv( "ESDBG" ) )
+	printf( "esound closing\n" );
+    */
+
     return close( esd );
 }

@@ -177,7 +177,7 @@ extern int esd_next_sample_id;
 
 void dump_samples(void);
 void add_sample( esd_sample_t *sample );
-void erase_sample( int id );
+void erase_sample( int id, int force );
 esd_sample_t *new_sample( esd_client_t *client );
 esd_sample_t *find_caching_sample( esd_client_t *client );
 int read_sample( esd_sample_t *sample );

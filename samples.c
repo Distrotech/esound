@@ -46,18 +46,23 @@ void free_sample( esd_sample_t *sample )
 
 /*******************************************************************/
 /* add a complete new client into the list of samples at head */
-void add_sample( esd_sample_t *new_sample )
+void add_sample( esd_sample_t *sample )
 {
     /* printf ( "adding sample 0x%p\n", new_sample ); */
-    new_sample->next = esd_samples_list;
-    esd_samples_list = new_sample;
+    if ( !sample ) {
+	ESDBG_TRACE( printf( "<NIL> can't add non-existent sample!\n" ); );
+	return;
+    }
+
+    sample->next = esd_samples_list;
+    esd_samples_list = sample;
     return;
 }
 
 /*******************************************************************/
 /* erase a sample from the sample list */
 /* TODO: add "force kill" boolean option */
-void erase_sample( int id )
+void erase_sample( int id, int force )
 {
     esd_sample_t *previous = NULL;
     esd_sample_t *current = esd_samples_list;
@@ -71,7 +76,7 @@ void erase_sample( int id )
 	if ( current->sample_id == id ) {
 
 	    /* if the ref count is non-zero, just flag it for deletion */
-	    if ( current->ref_count ) {
+	    if ( current->ref_count && !force ) {
 		ESDBG_TRACE( printf( "<%02d> erasing sample - deferred\n", id ); );
 		current->erase_when_done = 1;
 		return;

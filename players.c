@@ -46,7 +46,7 @@ void free_player( esd_player_t *player )
 	    ESDBG_TRACE( printf( "<%02d> free_player: erasing sample\n", 
 				 sample->sample_id ); );
 
-	    erase_sample( sample->sample_id );
+	    erase_sample( sample->sample_id, 0 );
 	}
     }
 
@@ -64,6 +64,11 @@ void free_player( esd_player_t *player )
 void add_player( esd_player_t *player )
 {
     /* printf ( "adding player %p\n", new_player ); */
+    if ( !player ) {
+	ESDBG_TRACE( printf( "<NIL> can't add non-existent player!\n" ); );
+	return;
+    }
+
     player->next = esd_players_list;
     esd_players_list = player;
     return;
@@ -165,7 +170,7 @@ int write_player( esd_player_t *player, void *src_buffer, int src_length,
     
     /* if the data is ready, read a block */
     can_write = select( player->source_id + 1, 
-			&wr_fds, NULL, NULL, &timeout ) ;
+			NULL, &wr_fds, NULL, &timeout ) ;
     if ( can_write > 0 )
     {
 	/* translate the data */

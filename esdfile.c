@@ -20,6 +20,12 @@ int esd_send_file( int esd, AFfilehandle au_file, int frame_length )
 	    return 1;
     }
 
+    /* diagnostic info */
+    /*
+    if ( getenv( "ESDBG" ) )
+	printf( "esound sending file\n" );
+    */
+
     return 0;
 }
 
@@ -36,6 +42,12 @@ int esd_play_file( const char *name_prefix, const char *filename, int fallback )
     int out_mode = ESD_STREAM, out_func = ESD_PLAY;
     esd_format_t out_format;
     char name[ ESD_NAME_MAX ] = "";
+
+    /* diagnostic info */
+    /*
+    if ( getenv( "ESDBG" ) )
+	printf( "esound playing file\n" );
+    */
 
     /* open the audio file */
     in_file = afOpenFile( filename, "r", NULL );
@@ -105,6 +117,12 @@ int esd_play_file( const char *name_prefix, const char *filename, int fallback )
     if ( afCloseFile ( in_file ) )
 	return 0;
 
+    /* diagnostic info */
+    /*
+    if ( getenv( "ESDBG" ) )
+	printf( "esound played file\n" );
+    */
+
     return 1;
 }
 
@@ -122,6 +140,12 @@ int esd_file_cache( int esd, const char *name_prefix, const char *filename )
     esd_format_t out_format;
     int length, sample_id, confirm_id;
     char name[ ESD_NAME_MAX ];
+
+    /* diagnostic info */
+    /*
+    if ( getenv( "ESDBG" ) )
+	printf( "esound caching file\n" );
+    */
 
     /* open the audio file */
     in_file = afOpenFile( filename, "r", NULL );
@@ -189,6 +213,12 @@ int esd_file_cache( int esd, const char *name_prefix, const char *filename )
     confirm_id = esd_confirm_sample_cache( esd );
     if ( confirm_id != sample_id )
 	return -1;
+
+    /* diagnostic info */
+    /*
+    if ( getenv( "ESDBG" ) )
+	printf( "esound cached file\n" );
+    */
 
     return sample_id;
 }

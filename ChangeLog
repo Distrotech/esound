@@ -1,3 +1,12 @@
+1999-02-13  Yo Ric Dude  <ericmit@ix.netcom.com>
+
+	* esdfile.c, esdlib.c: added and commented out diagnostic code. 
+	* esd-server.h, esd.c, players.c, proto.c, samples.c, players.c:
+ 	add flag to force sample deletion, and force sample deletion only
+ 	when we shut down the server
+	* samples.c, players.c: check for addition of NULL
+ 	samples/players.
+
 1999-02-10  Yo Ric Dude  <ericmit@ix.netcom.com>
 
 	* clients.c, esd.c, esdlib.c: only check for more data if the
