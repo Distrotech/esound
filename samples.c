@@ -104,7 +104,7 @@ void erase_sample( int id )
 #define min(a,b) ( ( (a)<(b) ) ? (a) : (b) )
 int read_sample( esd_sample_t *sample )
 {
-    int actual = -1, total = 0;
+    int actual = -1, total = sample->cached_length;
 
     while ( ( total < sample->sample_length ) && ( actual != 0 ) ) {
 	actual = read( sample->parent->fd, sample->data_buffer + total,
@@ -115,6 +115,7 @@ int read_sample( esd_sample_t *sample )
     /* TODO: what if total != sample_length ? */
     if ( esdbg_trace ) 
 	printf( "<%02d> %d bytes total\n", sample->sample_id, total );
+    sample->cached_length = total;
     return total;
 }
 
@@ -165,7 +166,8 @@ esd_sample_t *new_sample( esd_client_t *client )
 	return NULL;
     }
 
-    /* set ref. count */
+    /* set ref. count, cached_length, and other housekeeping values */
+    sample->cached_length = 0;
     sample->ref_count = 0;
 
     if ( esdbg_trace )
@@ -175,6 +177,31 @@ esd_sample_t *new_sample( esd_client_t *client )
     client_id = maybe_swap_32( client->swap_byte_order, 
 			       sample->sample_id );
     write( client->fd, &client_id, sizeof(client_id) );
+    fsync( client->fd );
+
+    return sample;
+}
+
+/*******************************************************************/
+/* find a half-cached sample from client stream */
+esd_sample_t *find_caching_sample( esd_client_t *client )
+{
+    esd_sample_t *sample = esd_samples_list;
+
+    if ( esdbg_trace ) printf( "{fs} finding sample [%p]\n", client );
+
+    /* iterate until we hit the end */
+    while ( sample != NULL )
+    {
+	/* see if we hit the target sample */
+	if ( sample->parent == client ) {
+	    if ( esdbg_trace )
+		printf( "<%02d> resuming sample %s: [%p] - %d bytes\n", 
+			sample->sample_id, sample->name, 
+			sample, sample->sample_length );
+	    break;
+	}
+    }
 
     return sample;
 }

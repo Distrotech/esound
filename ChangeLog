@@ -1,5 +1,10 @@
 1998-07-15  Yo Ric Dude  <ericmit@ix.netcom.com>
 
+	* esd-server.h, proto.c, samples.c, test-script:
+	almost got it all on irix.  still need to tweak sample caching 
+	problems. other than that. tried to filter out the esdctl calls
+	from test-script, as it doesn't work properly with an ESPEAKER set.
+
 	* esd-server.h, players.c, proto.c: finally got the client state
 	code to track endian status correctly, on linux and irix.  gross
 	macros to track communication protocol level data. need to filter

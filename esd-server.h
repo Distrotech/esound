@@ -78,6 +78,7 @@ typedef struct esd_sample {
     octet *data_buffer;		/* buffer to hold sound data */
     int sample_length;		/* total buffer length */
 
+    int cached_length;		/* amount of data cached so far */
     int ref_count;		/* track players for clean deletion */
     int erase_when_done;	/* track uncache requests */
     char name[ ESD_NAME_MAX ];	/* name of sample for remote control */
@@ -126,6 +127,7 @@ void dump_samples();
 void add_sample( esd_sample_t *sample );
 void erase_sample( int id );
 esd_sample_t *new_sample( esd_client_t *client );
+esd_sample_t *find_caching_sample( esd_client_t *client );
 int read_sample( esd_sample_t *sample );
 int play_sample( int sample_id, int loop );
 int stop_sample( int sample_id );

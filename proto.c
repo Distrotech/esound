@@ -19,7 +19,8 @@ void clear_auth( int signum )
 {
     int i;
 
-    printf( "(ca) resetting ownership of sound daemon\n" );
+    if ( esdbg_trace ) 
+	printf( "(ca) resetting ownership of sound daemon\n" );
 
     /* reset the access rights */
     esd_is_owned = 0;
@@ -306,27 +307,36 @@ int esd_proto_sample_cache( esd_client_t *client )
     if ( esdbg_trace )
 	printf( "(%02d) proto: caching sample\n", client->fd );
 
-    sample = new_sample( client );
-    /* add to the list of sample */
-    client_id = maybe_swap_32( client->swap_byte_order, 
-			       sample->sample_id );
+    if ( client->state == ESD_CACHING_SAMPLE ) {
+	sample = find_caching_sample( client );
+    } else {
+	sample = new_sample( client );
+	add_sample( sample );
+    }
 
+    /* add to the list of sample */
     if ( sample != NULL ) {
 	sample->parent = client;
 	if( ( length = read_sample( sample ) ) < sample->sample_length ) {
-	    return 0;
-	} else
-	    add_sample( sample );
+	    client->state = ESD_CACHING_SAMPLE;
+	    if ( esdbg_trace ) 
+		printf( "(%02d) continue caching sample next trip\n", client->fd );
+	    return 1;
+	} else {
+	    if ( esdbg_trace ) 
+		printf( "(%02d) sample cached, moving on\n", client->fd );
+	    client->state = ESD_NEXT_REQUEST;
+	}
     } else {
 	fprintf( stderr, "(%02d) not enough mem for sample, closing\n", 
 		 client->fd );
 	return 0;
     }
 
+    client_id = maybe_swap_32( client->swap_byte_order, 
+			       sample->sample_id );
     ESD_WRITE_INT( client->fd, &client_id, sizeof(client_id), length, "smp cach" );
     fsync( client->fd );
-
-    client->state = ESD_NEXT_REQUEST;
     return 1;
 }
 
@@ -505,6 +515,8 @@ int poll_client_requests()
 	    continue;
 	}
 
+	/* see what the client needs to do next */
+	/* TODO: switch( client->state ) --> function pointers off of client->state */
  	if ( client->state == ESD_NEEDS_VALIDATION ) {
  	    /* validate client */
  	    is_ok = validate_source( client, client->source, 0 );
@@ -528,13 +540,17 @@ int poll_client_requests()
  	    }
  	}
 	else if ( client->state == ESD_NEEDS_ENDCHECK ) {
+	    if ( esdbg_trace ) printf( "rechecking for endian key\n" );
 	    is_ok = check_endian( client );
-	    printf( "rechecking for endian key\n" );
 
 	    /* check_endian() return vals don't exactly match is_ok's meaning */
 	    if ( is_ok < 0 ) is_ok = 0;		/* socket error */
 	    else if ( is_ok == 0 ) is_ok = 1; 	/* try next time */
 	    else client->state = ESD_NEXT_REQUEST;
+	}
+	else if ( client->state == ESD_CACHING_SAMPLE ) {
+	    if ( esdbg_trace ) printf( "resuming sample cache\n" );
+	    is_ok = esd_proto_sample_cache( client );
 	}
  	else {
  

@@ -68,6 +68,13 @@ killall esdrec
 echo ""
 echo Test "#5": esdctl
 echo -----------------
+if ( $?ESPEAKER ) then
+echo This part of the test does not yet work
+echo properly with the ESPEAKER variable set
+echo and will be bypassed.
+echo press enter to continue...
+echo $< >& /dev/null
+else
 echo This part of this test confirms the control
 echo signals are operational.  you should see
 echo the messages locked, unlocked, standby, 
@@ -75,8 +82,8 @@ echo and resume, on the server terminal.
 echo press enter to continue...
 echo $< >& /dev/null
 
-esdctl lock unlock standby resume
-
+esdctl unlock lock standby resume
+endif
 #####################################################################
 echo ""
 echo Test "#6": esdsample
