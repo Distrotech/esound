@@ -1,6 +1,6 @@
 /* -*- C++ -*- */
 
-#include "esd.h"
+#include "esd-server.h"
 
 #include <limits.h>
 
