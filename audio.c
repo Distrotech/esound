@@ -4,7 +4,7 @@
 /*******************************************************************/
 /* globals */
 esd_format_t esd_audio_format = ESD_BITS16 | ESD_STEREO;
-int esd_audio_rate = 44100;
+int esd_audio_rate = ESD_DEFAULT_RATE;
 
 /* the audio device, /dev/dsp, file descriptor */
 static int esd_audio_fd = -1;

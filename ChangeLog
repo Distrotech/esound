@@ -1,5 +1,8 @@
 1998-09-19  Yo Ric Dude  <ericmit@ix.netcom.com>
 
+	* audio.c, esd.c, esd.h, esdcat.c, esdloop.c, esdmon.c, esdrec.c,
+	esdsample.c, mix.c, players.c: allow different server rates, too.
+
 	* esd-server.h, esd.c, mix.c, players.c: started the 8 bit server 
 	overhaul.  many off by *2,/2 errors remain.  still straightening out 
 	buf_size_samples vs. buf_size_octets issues... 16bit seems to work.

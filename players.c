@@ -338,8 +338,7 @@ esd_player_t *new_stream_player( esd_client_t *client )
 		player->name, player->format, player->rate );
 
     /* calculate buffer length to match the mix buffer duration */
-//    player->buffer_length = ESD_BUF_SIZE * player->rate / 44100;
-    player->buffer_length = esd_buf_size_octets * player->rate / 44100;
+    player->buffer_length = esd_buf_size_octets * player->rate / esd_audio_rate;
     if ( (player->format & ESD_MASK_BITS) == ESD_BITS8 )
 	player->buffer_length /= 2;
     if ( (player->format & ESD_MASK_CHAN) == ESD_MONO )
@@ -408,7 +407,7 @@ esd_player_t *new_sample_player( int sample_id, int loop )
 		player->source_id, player->format, player->rate );
 
     /* calculate buffer length to match the mix buffer duration */
-    player->buffer_length = esd_buf_size_octets * player->rate / 44100;
+    player->buffer_length = esd_buf_size_octets * player->rate / esd_audio_rate;
     if ( (player->format & ESD_MASK_BITS) == ESD_BITS8 )
 	player->buffer_length /= 2;
     if ( (player->format & ESD_MASK_CHAN) == ESD_MONO )

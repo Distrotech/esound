@@ -8,7 +8,7 @@
 int main(int argc, char **argv)
 {
     char buf[ESD_BUF_SIZE];
-    int sock = -1, rate = 44100;
+    int sock = -1, rate = ESD_DEFAULT_RATE;
     int length = 0, arg = 0;
 
     int bits = ESD_BITS16, channels = ESD_STEREO;

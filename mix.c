@@ -34,7 +34,7 @@ int mix_from_stereo_16s( signed short *source_data_ss,
 	    /* mix mono, 8 bit sound source to stereo, 16 bit */
 	    while ( wr_dat < player->buffer_length )
 	    {
-		rd_dat = wr_dat * 44100 / player->rate;
+		rd_dat = wr_dat * esd_audio_rate / player->rate;
 		rd_dat *= 2;		/* adjust for mono */
 		rd_dat += rd_dat % 2;	/* force to left sample */
 
@@ -52,7 +52,7 @@ int mix_from_stereo_16s( signed short *source_data_ss,
 	    /* mix stereo, 8 bit sound source to stereo, 16 bit */
 	    while ( wr_dat < player->buffer_length )
 	    {
-		rd_dat = wr_dat * 44100 / player->rate;
+		rd_dat = wr_dat * esd_audio_rate / player->rate;
 
 		lsample = source_data_ss[ rd_dat++ ];
 		lsample /= 256; lsample += 127;
@@ -74,7 +74,7 @@ int mix_from_stereo_16s( signed short *source_data_ss,
 	    /* mix mono, 16 bit sound source from stereo, 16 bit */
 	    while ( wr_dat < player->buffer_length / sizeof(signed short) )
 	    {
-		rd_dat = wr_dat * 44100 / player->rate;
+		rd_dat = wr_dat * esd_audio_rate / player->rate;
 		rd_dat *= 2;		/* adjust for stereo */
 		rd_dat += rd_dat % 2;	/* force to left sample */
 
@@ -89,7 +89,7 @@ int mix_from_stereo_16s( signed short *source_data_ss,
 	    /* mix stereo, 16 bit sound source from stereo, 16 bit */
 	    while ( wr_dat < player->buffer_length / sizeof(signed short) )
 	    {
-		rd_dat = wr_dat * 44100 / player->rate;
+		rd_dat = wr_dat * esd_audio_rate / player->rate;
 		/* rd_dat += (rd_dat % 2); */ /* force to left sample */
 
 		lsample = source_data_ss[ rd_dat++ ];
@@ -130,7 +130,7 @@ int mix_to_stereo_32s( esd_player_t *player, int length )
 	    /* mix mono, 8 bit sound source to stereo, 16 bit */
 	    while ( wr_dat < length/sizeof(signed short) )
 	    {
-		rd_dat = wr_dat * player->rate / 44100;
+		rd_dat = wr_dat * player->rate / esd_audio_rate;
 		rd_dat /= 2;	/* adjust for mono */
 
 		sample = source_data_uc[ rd_dat++ ];
@@ -143,7 +143,7 @@ int mix_to_stereo_32s( esd_player_t *player, int length )
 	} else {
 
 	    /* mix stereo, 8 bit sound source to stereo, 16 bit */
-	    if ( player->rate == 44100 ) {
+	    if ( player->rate == esd_audio_rate ) {
 		while ( wr_dat < length/sizeof(signed short) )
 		{
 		    sample = ( source_data_uc[ wr_dat ] - 127 ) * 256;
@@ -153,7 +153,7 @@ int mix_to_stereo_32s( esd_player_t *player, int length )
 	    } else {
 		while ( wr_dat < length/sizeof(signed short) )
 		{
-		    rd_dat = wr_dat * player->rate / 44100;
+		    rd_dat = wr_dat * player->rate / esd_audio_rate;
 		    
 		    sample = source_data_uc[ rd_dat++ ];
 		    sample -= 127; sample *= 256;
@@ -173,7 +173,7 @@ int mix_to_stereo_32s( esd_player_t *player, int length )
 	    /* mix mono, 16 bit sound source to stereo, 16 bit */
 	    while ( wr_dat < length/sizeof(signed short) )
 	    {
-		rd_dat = wr_dat * player->rate / 44100;
+		rd_dat = wr_dat * player->rate / esd_audio_rate;
 		rd_dat /= 2;	/* adjust for mono */
 
 		sample = source_data_ss[ rd_dat++ ];
@@ -185,7 +185,7 @@ int mix_to_stereo_32s( esd_player_t *player, int length )
 	} else {
 
 	    /* mix stereo, 16 bit sound source to stereo, 16 bit */
-	    if ( player->rate == 44100 ) {
+	    if ( player->rate == esd_audio_rate ) {
 		/* optimize for simple increment by one and add loop */
 		while ( wr_dat < length/sizeof(signed short) )
 		{
@@ -196,7 +196,7 @@ int mix_to_stereo_32s( esd_player_t *player, int length )
 		/* non integral multiple of sample rates, do it the hard way */
 		while ( wr_dat < length/sizeof(signed short) )
 		{
-		    rd_dat = wr_dat * player->rate / 44100;
+		    rd_dat = wr_dat * player->rate / esd_audio_rate;
 		    sample = source_data_ss[ rd_dat++ ];
 		    mixed_buffer[ wr_dat++ ] += sample;
 		}
@@ -233,7 +233,7 @@ void clip_mix_to_output_16s( signed short *output, int length )
 
 /*******************************************************************/
 /* takes mixed data, and clips data to the output buffer */
-void clip_mix_to_output_8s( signed char *output, int length )
+void clip_mix_to_output_8u( signed char *output, int length )
 {
     signed int *mixed = mixed_buffer;
     signed int *end = mixed_buffer + length/sizeof(signed short);
@@ -300,7 +300,7 @@ int mix_players_16s( void *output, int length )
     if ( (esd_audio_format & ESD_MASK_BITS) == ESD_BITS16 ) 
 	clip_mix_to_output_16s( output, max );
     else
-	clip_mix_to_output_8s( output, max );
+	clip_mix_to_output_8u( output, max );
 
     return max;
 }

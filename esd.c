@@ -146,7 +146,7 @@ int main ( int argc, char *argv[] )
     /* begin test scaffolding parameters */
     /* int format = AFMT_U8; AFMT_S16_LE; */
     /* int stereo = 0; */     /* 0=mono, 1=stereo */
-    int default_rate = 44100, default_buf_size = ESD_BUF_SIZE;
+    int default_rate = ESD_DEFAULT_RATE, default_buf_size = ESD_BUF_SIZE;
     int i, j, freq=440;
     int magl, magr;
 
@@ -172,6 +172,17 @@ int main ( int argc, char *argv[] )
 	} else if ( !strcmp( argv[ arg ], "-b" ) ) {
 	    fprintf( stderr, "- server format: 8 bit samples\n" );
 	    default_format &= ~ESD_MASK_BITS; default_format |= ESD_BITS8; 
+	} else if ( !strcmp( argv[ arg ], "-r" ) ) {
+	    if ( ++arg != argc ) {
+		default_rate = atoi( argv[ arg ] );
+		if ( !default_rate ) {
+		    default_rate = ESD_DEFAULT_RATE;
+		    fprintf( stderr, "- could not determine rate: %s\n", 
+			     argv[ arg ] );
+		}
+		fprintf( stderr, "- server_format: sample rate = %d Hz\n", 
+			 default_rate );
+	    }
 	} else if ( !strcmp( argv[ arg ], "-vt" ) ) {
 	    esdbg_trace = 1;
 	    fprintf( stderr, "- enabling trace diagnostic info\n" );
