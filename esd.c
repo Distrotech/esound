@@ -203,8 +203,8 @@ int main ( int argc, char *argv[] )
 
     esd_sample_size = ( (esd_audio_format & ESD_MASK_BITS) == ESD_BITS16 )
 	? sizeof(signed short) : sizeof(unsigned char);
-    esd_buf_size_octets = default_buf_size;
-    esd_buf_size_samples = esd_buf_size_octets / esd_sample_size;
+    esd_buf_size_samples = default_buf_size / 2;
+    esd_buf_size_octets = esd_buf_size_samples * esd_sample_size;
 
     /* open and initialize the audio device, /dev/dsp */
     audio = esd_audio_open();
@@ -286,18 +286,28 @@ int main ( int argc, char *argv[] )
 	/* this clears out any leftovers from recording, below */
 	if ( esd_monitor && !esd_on_standby ) {
 	    /* TODO: maybe the last parameter here should be length? */
-	    length = mix_from_stereo_16s( output_buffer, 
-					  esd_monitor, esd_buf_size_octets );
+		if ( (esd_audio_format & ESD_MASK_BITS) == ESD_BITS16 ) 
+		    length = mix_from_stereo_16s( output_buffer, 
+						  esd_monitor, length );
+		else
+		    length = mix_from_stereo_8u( output_buffer, 
+						 esd_monitor, length );
+
 	    if( length )
 		monitor_write();
+
 	}
 
 	/* if someone's recording the sound stream, send them data */
 	if ( esd_recorder && !esd_on_standby ) { 
 	    length = esd_audio_read( output_buffer, esd_buf_size_octets );
 	    if ( length ) {
-		mix_from_stereo_16s( output_buffer, 
-				     esd_recorder, esd_buf_size_octets ); 
+		if ( (esd_audio_format & ESD_MASK_BITS) == ESD_BITS16 ) 
+		    mix_from_stereo_16s( output_buffer, 
+					 esd_recorder, esd_buf_size_octets ); 
+		else
+		    mix_from_stereo_8u( output_buffer, 
+					esd_recorder, esd_buf_size_octets ); 
 		recorder_write(); 
 	    }
 	}

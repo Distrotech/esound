@@ -108,7 +108,7 @@ int read_sample( esd_sample_t *sample )
 
     while ( ( total < sample->sample_length ) && ( actual >= 0 ) ) {
 	ESD_READ_BIN( sample->parent->fd, sample->data_buffer + total,
-		      min( ESD_BUF_SIZE, sample->sample_length-total),
+		      min( esd_buf_size_octets, sample->sample_length-total),
 		      actual, "rd_samp" );
 	if ( actual > 0 ) total += actual; /* irix may return -1 if no data */
     }
