@@ -33,6 +33,7 @@ libesd_la_SOURCES = \
 	esdlib.c	\
 	esdmgr.c	\
 	esdfile.c	\
+	esd-config.h	\
 	esd_config.c	\
 	audio.c		\
 	genrand.c	\
@@ -86,6 +87,7 @@ esd_SOURCES = 	\
 	samples.c	\
 	$(getopt_src)   \
 	util.c		\
+	esd-config.h	\
 	esd-server.h
 
 esdcat_SOURCES = \

@@ -1,4 +1,5 @@
 #include "esd-server.h"
+#include "esd-config.h"
 
 #include <arpa/inet.h>
 #include <sys/types.h>
@@ -20,6 +21,9 @@
 #ifndef HAVE_GETHOSTBYNAME2
 #define gethostbyname2(host, family) gethostbyname((host))
 #endif /* HAVE_GETHOSTBYNAME2 */
+
+/* max arguments (argc + tokenized esd.conf) can't be more than this */
+#define MAX_OPTS 128
 
 /*******************************************************************/
 /* esd.c - prototypes */
@@ -569,6 +573,16 @@ int main ( int argc, char *argv[] )
 
     char *hostname=NULL;
     char *endptr;
+
+    /* from esd_config.c */
+    extern char esd_spawn_options[];
+    
+    /* for merging argv and esd.conf */
+    char tmp_str[LINEBUF_SIZE];
+    int num_opts = 0;
+    char *opts[MAX_OPTS];
+    char *tok;
+    int base;
     
     /* begin test scaffolding parameters */
     /* int format = AFMT_U8; AFMT_S16_LE; */
@@ -584,100 +598,122 @@ int main ( int argc, char *argv[] )
 
     programname = *argv;
 
-    /* parse the command line args */
-    for ( arg = 1 ; arg < argc ; arg++ ) {
-	if ( !strcmp( argv[ arg ], "-d" ) ) {
-	    if ( ++arg != argc ) {
-		esd_audio_device = argv[ arg ];
+    /* read in esd.conf, ~/.esd.conf or ESD_SPAWN_OPTIONS */
+    esd_config_read();
+    
+    /* copy esd_spawn_options to tmp_str because of strtok */
+    strncpy(tmp_str, esd_spawn_options, LINEBUF_SIZE);
+    
+    /* add esd.conf options */
+    num_opts = 0;
+    tok = DO_STRTOK(tmp_str, " ");
+    while (tok && num_opts < MAX_OPTS) {
+      opts[num_opts] = tok;
+      num_opts++;
+      tok = DO_STRTOK(NULL, " ");
+    }
+    
+    /* now add argv to the end of opts, so command line args take
+     * precedence over config options.  we don't add argv[0] */
+    base = num_opts;
+    for (i = 0; i < argc - 1 && num_opts < MAX_OPTS; i++) {
+      opts[base + i] = argv[i+1];
+      num_opts++;
+    }
+       
+    /* parse all args */
+    for ( arg = 0 ; arg < num_opts ; arg++ ) {
+	if ( !strcmp( opts[ arg ], "-d" ) ) {
+	    if ( ++arg != num_opts ) {
+		esd_audio_device = opts[ arg ];
 		if ( !esd_audio_device ) {
 		    esd_port = ESD_DEFAULT_PORT;
 		    fprintf( stderr, "- could not read device: %s\n",
-			     argv[ arg ] );
+			     opts[ arg ] );
 		}
 		fprintf( stderr, "- using device %s\n",
 			 esd_audio_device );
 	    }
-	} else if ( !strcmp( argv[ arg ], "-port" ) ) {
-	    if ( ++arg != argc ) {
-		esd_port = atoi( argv[ arg ] );
+	} else if ( !strcmp( opts[ arg ], "-port" ) ) {
+	    if ( ++arg != num_opts ) {
+		esd_port = atoi( opts[ arg ] );
 		if ( !esd_port ) {
 		    esd_port = ESD_DEFAULT_PORT;
 		    fprintf( stderr, "- could not read port: %s\n",
-			     argv[ arg ] );
+			     opts[ arg ] );
 		}
 		fprintf( stderr, "- accepting connections on port %d\n",
 			 esd_port );
 	    }
 
-	} else if ( !strcmp( argv[ arg ], "-bind" ) ) {
-	    if ( ++arg != argc )
+	} else if ( !strcmp( opts[ arg ], "-bind" ) ) {
+	    if ( ++arg != num_opts )
 		{
-			hostname = argv[ arg ];
+			hostname = opts[ arg ];
 		}
 		fprintf( stderr, "- accepting connections on port %d\n",
 			 esd_port );
-	} else if ( !strcmp( argv[ arg ], "-b" ) ) {
+	} else if ( !strcmp( opts[ arg ], "-b" ) ) {
 	    fprintf( stderr, "- server format: 8 bit samples\n" );
 	    default_format &= ~ESD_MASK_BITS; default_format |= ESD_BITS8;
-	} else if ( !strcmp( argv[ arg ], "-r" ) ) {
-	    if ( ++arg != argc ) {
-		default_rate = atoi( argv[ arg ] );
+	} else if ( !strcmp( opts[ arg ], "-r" ) ) {
+	    if ( ++arg != num_opts ) {
+		default_rate = atoi( opts[ arg ] );
 		if ( !default_rate ) {
 		    default_rate = ESD_DEFAULT_RATE;
 		    fprintf( stderr, "- could not read rate: %s\n",
-			     argv[ arg ] );
+			     opts[ arg ] );
 		}
 		fprintf( stderr, "- server format: sample rate = %d Hz\n",
 			 default_rate );
 	    }
-	} else if ( !strcmp( argv[ arg ], "-as" ) ) {
-	    if ( ++arg != argc ) {
-		esd_autostandby_secs = strtol ( argv[arg], &endptr, 10);
+	} else if ( !strcmp( opts[ arg ], "-as" ) ) {
+	    if ( ++arg != num_opts ) {
+		esd_autostandby_secs = strtol ( opts[arg], &endptr, 10);
 		if ( !esd_autostandby_secs && !endptr && !*endptr) {
 		    esd_autostandby_secs = ESD_DEFAULT_AUTOSTANDBY_SECS;
 		    fprintf( stderr, "- could not read autostandby timeout: %s\n",
-			     argv[ arg ] );
+			     opts[ arg ] );
 		}
 /*		fprintf( stderr, "- autostandby timeout: %d seconds\n",
 			 esd_autostandby_secs );*/
 	    }
 #ifdef ESDBG
-	} else if ( !strcmp( argv[ arg ], "-vt" ) ) {
+	} else if ( !strcmp( opts[ arg ], "-vt" ) ) {
 	    esdbg_trace = 1;
 	    fprintf( stderr, "- enabling trace diagnostic info\n" );
-	} else if ( !strcmp( argv[ arg ], "-vc" ) ) {
+	} else if ( !strcmp( opts[ arg ], "-vc" ) ) {
 	    esdbg_comms = 1;
 	    fprintf( stderr, "- enabling comms diagnostic info\n" );
-	} else if ( !strcmp( argv[ arg ], "-vm" ) ) {
+	} else if ( !strcmp( opts[ arg ], "-vm" ) ) {
 	    esdbg_mixer = 1;
 	    fprintf( stderr, "- enabling mixer diagnostic info\n" );
 #endif
-	} else if ( !strcmp( argv[ arg ], "-nobeeps" ) ) {
+	} else if ( !strcmp( opts[ arg ], "-nobeeps" ) ) {
 	    esd_beeps = 0;
-/*	    fprintf( stderr, "- disabling startup beeps\n" );*/
-	} else if ( !strcmp( argv[ arg ], "-unix" ) ) {
+	} else if ( !strcmp( opts[ arg ], "-unix" ) ) {
 	    esd_use_tcpip = 0;
-	} else if ( !strcmp( argv[ arg ], "-tcp" ) ) {
+	} else if ( !strcmp( opts[ arg ], "-tcp" ) ) {
 	    esd_use_tcpip = 1;
-	} else if ( !strcmp( argv[ arg ], "-public" ) ) {
+	} else if ( !strcmp( opts[ arg ], "-public" ) ) {
 	    esd_public = 1;
-	} else if ( !strcmp( argv[ arg ], "-promiscuous" ) ) {
+	} else if ( !strcmp( opts[ arg ], "-promiscuous" ) ) {
 	    esd_is_owned = 1;
 	    esd_is_locked = 0;
-	} else if ( !strcmp( argv[ arg ], "-terminate" ) ) {
+	} else if ( !strcmp( opts[ arg ], "-terminate" ) ) {
 	    esd_terminate = 1;
-	} else if ( !strcmp( argv[ arg ], "-spawnpid" ) ) {
-	    if ( ++arg < argc )
-		esd_spawnpid = atoi( argv[ arg ] );
-	} else if ( !strcmp( argv[ arg ], "-spawnfd" ) ) {
-	    if ( ++arg < argc )
-		esd_spawnfd = atoi( argv[ arg ] );
-	} else if ( !strcmp( argv[ arg ], "-trust" ) ) {
+	} else if ( !strcmp( opts[ arg ], "-spawnpid" ) ) {
+	    if ( ++arg < num_opts )
+		esd_spawnpid = atoi( opts[ arg ] );
+	} else if ( !strcmp( opts[ arg ], "-spawnfd" ) ) {
+	    if ( ++arg < num_opts )
+		esd_spawnfd = atoi( opts[ arg ] );
+	} else if ( !strcmp( opts[ arg ], "-trust" ) ) {
 	    esd_trustval = 0;
-	} else if ( !strcmp( argv[ arg ], "-v" ) || !strcmp( argv[ arg ], "--version" ) ) {
+	} else if ( !strcmp( opts[ arg ], "-v" ) || !strcmp( opts[ arg ], "--version" ) ) {
 		fprintf(stderr, "Esound version " VERSION "\n");
 		exit (0);
-	} else if ( !strcmp( argv[ arg ], "-h" ) || !strcmp( argv[ arg ], "--help" ) ) {
+	} else if ( !strcmp( opts[ arg ], "-h" ) || !strcmp( opts[ arg ], "--help" ) ) {
 	    fprintf( stderr, "Esound version " VERSION "\n\n");
 	    fprintf( stderr, "Usage: esd [options]\n\n" );
             fprintf( stderr, "  -v --version  print version information\n" );
@@ -703,7 +739,7 @@ int main ( int argc, char *argv[] )
 	    fprintf( stderr, "\nPossible devices are:  %s\n", esd_audio_devices() );
 	    exit( 0 );
 	} else {
-	    fprintf( stderr, "unrecognized option: %s\n", argv[ arg ] );
+	    fprintf( stderr, "unrecognized option: %s\n", opts[ arg ] );
 	}
     }
 

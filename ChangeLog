@@ -1,5 +1,14 @@
 2003-08-01  Frederic Crozat  <fcrozat@mandrakesoft.com>
 
+	* Makefile.am:
+	* esd-config.h:
+	* esd.c: (main):
+	* esd_config.c:
+	Allow esound to read esd.conf whether it is to autospawn or not.
+	bug #118230, patch from James Strandboge <jstrand1@rochester.rr.com>.
+
+2003-08-01  Frederic Crozat  <fcrozat@mandrakesoft.com>
+
 	* util.c: Add missing headers to fix warnings.
 
 2003-07-09  Frederic Crozat  <fcrozat@mandrakesoft.com>

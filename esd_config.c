@@ -1,17 +1,10 @@
+#include "esd-config.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <ctype.h>
 #include <string.h>
-
-#define LINEBUF_SIZE 1024
-
-#ifdef HAVE_STRTOK_R
-#define DO_STRTOK(S,DELIM) strtok_r(S,DELIM,&strtok_state)
-char strtok_state[LINEBUF_SIZE];
-#else
-#define DO_STRTOK(S,DELIM) strtok(S,DELIM)
-#endif
 
 int esd_no_spawn=1; /* If we can't find even the system config file,
 		       things are screwed up - don't try to make things
