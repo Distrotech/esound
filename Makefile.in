@@ -212,6 +212,10 @@ DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
 
 TAR = tar
 GZIP = --best
+DEP_FILES =  .deps/audio.P .deps/clients.P .deps/esd.P .deps/esdcat.P \
+.deps/esdlib.P .deps/esdlock.P .deps/esdloop.P .deps/esdmon.P \
+.deps/esdrec.P .deps/esdsample.P .deps/esdunlock.P .deps/mix.P \
+.deps/players.P .deps/samples.P
 SOURCES = $(libesd_a_SOURCES) $(libesd_la_SOURCES) $(esd_SOURCES) $(esdcat_SOURCES) $(esdlock_SOURCES) $(esdunlock_SOURCES) $(esdmon_SOURCES) $(esdrec_SOURCES) $(esdsample_SOURCES) $(esdloop_SOURCES)
 OBJECTS = $(libesd_a_OBJECTS) $(libesd_la_OBJECTS) $(esd_OBJECTS) $(esdcat_OBJECTS) $(esdlock_OBJECTS) $(esdunlock_OBJECTS) $(esdmon_OBJECTS) $(esdrec_OBJECTS) $(esdsample_OBJECTS) $(esdloop_OBJECTS)
 
@@ -220,9 +224,9 @@ all: Makefile $(LIBRARIES) $(LTLIBRARIES) $(PROGRAMS) $(HEADERS) config.h
 .SUFFIXES:
 .SUFFIXES: .S .c .lo .o .s
 $(srcdir)/Makefile.in: Makefile.am $(top_srcdir)/configure.in $(ACLOCAL_M4)
-	cd $(top_srcdir) && $(AUTOMAKE) --gnu --include-deps Makefile
+	cd $(top_srcdir) && $(AUTOMAKE) --gnu Makefile
 
-Makefile: $(srcdir)/Makefile.in  $(top_builddir)/config.status
+Makefile: $(srcdir)/Makefile.in  $(top_builddir)/config.status $(BUILT_SOURCES)
 	cd $(top_builddir) \
 	  && CONFIG_FILES=$@ CONFIG_HEADERS= $(SHELL) ./config.status
 
@@ -264,9 +268,6 @@ distclean-noinstLIBRARIES:
 
 maintainer-clean-noinstLIBRARIES:
 
-.c.o:
-	$(COMPILE) -c $<
-
 .s.o:
 	$(COMPILE) -c $<
 
@@ -282,9 +283,6 @@ distclean-compile:
 	-rm -f *.tab.c
 
 maintainer-clean-compile:
-
-.c.lo:
-	$(LIBTOOL) --mode=compile $(COMPILE) -c $<
 
 .s.lo:
 	$(LIBTOOL) --mode=compile $(COMPILE) -c $<
@@ -468,12 +466,41 @@ distdir: $(DISTFILES)
 	-rm -rf $(distdir)
 	mkdir $(distdir)
 	-chmod 777 $(distdir)
+	here=`cd $(top_builddir) && pwd`; \
+	top_distdir=`cd $(distdir) && pwd`; \
+	distdir=`cd $(distdir) && pwd`; \
+	cd $(top_srcdir) \
+	  && $(AUTOMAKE) --include-deps --build-dir=$$here --srcdir-name=$(top_srcdir) --output-dir=$$top_distdir --gnu Makefile
 	@for file in $(DISTFILES); do \
 	  d=$(srcdir); \
 	  test -f $(distdir)/$$file \
 	  || ln $$d/$$file $(distdir)/$$file 2> /dev/null \
 	  || cp -p $$d/$$file $(distdir)/$$file; \
 	done
+
+DEPS_MAGIC := $(shell mkdir .deps > /dev/null 2>&1 || :)
+
+-include $(DEP_FILES)
+
+mostlyclean-depend:
+
+clean-depend:
+
+distclean-depend:
+
+maintainer-clean-depend:
+	-rm -rf .deps
+
+%.o: %.c
+	@echo '$(COMPILE) -c $<'; \
+	$(COMPILE) -Wp,-MD,.deps/$(*F).P -c $<
+
+%.lo: %.c
+	@echo '$(LTCOMPILE) -c $<'; \
+	$(LTCOMPILE) -Wp,-MD,.deps/$(*F).p -c $<
+	@-sed -e 's/^\([^:]*\)\.o:/\1.lo \1.o:/' \
+	  < .deps/$(*F).p > .deps/$(*F).P
+	@-rm -f .deps/$(*F).p
 info:
 dvi:
 check: all
@@ -514,16 +541,16 @@ maintainer-clean-generic:
 mostlyclean:  mostlyclean-hdr mostlyclean-noinstLIBRARIES \
 		mostlyclean-compile mostlyclean-libtool \
 		mostlyclean-libLTLIBRARIES mostlyclean-binPROGRAMS \
-		mostlyclean-tags mostlyclean-generic
+		mostlyclean-tags mostlyclean-depend mostlyclean-generic
 
 clean:  clean-hdr clean-noinstLIBRARIES clean-compile clean-libtool \
 		clean-libLTLIBRARIES clean-binPROGRAMS clean-tags \
-		clean-generic mostlyclean
+		clean-depend clean-generic mostlyclean
 
 distclean:  distclean-hdr distclean-noinstLIBRARIES distclean-compile \
 		distclean-libtool distclean-libLTLIBRARIES \
-		distclean-binPROGRAMS distclean-tags distclean-generic \
-		clean
+		distclean-binPROGRAMS distclean-tags distclean-depend \
+		distclean-generic clean
 	-rm -f config.status
 	-rm -f libtool
 
@@ -531,7 +558,8 @@ maintainer-clean:  maintainer-clean-hdr maintainer-clean-noinstLIBRARIES \
 		maintainer-clean-compile maintainer-clean-libtool \
 		maintainer-clean-libLTLIBRARIES \
 		maintainer-clean-binPROGRAMS maintainer-clean-tags \
-		maintainer-clean-generic distclean
+		maintainer-clean-depend maintainer-clean-generic \
+		distclean
 	@echo "This command is intended for maintainers to use;"
 	@echo "it deletes files that may require special tools to rebuild."
 	-rm -f config.status
@@ -548,8 +576,9 @@ install-libLTLIBRARIES mostlyclean-binPROGRAMS distclean-binPROGRAMS \
 clean-binPROGRAMS maintainer-clean-binPROGRAMS uninstall-binPROGRAMS \
 install-binPROGRAMS uninstall-includeHEADERS install-includeHEADERS \
 tags mostlyclean-tags distclean-tags clean-tags maintainer-clean-tags \
-distdir info dvi installcheck install-exec install-data install \
-uninstall all installdirs mostlyclean-generic distclean-generic \
+distdir mostlyclean-depend distclean-depend clean-depend \
+maintainer-clean-depend info dvi installcheck install-exec install-data \
+install uninstall all installdirs mostlyclean-generic distclean-generic \
 clean-generic maintainer-clean-generic clean mostlyclean distclean \
 maintainer-clean
 

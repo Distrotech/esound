@@ -3,7 +3,15 @@
 
 #include <stdlib.h>
 #include <dirent.h>
+#include <signal.h>
 #include <sys/stat.h>
+
+volatile int terminate = 0;
+
+void clean_exit(int signum) {
+    terminate = 1;
+    return;
+}
 
 int main(int argc, char **argv)
 {
@@ -58,6 +66,11 @@ int main(int argc, char **argv)
     sample_id = esd_sample_cache( sock, format, rate, source_stats.st_size );
     printf( "sample id is <%d>\n", sample_id );
 
+    /* if we see any of these, terminate */
+    signal( SIGINT, clean_exit );
+    signal( SIGKILL, clean_exit );
+    signal( SIGPIPE, clean_exit );
+
     while ( ( length = fread( buf, 1, ESD_BUF_SIZE, source ) ) > 0 )
     {
 	/* fprintf( stderr, "read %d\n", length ); */
@@ -68,8 +81,14 @@ int main(int argc, char **argv)
     }
 
     printf( "sample uploaded, %d bytes\n", total );
-    esd_sample_play( sock, sample_id );
-   sleep(100);
+
+    printf( "press ^C to quit, <enter> to trigger.\n" );
+    while ( !terminate ) {
+	getchar();
+	printf( "<playing sample>\n" );
+	esd_sample_play( sock, sample_id );
+    }
+
     esd_sample_free( sock, sample_id );
 
     printf( "closing down\n" );

@@ -565,7 +565,7 @@ int wait_for_clients_and_data( int listen )
     }
 
     
-    if ( esd_recorder ) {
+    if ( esd_players_list || esd_recorder ) {
 	timeout.tv_sec = 0;
 	timeout.tv_usec = 0;
 	timeout_ptr = &timeout;
