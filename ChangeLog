@@ -1,3 +1,11 @@
+2002-03-01  Havoc Pennington  <hp@redhat.com>
+
+	* players.c (read_player): Apply patch from
+	mchapman@student.usyd.edu.au to reduce choppiness; see 
+	https://bugzilla.redhat.com/bugzilla/show_bug.cgi?id=55877
+
+	* clients.c: another bit of the patch
+	
 Thu Jan 10 11:21:28 2002  Owen Taylor  <otaylor@redhat.com>
 
 	* Makefile.am: @AUDIOFILE_LIBS@ already includes -lm so

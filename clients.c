@@ -270,7 +270,7 @@ int wait_for_clients_and_data( int listen )
 	"paused=%d, samples=%d, auto=%d, standby=%d, record=%d, ready=%d\n",
 	is_paused_here, esd_playing_samples, 
 	esd_autostandby_secs, esd_on_standby, 
-	(esd_recorder != 0), ready ); );
+	(esd_recorder_list != 0), ready ); );
 
     /* TODO: return ready, and do this in esd.c */
     if ( ready <= 0 ) {
