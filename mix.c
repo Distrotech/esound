@@ -5,6 +5,7 @@
 #include <limits.h>
 
 /*******************************************************************/
+/* ESD_BUF_SIZE is the maximum possible number of samples */
 signed int mixed_buffer[ ESD_BUF_SIZE ];
 
 /*******************************************************************/
@@ -231,6 +232,24 @@ void clip_mix_to_output_16s( signed short *output, int length )
 }
 
 /*******************************************************************/
+/* takes mixed data, and clips data to the output buffer */
+void clip_mix_to_output_8s( signed char *output, int length )
+{
+    signed int *mixed = mixed_buffer;
+    signed int *end = mixed_buffer + length/sizeof(signed short);
+
+    while ( mixed != end ) {
+	if (*mixed < SHRT_MIN) {
+	    *output++ = 0; mixed++;
+	} else if (*mixed > SHRT_MAX) {
+	    *output++ = 255; mixed++;
+	} else {
+	    *output++ = (*mixed++) / 256 + 128;
+	}
+    }
+}
+
+/*******************************************************************/
 /* takes all input players, and mixes them to the mixed_buffer */
 int mix_players_16s( void *output, int length )
 {
@@ -239,7 +258,7 @@ int mix_players_16s( void *output, int length )
     esd_player_t *erase = NULL;
 
     /* zero the sum buffer */
-    memset( mixed_buffer, 0, length * sizeof(int) );
+    memset( mixed_buffer, 0, esd_buf_size_samples * sizeof(int) );
     
     /* as long as there's a player out there */
     iterator = esd_players_list;
@@ -278,6 +297,10 @@ int mix_players_16s( void *output, int length )
 	printf( "maximum stream length = %d bytes\n", max );
     }
 
-    clip_mix_to_output_16s( output, max );
+    if ( (esd_audio_format & ESD_MASK_BITS) == ESD_BITS16 ) 
+	clip_mix_to_output_16s( output, max );
+    else
+	clip_mix_to_output_8s( output, max );
+
     return max;
 }

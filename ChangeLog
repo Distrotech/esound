@@ -1,3 +1,9 @@
+1998-09-19  Yo Ric Dude  <ericmit@ix.netcom.com>
+
+	* esd-server.h, esd.c, mix.c, players.c: started the 8 bit server 
+	overhaul.  many off by *2,/2 errors remain.  still straightening out 
+	buf_size_samples vs. buf_size_octets issues... 16bit seems to work.
+
 1998-09-05  Yo Ric Dude  <ericmit@ix.netcom.com>
 
 	* esd.c, mix.c, esd-server.h: fixed the annoying buzz while monitoring

@@ -94,6 +94,10 @@ extern int esd_on_standby;
 extern int esdbg_trace;
 extern int esdbg_comms;
 
+extern int esd_buf_size_octets;
+extern int esd_buf_size_samples;
+extern int esd_sample_size;
+
 /* clients.c - manage the client connections */
 extern esd_client_t *esd_clients_list;
 void dump_clients();
@@ -138,6 +142,7 @@ int stop_sample( int sample_id );
 int mix_from_stereo_16s( signed short *source_data_ss, 
 		       esd_player_t *player, int length );
 int mix_players_16s( void *mixed, int length );
+int mix_players_8s( void *mixed, int length );
 
 /*******************************************************************/
 /* evil evil macros */
@@ -156,7 +161,7 @@ int mix_players_16s( void *mixed, int length );
 	( (c) ? (swap_endian_32( (x) )) : (x) )
 
 /* evil macros for debugging protocol */
-/* #define ESDBG */ /* define this term for excessive debugging information */
+#define ESDBG /* define this term for excessive debugging information */
 
 #ifdef ESDBG
 

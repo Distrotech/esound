@@ -7,7 +7,11 @@
 /* globals */
 int esd_on_standby = 0;	/* set to 1 to route all audio to /dev/null */
 int esdbg_trace = 0;		/* show warm fuzzy debug messages */
-int esdbg_comms = 0;		/* show protocol level debuig messages */
+int esdbg_comms = 0;		/* show protocol level debug messages */
+
+int esd_buf_size_octets = 0; 	/* size of audio buffer in bytes */
+int esd_buf_size_samples = 0; 	/* size of audio buffer in samples */
+int esd_sample_size = 0;	/* size of sample in bytes */
 
 volatile int esd_terminate = 0;	/* signals set this for a clean exit */
 int esd_beeps = 1;		/* whether or not to beep on startup */
@@ -32,12 +36,13 @@ void set_audio_buffer( void *buf, esd_format_t format,
     {
     case ESD_BITS8:
 	for ( i = 0 ; i < length ; i+=2 ) {
-	    uc_buf[i] = 127 + magl * sin( (float)(i+offset) * kf );
-	    uc_buf[i+1] = 127 + magr * sin( (float)(i+offset) * kf );
+	    sample = sin( (float)(i+offset) * kf );
+	    uc_buf[i] = 127 + magl * sample;
+	    uc_buf[i+1] = 127 + magr * sample;
 	}
 	break;
     case ESD_BITS16:	/* assume same endian */
-	for ( i = 0 ; i < length/sizeof(short) ; i+=2 ) {
+	for ( i = 0 ; i < length ; i+=2 ) {
 	    sample = sin( (float)(i+offset) * kf );
 	    ss_buf[i] = magl * sample;
 	    ss_buf[i+1] = magr * sample;
@@ -141,13 +146,11 @@ int main ( int argc, char *argv[] )
     /* begin test scaffolding parameters */
     /* int format = AFMT_U8; AFMT_S16_LE; */
     /* int stereo = 0; */     /* 0=mono, 1=stereo */
-    int rate = 44100, buf_size = ESD_BUF_SIZE;
+    int default_rate = 44100, default_buf_size = ESD_BUF_SIZE;
     int i, j, freq=440;
     int magl, magr;
 
-    int format = ESD_BITS16 | ESD_STEREO;
-    magl = magr = ( (format & ESD_MASK_BITS) == ESD_BITS16) 
-	? 30000 : 100;
+    int default_format = ESD_BITS16 | ESD_STEREO;
     /* end test scaffolding parameters */
 
     /* start the initializatin process */
@@ -166,6 +169,9 @@ int main ( int argc, char *argv[] )
 		fprintf( stderr, "- accepting connections on port %d\n", 
 			 esd_port );
 	    }
+	} else if ( !strcmp( argv[ arg ], "-b" ) ) {
+	    fprintf( stderr, "- server format: 8 bit samples\n" );
+	    default_format &= ~ESD_MASK_BITS; default_format |= ESD_BITS8; 
 	} else if ( !strcmp( argv[ arg ], "-vt" ) ) {
 	    esdbg_trace = 1;
 	    fprintf( stderr, "- enabling trace diagnostic info\n" );
@@ -180,10 +186,16 @@ int main ( int argc, char *argv[] )
 	}
     }
 
-    /* open and initialize the audio device, /dev/dsp */
-    esd_audio_format = format;
-    esd_audio_rate = rate;
+    /* set the data size parameters */
+    esd_audio_format = default_format;
+    esd_audio_rate = default_rate;
 
+    esd_sample_size = ( (esd_audio_format & ESD_MASK_BITS) == ESD_BITS16 )
+	? sizeof(signed short) : sizeof(unsigned char);
+    esd_buf_size_octets = default_buf_size;
+    esd_buf_size_samples = esd_buf_size_octets / esd_sample_size;
+
+    /* open and initialize the audio device, /dev/dsp */
     audio = esd_audio_open();
     if ( audio < 0 ) {
 	fprintf( stderr, "fatal error configuring sound, %s\n", 
@@ -192,8 +204,8 @@ int main ( int argc, char *argv[] )
     }
 
     /* allocate and zero out buffer */
-    output_buffer = (void *) malloc( buf_size );
-    memset( output_buffer, 0, buf_size);
+    output_buffer = (void *) malloc( esd_buf_size_octets );
+    memset( output_buffer, 0, esd_buf_size_octets );
 
     /* open the listening socket */
     listen_socket = open_listen_socket( esd_port );
@@ -211,15 +223,17 @@ int main ( int argc, char *argv[] )
     /* send some sine waves just to check the sound connection */
     i = 0;
     if ( esd_beeps ) {
-	for ( freq = 55 ; freq < rate/2 ; freq *= 2, i++ ) {
+	magl = magr = ( (esd_audio_format & ESD_MASK_BITS) == ESD_BITS16) 
+	    ? 30000 : 100;
+
+	for ( freq = 55 ; freq < esd_audio_rate/2 ; freq *= 2, i++ ) {
 	    /* repeat the freq for a few buffer lengths */
-	    for ( j = 0 ; j < rate / 2 / buf_size ; j++ ) {
-		set_audio_buffer( output_buffer, format, 
-				  ( (i%2) ? magl : 0 ), 
-				  ( (i%2) ? 0 : magr ),
-				  freq, rate, buf_size, 
-				  j * buf_size / sizeof(signed short) );
-		esd_audio_write( output_buffer, buf_size );
+	    for ( j = 0 ; j < esd_audio_rate / 4 / esd_buf_size_samples ; j++ ) {
+		set_audio_buffer( output_buffer, esd_audio_format, 
+				  ( (i%2) ? magl : 0 ),  ( (i%2) ? 0 : magr ),
+				  freq, esd_audio_rate, esd_buf_size_samples, 
+				  j * esd_buf_size_samples );
+		esd_audio_write( output_buffer, esd_buf_size_octets );
 	    }
 	}
     }
@@ -240,13 +254,15 @@ int main ( int argc, char *argv[] )
 	poll_client_requests();
 
 	/* mix new requests, and output to device */
-	length = mix_players_16s( output_buffer, buf_size );
+	length = mix_players_16s( output_buffer, esd_buf_size_octets );
 	if ( length > 0 /* || esd_monitor */ ) {
 	    if ( !esd_on_standby ) {
 		/* standby check goes in here, so esd will eat sound data */
 		/* TODO: eat a round of data with a better algorithm */
 		/*        this will cause guaranteed timing issues */
-		esd_audio_write( output_buffer, buf_size );
+		/* TODO: on monitor, why isn't this a buffer of zeroes? */
+		/* esd_audio_write( output_buffer, esd_buf_size_octets ); */
+		esd_audio_write( output_buffer, length );
 		esd_audio_flush();
 	    }
 	} else {
@@ -260,22 +276,23 @@ int main ( int argc, char *argv[] )
 	if ( esd_monitor && !esd_on_standby ) {
 	    /* TODO: maybe the last parameter here should be length? */
 	    length = mix_from_stereo_16s( output_buffer, 
-					  esd_monitor, buf_size );
+					  esd_monitor, esd_buf_size_octets );
 	    if( length )
 		monitor_write();
 	}
 
 	/* if someone's recording the sound stream, send them data */
 	if ( esd_recorder && !esd_on_standby ) { 
-	    length = esd_audio_read( output_buffer, buf_size );
+	    length = esd_audio_read( output_buffer, esd_buf_size_octets );
 	    if ( length ) {
 		mix_from_stereo_16s( output_buffer, 
-				     esd_recorder, buf_size ); 
+				     esd_recorder, esd_buf_size_octets ); 
 		recorder_write(); 
 	    }
 	}
 
-	/* TODO: if ( esd_on_standby ) [nano]sleep( buf_size/sample_rate seconds ); */
+	/* TODO: if ( esd_on_standby ) 
+	   [nano]sleep( buf_size_samples/sample_rate seconds ); */
 
     }
 
