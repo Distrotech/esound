@@ -39,6 +39,7 @@ dnl Check for compiler environment
 
 AC_C_CONST
 AC_C_BIGENDIAN
+AC_C_INLINE
 
 dnl Check for system libs needed
 

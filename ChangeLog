@@ -1,3 +1,14 @@
+2001-07-07  Drazen Kacar  <dave@arsdigita.com>
+
+	* configure.in: Check whether the C compiler supports inline.
+
+	* audio_solaris.c: Recognize SUNW,audiots as supported device.
+	Make explicit checks for all devices we know we don't support.
+	If we encounter unknown device, print out the warning, but
+	attempt to use it. Added EINTR wrappers all around the place.
+	Added checks for more esd devices (ports in Solaris terminology).
+	Added flush function.
+
 2001-06-20  Kjartan Maraas  <kmaraas@gnome.org>
 
 	* Makefile.am: Added esd-config.in to EXTRA_DIST.
