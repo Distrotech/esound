@@ -212,7 +212,7 @@ int open_listen_socket( int port )
    
     /* create the socket, and set for non-blocking */
     if (esd_use_tcpip)
-      socket_listen=socket(AF_INET,SOCK_STREAM,0);
+      socket_listen=socket(AF_INET, SOCK_STREAM, 0);
     else
     {
       if (access(ESD_UNIX_SOCKET_DIR, R_OK | W_OK) == -1)
@@ -253,14 +253,14 @@ int open_listen_socket( int port )
 	    }
 	}
       unlink(ESD_UNIX_SOCKET_NAME);
-      socket_listen=socket(AF_UNIX,SOCK_STREAM,0);
+      socket_listen=socket(AF_UNIX, SOCK_STREAM, 0);
     }
-    if (socket_listen<0) 
+    if (socket_listen < 0) 
     {
 	fprintf(stderr,"Unable to create socket\n");
 	return( -1 );
     }
-    if (fcntl(socket_listen,F_SETFL,O_NONBLOCK)<0)
+    if (fcntl(socket_listen, F_SETFL, O_NONBLOCK) < 0)
     {
 	fprintf(stderr,"Unable to set socket to non-blocking\n");
 	return( -1 );
@@ -285,6 +285,7 @@ int open_listen_socket( int port )
     if (esd_use_tcpip)
     {
       /* set the listening information */
+      memset(&socket_addr, 0, sizeof(struct sockaddr_in));
       socket_addr.sin_family = AF_INET;
       socket_addr.sin_port = htons( port );
       if (esd_public)

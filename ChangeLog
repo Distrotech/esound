@@ -1,3 +1,14 @@
+2000-09-13  Timur Bakeyev <mc@bat.ru>
+
+	* esd.c: Reset to zero sockaddr_in structure. Without that BSDI doesn't
+	let to bind to 127.0.0.1 address.. It's a good habbit anyhow to do so...
+	
+	* esdlib.c: If we are trying to connect to the localhost, it should be
+	127.0.0.1, not 0.0.0.0, which is just INADDR_ANY... It happens to match
+	localhost, but isn't necessary to... So, changed client to connect to the
+	127.0.0.1 (which also should work with esd -tcp -public, but opposit does
+	not work).
+	
 2000-07-21  Stanislav Brabec  <utx@penguin.cz>
 
 	* acconfig.h, audio.c, audio_dart.c, configure.in, esdcat.c,
@@ -83,7 +94,7 @@
 	* mix.c: (clip_mix_to_output_8u): Change *output to unsigned int
 	from signed int.
 	
-Sun Aug  8 00:56:41 1999 1999 Timur Bakeyev <mc@bat.ru>
+Sun Aug  8 00:56:41 1999 Timur Bakeyev <mc@bat.ru>
 
 	* configure.in: Add bsdi4 as a system, that supports esddsp.
 	INADDR_LOOPBACK - u_long changed to u_int32_t.

@@ -420,7 +420,7 @@ esd_connect_tcpip(const char *host)
     struct sockaddr_in socket_addr;
     int socket_out = -1;
     int curstate = 1;
-    char default_host[] = "0.0.0.0";
+    char default_host[] = "127.0.0.1";
     char connect_host[64];
     int port = ESD_DEFAULT_PORT;
     unsigned int host_div = 0;
