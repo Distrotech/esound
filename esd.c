@@ -594,6 +594,9 @@ int main ( int argc, char *argv[] )
 	    esd_use_tcpip = 1;
 	} else if ( !strcmp( argv[ arg ], "-public" ) ) {
 	    esd_public = 1;
+	} else if ( !strcmp( argv[ arg ], "-promiscuous" ) ) {
+	    esd_is_owned = 1;
+	    esd_is_locked = 0;
 	} else if ( !strcmp( argv[ arg ], "-terminate" ) ) {
 	    esd_terminate = 1;
 	} else if ( !strcmp( argv[ arg ], "-spawnpid" ) ) {
@@ -609,23 +612,24 @@ int main ( int argc, char *argv[] )
 		exit (0);
 	} else if ( !strcmp( argv[ arg ], "-h" ) || !strcmp( argv[ arg ], "--help" ) ) {
 	    fprintf( stderr, "Usage: esd [options]\n\n" );
-	    fprintf( stderr, "  -d DEVICE   force esd to use sound device DEVICE\n" );
-	    fprintf( stderr, "  -b          run server in 8 bit sound mode\n" );
-	    fprintf( stderr, "  -r RATE     run server at sample rate of RATE\n" );
-	    fprintf( stderr, "  -as SECS    free audio device after SECS of inactivity\n" );
-	    fprintf( stderr, "  -unix       use unix domain sockets instead of tcp/ip\n" );
-	    fprintf( stderr, "  -tcp        use tcp/ip sockets instead of unix domain\n" );
-	    fprintf( stderr, "  -public     make tcp/ip access public (other than localhost)\n" );
-	    fprintf( stderr, "  -terminate  terminate esd daemone after last client exits\n" );
-	    fprintf( stderr, "  -nobeeps    disable startup beeps\n" );
-	    fprintf( stderr, "  -trust      start esd even if use of %s can be insecure\n",
+	    fprintf( stderr, "  -d DEVICE     force esd to use sound device DEVICE\n" );
+	    fprintf( stderr, "  -b            run server in 8 bit sound mode\n" );
+	    fprintf( stderr, "  -r RATE       run server at sample rate of RATE\n" );
+	    fprintf( stderr, "  -as SECS      free audio device after SECS of inactivity\n" );
+	    fprintf( stderr, "  -unix         use unix domain sockets instead of tcp/ip\n" );
+	    fprintf( stderr, "  -tcp          use tcp/ip sockets instead of unix domain\n" );
+	    fprintf( stderr, "  -public       make tcp/ip access public (other than localhost)\n" );
+	    fprintf( stderr, "  -promiscuous  start unlocked and owned (disable authenticaton) NOT RECOMMENDED\n" );
+	    fprintf( stderr, "  -terminate    terminate esd daemone after last client exits\n" );
+	    fprintf( stderr, "  -nobeeps      disable startup beeps\n" );
+	    fprintf( stderr, "  -trust        start esd even if use of %s can be insecure\n",
 		     ESD_UNIX_SOCKET_DIR );
 #ifdef ESDBG
-	    fprintf( stderr, "  -vt         enable trace diagnostic info\n" );
-	    fprintf( stderr, "  -vc         enable comms diagnostic info\n" );
-	    fprintf( stderr, "  -vm         enable mixer diagnostic info\n" );
+	    fprintf( stderr, "  -vt          enable trace diagnostic info\n" );
+	    fprintf( stderr, "  -vc          enable comms diagnostic info\n" );
+	    fprintf( stderr, "  -vm          enable mixer diagnostic info\n" );
 #endif
-	    fprintf( stderr, "  -port PORT  listen for connections at PORT (only for tcp/ip)\n" );
+	    fprintf( stderr, "  -port PORT   listen for connections at PORT (only for tcp/ip)\n" );
 	    fprintf( stderr, "  -bind ADDRESS binds to ADDRESS (only for tcp/ip)\n" );
 	    fprintf( stderr, "\nPossible devices are:  %s\n", esd_audio_devices() );
 	    exit( 0 );

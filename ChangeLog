@@ -1,3 +1,11 @@
+2002-06-14  Frederic Crozat  <fcrozat@mandrakesoft.com>
+
+	* docs/esd.1.in:
+	* esd.c: (main):
+	Add -promiscuous mode to disable authentication when
+	starting daemon. Fix Bug #85099 
+	(patch from Rebecka Svanberg)
+
 2002-06-07  Frederic Crozat  <fcrozat@mandrakesoft.com>
 
 	* configure.in: Release 0.2.27

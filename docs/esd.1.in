@@ -150,20 +150,21 @@ Starts up EsounD, which provides a sound mixing server.
 esd [options]
 .PP
 .Vb 10
-\&  -d DEVICE   force esd to use sound device DEVICE
-\&  -b          run server in 8 bit sound mode
-\&  -r RATE     run server at sample rate of RATE
-\&  -as SECS    free audio device after SECS of inactivity
-\&  -unix       use unix domain sockets instead of tcp/ip
-\&  -tcp        use tcp/ip sockets instead of unix domain
-\&  -public     make tcp/ip access public (other than localhost)
-\&  -terminate  terminate esd daemone after last client exits
-\&  -nobeeps    do not play startup beeps
-\&  -port PORT  listen for connections at PORT (only for tcp/ip)
+\&  -d DEVICE    force esd to use sound device DEVICE
+\&  -b           run server in 8 bit sound mode
+\&  -r RATE      run server at sample rate of RATE
+\&  -as SECS     free audio device after SECS of inactivity
+\&  -unix        use unix domain sockets instead of tcp/ip
+\&  -tcp         use tcp/ip sockets instead of unix domain
+\&  -public      make tcp/ip access public (other than localhost)
+\&  -promiscuous start unlocked and owned (disable authentication) 
+\&  -terminate   terminate esd daemone after last client exits
+\&  -nobeeps     do not play startup beeps
+\&  -port PORT   listen for connections at PORT (only for tcp/ip)
 .Ve
 Possible devices are:  /dev/dsp, /dev/dsp2, etc.
-.SH "FILES /etc/esoundd/esd.conf			daemon configuration file"
-.IX Header "FILES /etc/esoundd/esd.conf			daemon configuration file"
+.SH "FILES /etc/esound/esd.conf			daemon configuration file"
+.IX Header "FILES /etc/esound/esd.conf			daemon configuration file"
 .SH "SEE ALSO"
 .IX Header "SEE ALSO"
 \&\fIesdcat\fR\|(1), \fIesddsp\fR\|(1), \fIesdloop\fR\|(1), \fIesdplay\fR\|(1), \fIesdsample\fR\|(1),
