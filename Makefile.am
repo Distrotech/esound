@@ -12,7 +12,7 @@ libesd_la_SOURCES = \
 esdlib.c	\
 audio.c
 
-libesd_la_LDFLAGS = -version-info 2:4:2
+libesd_la_LDFLAGS = -version-info 2:5:2
 
 EXTRA_libesd_la_SOURCES = \
 audio_aix.c	\
