@@ -1,5 +1,8 @@
 1998-12-30  Yo Ric Dude  <ericmit@ix.netcom.com>
 
+	* esdmgr.c, proto.c: workaround for zero additional data protocol
+	handlers.  just require an int of data for now. fix noted in source. 
+
 	* audio.c, audio_alsa.c, audio_oss.c, audio_solaris.c, esd.c,
  	esd.h: added -d DEVICE option - use an alternate audio device.
   	This sets esd_audio_device (const char *) which can be used by the

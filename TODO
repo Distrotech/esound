@@ -1,3 +1,9 @@
+BUGS
+====
+
+* Doesn't detect end of protocol stream if unfinished
+
+* some data is required for each protocol handler or Bad Things Happen
 
 Planned for 0.2.7:
 ==================
@@ -13,10 +19,6 @@ Planned for 0.2.7:
   
 * factor out the "Reduce buffers on sockets to the minimum needed" code
   to a single function(socket); 
-
-* Pass a device spec to esd_audio_open (?) as a char *
-  for Solaris: AUDIO_LINE_OUT, AUDIO_SPEAKER, AUDIO_HEADPHONE
-  for Linux: pick /dev/dsp2 if more than one card.  
 
 * make all protocols return an int indicating success/failure at a minimum
   NOTE: this will break protocol!

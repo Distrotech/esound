@@ -66,8 +66,8 @@ esd_proto_handler_info_t esd_proto_map[ ESD_PROTO_MAX ] =
     { ESD_NAME_MAX, &esd_proto_sample_getid, "sample getid" },
     { ESD_KEY_LEN + 2 * sizeof(int), &esd_proto_stream_filter, "stream filter" },
 
-    { 0, &esd_proto_server_info, "server info" },
-    { 0, &esd_proto_all_info, "all info" },
+    { sizeof(int), &esd_proto_server_info, "server info" },
+    { sizeof(int), &esd_proto_all_info, "all info" },
     { -1, &esd_proto_unimplemented, "TODO: subscribe" },
     { -1, &esd_proto_unimplemented, "TODO: unsubscribe" },
 
@@ -795,6 +795,15 @@ int poll_client_requests()
 		client->proto_data_length += length;
 	    }
 
+	    /* check length, as EOF returns readable */
+	    if ( !length ) {
+		ESDBG_TRACE( printf( "(%02d) interrupted request %d, %s.\n", 
+				     client->fd, client->request, 
+				     esd_proto_map[ client->request ].description ); );
+		is_ok = 0;
+		break;
+	    }
+
 	    /* see if we have it all */
 	    if ( client->proto_data_length 
 		 == esd_proto_map[ client->request ].data_length )
@@ -834,6 +843,7 @@ int poll_client_requests()
 		client->state = ESD_NEEDS_REQDATA;
 		client->proto_data_length = 0;
 		/* TODO: do one read, and handle if we get all the data */
+		/* this should fix the "all handlers requrie data oddity */
 		is_ok = 1;
 	    } 
 	    else {

@@ -82,6 +82,7 @@ void esd_print_all_info( esd_info_t *all_info )
 esd_server_info_t *esd_get_server_info( int esd )
 {
     int proto = ESD_PROTO_SERVER_INFO;
+    int version = 0;
 
     /* allocate the server info structure */
     esd_server_info_t *server_info 
@@ -89,7 +90,8 @@ esd_server_info_t *esd_get_server_info( int esd )
     if ( !server_info ) return server_info;
 
     /* tell the server to cough up the info */
-    if ( write( esd, &proto, sizeof(proto) ) != sizeof(proto) ) {
+    write( esd, &proto, sizeof(proto) );
+    if ( write( esd, &version, sizeof(version) ) != sizeof(version) ) {
 	free( server_info );
 	return NULL;
     }
@@ -119,6 +121,7 @@ void esd_free_server_info( esd_server_info_t *server_info )
 esd_info_t *esd_get_all_info( int esd )
 {
     int proto = ESD_PROTO_ALL_INFO;
+    int version = 0;
     esd_server_info_t *server_info;
     esd_player_info_t *player_info;
     esd_sample_info_t *sample_info;
@@ -133,7 +136,8 @@ esd_info_t *esd_get_all_info( int esd )
     if ( !server_info ) return NULL;
 
     /* tell the server to cough up the info */
-    if ( write( esd, &proto, sizeof(proto) ) != sizeof(proto) ) {
+    write( esd, &proto, sizeof(proto) );
+    if ( write( esd, &version, sizeof(version) ) != sizeof(version) ) {
 	free( server_info );
 	return NULL;
     }
