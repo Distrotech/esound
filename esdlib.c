@@ -158,7 +158,7 @@ int esd_send_auth( int sock )
     int auth_fd = -1;
     int endian = ESD_ENDIAN_KEY;
     int reply;
-    char *auth_filename = 0;
+    char *auth_filename = NULL;
     unsigned char auth_key[ESD_KEY_LEN];
     char *home = NULL;
     int namelen, retval;
@@ -605,7 +605,7 @@ esd_connect_tcpip(const char *host)
  * Return Value: -1 on error, else a socket number connected to ESD.
  */
 static int
-esd_connect_unix()
+esd_connect_unix(void)
 {
     struct sockaddr_un socket_unix;
     int socket_out = -1;
@@ -714,7 +714,7 @@ int esd_open_sound( const char *host )
 	    use_unix = 1;
     }
     if ( use_unix )
-	socket_out = esd_connect_unix( NULL );
+	socket_out = esd_connect_unix();
     if ( socket_out >= 0 ) goto finish_connect;
 
     socket_out = esd_connect_tcpip( host );
@@ -784,7 +784,7 @@ int esd_open_sound( const char *host )
 	    ret = read (esd_pipe[0], &c, 1);
 
 	    if (ret == 1) {
-		socket_out = esd_connect_unix(host);
+		socket_out = esd_connect_unix();
 		if (socket_out < 0)
 		    socket_out = esd_connect_tcpip(host);
 	    }

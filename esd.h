@@ -327,10 +327,10 @@ void esd_audio_flush( void );
 /******************************************************************/
 /* util.c utilities						  */
 
-const char *esd_get_socket_dirname();
-const char *esd_get_socket_name();
+const char *esd_get_socket_dirname( void );
+const char *esd_get_socket_name( void );
 
-int have_ipv6();
+int have_ipv6( void );
 
 #ifdef __cplusplus
 }

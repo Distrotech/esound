@@ -1,3 +1,9 @@
+2004-08-11  Kjartan Maraas  <kmaraas@gnome.org>
+
+	* esd.h: ANSI argument list fix.
+	* esdlib.c: (esd_send_auth): NULL vs 0 usage. Also
+	fix usage of esd_connect_unix() in a few places.
+
 2004-08-11  Frederic Crozat  <fcrozat@mandrakesoft.com>
 
 	* audio_oss.c:
