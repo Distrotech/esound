@@ -626,11 +626,14 @@ int mix_stereo_8u_to_stereo_32s_sv( esd_player_t *player, int length )
     } else {
 	while ( wr_dat < length/sizeof(signed short) )
 	{
-	    rd_dat = wr_dat * player->rate / esd_audio_rate;
+	    rd_dat = (wr_dat * player->rate / esd_audio_rate) &0xFFFFFFFE;
 	    
-	    sample = source_data_uc[ rd_dat++ ];
-	    sample -= 127; sample *= 256;
-	    
+	    sample = source_data_uc[ rd_dat ];
+            sample -= 127; sample *= 256;
+	    mixed_buffer[ wr_dat++ ] += sample;
+
+	    sample = source_data_uc[ rd_dat+1 ];
+	    sample -= 127; sample *= 256;   
 	    mixed_buffer[ wr_dat++ ] += sample;
 	}
     }
