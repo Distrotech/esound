@@ -16,24 +16,30 @@ int main(int argc, char **argv)
     esd_format_t format = 0;
 
     FILE *source = stdin;
+    char *host = NULL;
+    char *name = NULL;
     
     for ( arg = 1 ; arg < argc ; arg++)
     {
 	if (!strcmp("-h",argv[arg]))
 	{
-	    printf("usage:\n\t%s [-b] [-m] [-r freq] < file\n",argv[0]);
+	    printf("usage:\n\t%s [-s server] [-b] [-m] [-r freq] < file\n",
+		   argv[0]);
 	    exit(0);
 	}
+	else if ( !strcmp( "-s", argv[ arg ] ) )
+	    host = argv[ ++arg ];
 	else if ( !strcmp( "-b", argv[ arg ] ) )
 	    bits = ESD_BITS8;
 	else if ( !strcmp( "-m", argv[ arg ] ) )
-	    channels = ESD_MONO;
+	    channels = ESD_MONO; 
 	else if ( !strcmp( "-r", argv[ arg ] ) )
 	{
 	    arg++;
 	    rate = atoi( argv[ arg ] );
 	} else {
-	    source = fopen( argv[arg], "r" );
+	    name = argv[ arg ];
+	    source = fopen( name, "r" );
 	}
     }
     
@@ -42,7 +48,7 @@ int main(int argc, char **argv)
 	    format, rate );
    
     /* sock = esd_play_stream( format, rate ); */
-    sock = esd_play_stream_fallback( format, rate );
+    sock = esd_play_stream_fallback( format, rate, host, name );
     if ( sock <= 0 ) 
 	return 1;
     

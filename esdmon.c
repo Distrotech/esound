@@ -15,14 +15,19 @@ int main(int argc, char **argv)
     esd_format_t format = 0;
 
     FILE *target = stdout;
+    char *host = NULL;
+    char *name = NULL;
     
     for ( arg = 1 ; arg < argc ; arg++)
     {
 	if (!strcmp("-h",argv[arg]))
 	{
-	    printf("usage:\n\t%s [-b] [-m] [-r freq] < file\n",argv[0]);
+	    printf("usage:\n\t%s [-s server ][-b] [-m] [-r freq] < file\n",
+		   argv[0]);
 	    exit(0);
 	}
+	else if ( !strcmp( "-s", argv[ arg ] ) )
+	    host = argv[ ++arg ];
 	else if ( !strcmp( "-b", argv[ arg ] ) )
 	    bits = ESD_BITS8;
 	else if ( !strcmp( "-m", argv[ arg ] ) )
@@ -40,7 +45,7 @@ int main(int argc, char **argv)
     printf( "opening socket, format = 0x%08x at %d Hz\n", 
 	    format, rate );
    
-    sock = esd_monitor_stream( format, rate );
+    sock = esd_monitor_stream( format, rate, host, argv[0] );
     if ( sock <= 0 ) 
 	return 1;
     

@@ -136,7 +136,7 @@ int esd_resume( int esd )
 
 /*******************************************************************/
 /* initialize the socket to send data to the sound daemon */
-int esd_open_sound()
+int esd_open_sound( char *host )
 {
     char *espeaker = NULL;
     struct hostent *he;
@@ -151,12 +151,12 @@ int esd_open_sound()
        my copy of /usr/include/netinet/in.h (instead of 64)
     */
 
-    char host[64] = "0.0.0.0";
+    char default_host[64] = "0.0.0.0";
     int port = ESD_DEFAULT_PORT;
     int host_div = 0;
    
     /* see if we have a remote speaker to play to */
-    espeaker = getenv( "ESPEAKER" );
+    espeaker = host ? host : getenv( "ESPEAKER" );
     if ( espeaker != NULL ) {
 	/* split the espeaker host into host:port */
 	host_div = strcspn( espeaker, ":" );
@@ -182,8 +182,8 @@ int esd_open_sound()
 	if ( !port ) 
 	    port = ESD_DEFAULT_PORT;
 	printf( "(remote) host is %s : %d\n", host, port );
-    } else if( !inet_aton( host, &socket_addr.sin_addr ) ) {
-	printf( "couldn't convert %s to inet address\n", host );
+    } else if( !inet_aton( default_host, &socket_addr.sin_addr ) ) {
+	printf( "couldn't convert %s to inet address\n", default_host );
 	return -1;
     }
 
@@ -233,12 +233,12 @@ int esd_open_sound()
 
 /*******************************************************************/
 /* open a socket for playing as a stream */
-int esd_play_stream( esd_format_t format, int rate )
+int esd_play_stream( esd_format_t format, int rate, char *host, char *name )
 {
     int sock;
     int proto = ESD_PROTO_STREAM_PLAY;
 
-    sock = esd_open_sound( format, rate );
+    sock = esd_open_sound( host );
     if ( sock < 0 ) 
 	return sock;
     
@@ -249,6 +249,7 @@ int esd_play_stream( esd_format_t format, int rate )
 	return -1;
     if( write( sock, &rate, sizeof(rate) ) != sizeof(rate) )
 	return -1;
+    /* TODO: write name */
     fsync( sock );
     
     return sock;
@@ -256,12 +257,12 @@ int esd_play_stream( esd_format_t format, int rate )
 
 /*******************************************************************/
 /* open a socket for playing as a stream, fallback to /dev/dsp */
-int esd_play_stream_fallback( esd_format_t format, int rate )
+int esd_play_stream_fallback( esd_format_t format, int rate, char *host, char *name )
 {
     int socket_out;
-
+printf( "host is: %s\n", host );
     /* try to open a connection to the server */
-    socket_out = esd_play_stream( format, rate );
+    socket_out = esd_play_stream( format, rate, host, name );
     if ( socket_out >= 0 ) 
 	return socket_out;
 
@@ -280,12 +281,12 @@ int esd_play_stream_fallback( esd_format_t format, int rate )
 
 /*******************************************************************/
 /* open a socket for monitoring as a stream */
-int esd_monitor_stream( esd_format_t format, int rate )
+int esd_monitor_stream( esd_format_t format, int rate, char *host, char *name )
 {
     int sock;
     int proto = ESD_PROTO_STREAM_MON;
 
-    sock = esd_open_sound( format, rate );
+    sock = esd_open_sound( host );
     if ( sock < 0 ) 
 	return sock;
     
@@ -296,6 +297,7 @@ int esd_monitor_stream( esd_format_t format, int rate )
 	return -1;
     if( write( sock, &rate, sizeof(rate) ) != sizeof(rate) )
 	return -1;
+    /* TODO: write name */
     fsync( sock );
     
     return sock;
@@ -303,12 +305,12 @@ int esd_monitor_stream( esd_format_t format, int rate )
 
 /*******************************************************************/
 /* open a socket for recording as a stream */
-int esd_record_stream( esd_format_t format, int rate )
+int esd_record_stream( esd_format_t format, int rate, char *host, char *name )
 {
     int sock;
     int proto = ESD_PROTO_STREAM_REC;
 
-    sock = esd_open_sound( format, rate );
+    sock = esd_open_sound( host );
     if ( sock < 0 ) 
 	return sock;
     
@@ -319,6 +321,7 @@ int esd_record_stream( esd_format_t format, int rate )
 	return -1;
     if( write( sock, &rate, sizeof(rate) ) != sizeof(rate) )
 	return -1;
+    /* TODO: write name */
     fsync( sock );
     
     return sock;
@@ -326,12 +329,12 @@ int esd_record_stream( esd_format_t format, int rate )
 
 /*******************************************************************/
 /* open a socket for recording as a stream, fallback to /dev/dsp */
-int esd_record_stream_fallback( esd_format_t format, int rate )
+int esd_record_stream_fallback( esd_format_t format, int rate, char *host, char *name )
 {
     int socket_out;
 
     /* try to open a connection to the server */
-    socket_out = esd_record_stream( format, rate );
+    socket_out = esd_record_stream( format, rate, host, name );
     if ( socket_out >= 0 ) 
 	return socket_out;
 
@@ -350,7 +353,7 @@ int esd_record_stream_fallback( esd_format_t format, int rate )
 
 /*******************************************************************/
 /* cache a sample in the server returns sample id, <= 0 is error */
-int esd_sample_cache( int esd, esd_format_t format, int rate, long size )
+int esd_sample_cache( int esd, esd_format_t format, int rate, long size, char *name )
 {
     int id = 0;
     int proto = ESD_PROTO_SAMPLE_CACHE;
@@ -366,6 +369,7 @@ int esd_sample_cache( int esd, esd_format_t format, int rate, long size )
 	return -1;
     if ( write( esd, &size, sizeof(size) ) != sizeof(size) )
 	return -1;
+    /* TODO: write the name */
 
     fsync( esd );
 

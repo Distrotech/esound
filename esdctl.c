@@ -10,7 +10,7 @@ int main(int argc, char **argv)
 	return 0;
 
     /* contact the server */
-    sock = esd_open_sound( 0, 0 );
+    sock = esd_open_sound( NULL );
     if ( sock <= 0 ) return 1;
 
     /* control the daemon */

@@ -25,16 +25,20 @@ int main(int argc, char **argv)
 
     int sample_id = 0;
     FILE *source = NULL;
-    char *source_name = NULL;
     struct stat source_stats;
+    char *host = NULL;
+    char *name = NULL;
     
     for ( arg = 1 ; arg < argc ; arg++)
     {
 	if (!strcmp("-h",argv[arg]))
 	{
-	    printf("usage:\n\t%s [-b] [-m] [-r freq] < file\n",argv[0]);
+	    printf("usage:\n\t%s [-s server] [-b] [-m] [-r freq] < file\n",
+		   argv[0]);
 	    exit(0);
 	}
+	else if ( !strcmp( "-s", argv[ arg ] ) )
+	    host = argv[ ++arg ];
 	else if ( !strcmp( "-b", argv[ arg ] ) )
 	    bits = ESD_BITS8;
 	else if ( !strcmp( "-m", argv[ arg ] ) )
@@ -44,8 +48,8 @@ int main(int argc, char **argv)
 	    arg++;
 	    rate = atoi( argv[ arg ] );
 	} else {
-	    source = fopen( argv[arg], "r" );
-	    source_name = argv[ arg ];
+	    name = argv[ arg ];
+	    source = fopen( name, "r" );
 	}
     }
 
@@ -58,12 +62,12 @@ int main(int argc, char **argv)
     printf( "opening socket, format = 0x%08x at %d Hz\n", 
 	    format, rate );
    
-    sock = esd_open_sound( format, rate );
+    sock = esd_open_sound( host );
     if ( sock <= 0 ) 
 	return 1;
 
-    stat( source_name, &source_stats );
-    sample_id = esd_sample_cache( sock, format, rate, source_stats.st_size );
+    stat( name, &source_stats );
+    sample_id = esd_sample_cache( sock, format, rate, source_stats.st_size, name );
     printf( "sample id is <%d>\n", sample_id );
 
     /* if we see any of these, terminate */

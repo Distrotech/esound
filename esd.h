@@ -99,7 +99,7 @@ typedef unsigned char octet;
 /* returns EsounD socket for communication, result < 0 = error */
 /* server = listen socket (localhost:5001, 192.168.168.0:9999 */
 /* rate, format = (bits | endian | channels | stream | func) */
-int esd_open_sound();
+int esd_open_sound( char *host );
 
 /* lock/unlock will disable/enable foreign clients from connecting */
 int esd_lock( int esd );
@@ -111,15 +111,15 @@ int esd_resume( int esd );
 
 /* open a socket for playing, monitoring, or recording as a stream */
 /* the *_fallback functions try to open /dev/dsp if there's no EsounD */
-int esd_play_stream( esd_format_t format, int rate );
-int esd_play_stream_fallback( esd_format_t format, int rate );
-int esd_monitor_stream( esd_format_t format, int rate );
+int esd_play_stream( esd_format_t format, int rate, char *host, char *name );
+int esd_play_stream_fallback( esd_format_t format, int rate, char *host, char *name );
+int esd_monitor_stream( esd_format_t format, int rate, char *host, char *name );
 /* int esd_monitor_stream_fallback( esd_format_t format, int rate ); */
-int esd_record_stream( esd_format_t format, int rate );
-int esd_record_stream_fallback( esd_format_t format, int rate );
+int esd_record_stream( esd_format_t format, int rate, char *host, char *name );
+int esd_record_stream_fallback( esd_format_t format, int rate, char *host, char *name );
 
 /* cache a sample in the server returns sample id, < 0 = error */
-int esd_sample_cache( int esd, esd_format_t format, int rate, long length );
+int esd_sample_cache( int esd, esd_format_t format, int rate, long length, char *name );
 /* uncache a sample in the server */
 int esd_sample_free( int esd, int sample );
 
