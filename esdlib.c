@@ -514,7 +514,7 @@ int esd_open_sound( const char *host )
 	char *cmd;
 
 	setsid();
-	cmd = malloc(sizeof("esd ") + esd_spawn_options?strlen(esd_spawn_options):"");
+	cmd = malloc(sizeof("esd ") + esd_spawn_options?strlen(esd_spawn_options):0);
 
 	sprintf(cmd, "esd %s", esd_spawn_options?esd_spawn_options:"");
 

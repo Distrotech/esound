@@ -1,3 +1,7 @@
+1999-06-17  Richard Boulton <rjb37@cam.ac.uk>
+
+	* esdlib.c: Fix compiler warning.
+
 Wed Jun 16 12:52:02 1999 Timur Bakeyev <mc@bat.ru>
 
 	* esd.h, esd.c, esdlib.c: All occurances of "/tmp/.esd/socket" string
