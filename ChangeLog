@@ -1,3 +1,7 @@
+2002-06-19  Frederic Crozat  <fcrozat@mandrakesoft.com>
+
+	* configure.in: Release 0.2.28
+
 2002-06-19    <b@cuba.mandrakesoft.com>
 
         * esdlib.c: (is_host_local), (esd_open_sound):
