@@ -1,3 +1,7 @@
+Tue Sep 04 16:28:11 2001  George Lebl <jirka@5z.com>
+
+	* configure.in, Makefile.am, esound.pc.in: add a pkg-config file
+
 2001-07-13  Alex Larsson  <alexl@redhat.com>
 
 	* esdlib.c:

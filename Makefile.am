@@ -16,6 +16,8 @@ bin_SCRIPTS = \
 EXTRA_SCRIPTS = esddsp
 
 EXTRA_DIST = \
+	esound.pc.in	\
+	esound.spec.in	\
 	esd-config.in	\
         esd.conf        \
 	esd.m4 		\
@@ -144,4 +146,8 @@ dist-hook: doc esound.spec
 	cp -r docs/esound $(distdir)/docs/html
 	cp $(srcdir)/docs/esound.ps $(distdir)/docs
 
-CLEANFILES=esound.spec
+CLEANFILES=esound.spec esound.pc
+
+pkgconfigdir = $(libdir)/pkgconfig
+pkgconfig_DATA = esound.pc
+

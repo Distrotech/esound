@@ -347,6 +347,7 @@ AC_OUTPUT([
 Makefile
 esd-config
 esound.spec
+esound.pc
 esddsp
 docs/Makefile
 ])

@@ -28,5 +28,6 @@ _libs
 esd-config
 *.da
 esound.spec
+esound.pc
 esddsp
 libesddsp.la
