@@ -5,6 +5,14 @@ BUGS
 
 * some data is required for each protocol handler or Bad Things Happen
 
+* CPU usage issues are back...
+
+* generates static for some people as of 12/8/98 - 12/9/98 changes.
+
+* Does esddsp work without /usr/lib in LD_PRELOAD_PATH?
+
+* add a config option for path to libdl.so? is it needed?
+
 Planned for 0.2.7:
 ==================
 

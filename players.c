@@ -460,8 +460,10 @@ esd_player_t *new_stream_player( esd_client_t *client )
 	return NULL;
     }
 
-    /* everything's ok, return the allocated player */
+    /* everything's ok, set the easy stuff */
     player->left_vol_scale = player->right_vol_scale = ESD_VOLUME_BASE;
+    player->mix_func = get_mix_func( player );
+    player->translate_func = get_translate_func( player );
 
     ESDBG_TRACE( printf( "(%02d) player: [%p]\n", player->source_id, player ); );
 
@@ -534,7 +536,8 @@ esd_player_t *new_sample_player( int sample_id, int loop )
     esd_playing_samples++;
     player->last_pos = 0;
     sample->ref_count++;
-    sample->erase_when_done = 0;
+    player->mix_func = get_mix_func( player );
+    player->translate_func = get_translate_func( player );
 
     ESDBG_TRACE( printf( "<%02d> new player: refs=%d samps=%d [%p]\n", 
 			 player->source_id, sample->ref_count, 

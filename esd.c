@@ -429,7 +429,7 @@ int main ( int argc, char *argv[] )
 	poll_client_requests();
 
 	/* mix new requests, and output to device */
-	length = mix_players_16s( output_buffer, esd_buf_size_octets );
+	length = mix_players( output_buffer, esd_buf_size_octets );
 	
 	/* awaken if on autostandby and doing anything */
 	if ( esd_on_autostandby && length ) {

@@ -1,3 +1,9 @@
+1999-01-13  Yo Ric Dude  <ericmit@ix.netcom.com>
+
+	* esd-server.h, esd.c, mix.c, players.c, samples.c: first take at
+ 	using function pointers for the mix functions.  probably breaks
+ 	filters, and who knows what else.  NOTE: work in progress, beware!
+
 1999-01-10  Yo Ric Dude  <ericmit@ix.netcom.com>
 
 	* esddsp.in: corrected format of LD_PRELOAD entries, and added

@@ -40,6 +40,11 @@ enum esd_client_state {
 };
 typedef int esd_client_state_t;
 
+/* mix functions control how the player data is combined */
+typedef int mix_func_t( void *player, int length );
+typedef int translate_func_t( void *player, int length );
+/* NOTE: in heavy flux! */
+
 /* a client is what contacts the server, and makes requests of daemon */
 typedef struct esd_client {
     struct esd_client *next; 	/* it's a list, eh? link 'em */
@@ -73,6 +78,9 @@ typedef struct esd_player {
     /* time_t last_read; */	/* timeout for streams, not used */
     int last_pos;		/* track read position for samples */
     char name[ ESD_NAME_MAX ];	/* name of stream for remote control */
+
+    mix_func_t *mix_func;	/* mixes data into the combined buffer */
+    translate_func_t *translate_func;	/* copies data between players */
 } esd_player_t;
 
 /* TODO?: typedef esd_player_t esd_recorder_t, and monitor? */
@@ -169,6 +177,9 @@ int play_sample( int sample_id, int loop );
 int stop_sample( int sample_id );
 
 /* mix.c - deal with mixing signals, and format conversion */
+mix_func_t *get_mix_func( esd_player_t *player );
+translate_func_t *get_translate_func( esd_player_t *player );
+
 int mix_and_copy( void *dest_buf, int dest_len, 
 	int dest_rate, esd_format_t dest_format, 
 	void *source_data, int src_len, 
@@ -185,8 +196,7 @@ int mix_from_mono_16s( void *dest_buf, unsigned int dest_len,
 int mix_from_mono_8u( void *dest_buf, unsigned int dest_len, 
 	int dest_rate, esd_format_t dest_format, 
 	unsigned char *source_data_uc, int src_len, int src_rate );
-int mix_players_16s( void *mixed, int length );
-int mix_players_8s( void *mixed, int length );
+int mix_players( void *mixed, int length );
 
 /*******************************************************************/
 /* filter.c */

@@ -192,6 +192,7 @@ esd_sample_t *new_sample( esd_client_t *client )
     /* set ref. count, cached_length, and other housekeeping values */
     sample->cached_length = 0;
     sample->ref_count = 0;
+    sample->erase_when_done = 0;
     sample->left_vol_scale = sample->right_vol_scale = ESD_VOLUME_BASE;
 
     ESDBG_TRACE( printf( "<%02d> sample %s: [0x%p] - %d bytes\n", 
