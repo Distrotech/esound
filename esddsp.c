@@ -392,8 +392,11 @@ ioctl (int fd, request_t request, ...)
   else if (fd == mixfd) {
     if(use_mixer)
       return mixctl (fd, request, argp);
-  } else /* (fd != sndfd && fd != mixfd) */
-    return (*func) (fd, request, argp);
+  } else 
+      { /* (fd != sndfd && fd != mixfd) */
+        return (*func) (fd, request, argp);
+      }
+  return 0;
 }
 
 int
