@@ -19,8 +19,11 @@ void clear_auth( int signum )
 {
     int i;
 
-    if ( esdbg_trace ) 
-	printf( "(ca) resetting ownership of sound daemon\n" );
+    /* NOTE: attempt to only include debugging info if desired. if this doesn't
+       work on your compiler, please email ericmit@ix.netcom.com with info */
+    /* if ( esdbg_trace ) 
+	printf( "(ca) resetting ownership of sound daemon\n" ); */
+    ESDBG_TRACE( printf( "(ca) resetting ownership of sound daemon\n" ); );
 
     /* reset the access rights */
     esd_is_owned = 0;
@@ -501,6 +504,29 @@ int esd_proto_sample_stop( esd_client_t *client )
 }
 
 /*******************************************************************/
+/* play a sample cached by the client, return boolean ok */
+int esd_proto_server_info( esd_client_t *client )
+{
+    int version, rate, format, actual;
+
+    version = maybe_swap_32( client->swap_byte_order, 0 );
+    rate = maybe_swap_32( client->swap_byte_order, esd_audio_rate );
+    format = maybe_swap_32( client->swap_byte_order, esd_audio_format );
+
+    if ( esdbg_trace )
+	printf( "(%02d) proto: server info\n", client->fd );
+
+    ESD_WRITE_INT( client->fd, &version, sizeof(version), actual, "si ver" );
+    ESD_WRITE_INT( client->fd, &rate, sizeof(rate), actual, "si rate" );
+    ESD_WRITE_INT( client->fd, &format, sizeof(format), actual, "si fmt" );
+    if ( sizeof( format ) != actual )
+	return 0;
+
+    client->state = ESD_NEXT_REQUEST;
+    return 1;
+}
+
+/*******************************************************************/
 /* now that we trust the client, do it's bidding, return boolean ok */
 static int do_validated_action ( esd_client_t *client )
 {
@@ -694,19 +720,32 @@ int poll_client_requests()
  		case ESD_PROTO_SAMPLE_FREE:
  		    is_ok = esd_proto_sample_free( client );
  		    break;
- 
+
  		case ESD_PROTO_SAMPLE_PLAY:
  		    is_ok = esd_proto_sample_play( client );
  		    break;
- 
+
  		case ESD_PROTO_SAMPLE_LOOP:
  		    is_ok = esd_proto_sample_loop( client );
  		    break;
- 
+
  		case ESD_PROTO_SAMPLE_STOP:
  		    is_ok = esd_proto_sample_stop( client );
  		    break;
- 
+
+		case ESD_PROTO_SERVER_INFO:
+ 		    is_ok = esd_proto_server_info( client );
+ 		    break;
+
+		case ESD_PROTO_ALL_INFO:
+		case ESD_PROTO_SUBSCRIBE:
+		case ESD_PROTO_UNSUBSCRIBE:
+		    fprintf( stderr, 
+			     "(%02d) proto: unimplemented protocol request:  0x%08x\n",
+			     client->fd, client->request );
+		    is_ok = 0;
+		    break;
+
  		default:
 		    fprintf( stderr, 
 			     "(%02d) proto: unknown protocol request:  0x%08x\n",

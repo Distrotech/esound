@@ -5,29 +5,16 @@ BUGS!
 monitoring with stalled data streams still eats cpu like the cookie monster
 - tweak the sleep value for the select
 
-<[D]espair> esd produces weird midbass static
-- this one works:  cvs -z3 checkout -D "1998-10-10 ?23:00?" esound
-- FIXED: don't bother with update, checkout the esound module again
-
-Planned for 0.2.5:
+Planned for 0.2.7:
 ==================
 
-clean up esddsp.c for release with 0.2.5.
-
-some semblance of documentation upgrade
-
-
-Planned for 0.2.6:
-==================
+reorganize source files into esdlib, esd, utils subdirectories.
 
 free samples when client closes
 
-client request information on streams and samples currently in server
-
 also beng able to request info on all connected clients (numebr,
 sampling rate etc. etc.) and modify that clients volume or mute that
-client..kill it.. etc.. so in effect a window manager for sound could
-be written.. :)
+client..kill it.. etc.. so in effect an audio manager could be written
 
 oh.. volume control on samples and streams would be nice.. :)
 

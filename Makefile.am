@@ -20,6 +20,7 @@ lib_LTLIBRARIES = libesd.la @LIBESDDSP@
 
 libesd_la_SOURCES = \
 	esdlib.c	\
+	esdmgr.c	\
 	audio.c
 
 libesd_la_LDFLAGS = -version-info @ESD_VERSION_INFO@

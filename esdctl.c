@@ -33,6 +33,8 @@ void exit_usage( const char *who, int errcode, const char *why, const char *what
 	     "play name                     play a cached sample once\n"
 	     "loop name                     make a cached sample loop\n"
 	     "stop name                     stop the looping sample at end\n"
+	     "serverinfo                    get server info from server\n"
+	     "allinfo                       get player and sample info from server\n"
 	     "\n" );
 
     /* terminate with given error code */
@@ -43,6 +45,8 @@ int main(int argc, char **argv)
 {
     int esd = -1, arg = 0, option_index = 0, ok;
     char *server = NULL;
+    esd_server_info_t *server_info = NULL;
+    esd_info_t *all_info = NULL;
   
     struct option opts[] = {
 	{ "server", required_argument, NULL, 's' },
@@ -121,6 +125,26 @@ int main(int argc, char **argv)
 	else if ( !strcmp( "getid", argv[ optind ] ) ) {
 	    ok = esd_sample_getid( esd, argv[ ++optind ] );
 	    printf( "%d\n", ok );
+	}
+	else if ( !strcmp( "serverinfo", argv[ optind ] ) ) {
+	    server_info = esd_get_server_info( esd );
+
+	    if ( !server_info ) {
+		fprintf( stderr, "serverinfo failed\n" );
+	    } else {
+		esd_print_server_info( server_info );
+		esd_free_server_info( server_info );
+	    }
+	}
+	else if ( !strcmp( "allinfo", argv[ optind ] ) ) {
+	    all_info = esd_get_all_info( esd );
+
+	    if ( !all_info ) {
+		fprintf( stderr, "allinfo failed\n" );
+	    } else {
+		esd_print_all_info( all_info );
+		esd_free_all_info( all_info );
+	    }
 	}
 	else {
 	    exit_usage( argv[ 0 ], 3, "unknown command", argv[ optind ] );

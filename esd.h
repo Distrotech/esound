@@ -1,6 +1,29 @@
 #ifndef ESD_H
 #define ESD_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/* length of the audio buffer size */
+#define ESD_BUF_SIZE (4 * 1024)
+
+/* length of the authorization key, octets */
+#define ESD_KEY_LEN (16)
+
+/* default port for the EsounD server */
+#define ESD_DEFAULT_PORT (5001)
+
+/* default sample rate for the EsounD server */
+#define ESD_DEFAULT_RATE (44100)
+
+/* maximum length of a stream/sample name */
+#define ESD_NAME_MAX (128)
+
+/* a magic number to identify the relative endianness of a client */
+#define ESD_ENDIAN_KEY \
+	( ('E' << 24) + ('N' << 16) + ('D' << 8) + ('N') )
+
 /*************************************/
 /* what can we do to/with the EsounD */
 enum esd_proto { 
@@ -31,11 +54,17 @@ enum esd_proto {
     ESD_PROTO_SAMPLE_GETID, /* get the ID for an already-cached sample */
     ESD_PROTO_STREAM_FILT,  /* filter mixed buffer output as a stream */
 
+    /* esd remote management */
+    ESD_PROTO_SERVER_INFO,  /* get server information (ver, sample rate, format) */
+    ESD_PROTO_ALL_INFO,     /* get all information (server info, players, samples) */
+    ESD_PROTO_SUBSCRIBE,    /* track new and removed players and samples */
+    ESD_PROTO_UNSUBSCRIBE,  /* stop tracking updates */
+
     ESD_PROTO_MAX           /* for bounds checking */
 };
 
-/************************/
-/* ricdude's EsounD api */
+/******************/
+/* The EsounD api */
 
 /* the properties of a sound buffer are logically or'd */
 
@@ -71,13 +100,10 @@ typedef int esd_proto_t;
 /*******************************************************************/
 /* client side API for playing sounds */
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 typedef unsigned char octet;
 
-/* esdlib.c - client interface functions */
+/*******************************************************************/
+/* esdlib.c - basic esd client interface functions */
 
 /* opens channel, authenticates connection, and prefares for protos */
 /* returns EsounD socket for communication, result < 0 = error */
@@ -126,6 +152,94 @@ int esd_sample_kill( int esd, int sample );
 /* closes fd, previously obtained by esd_open */
 int esd_close( int esd );
 
+
+/*******************************************************************/
+/* esdmgr.c - functions to implement a "sound manager" for esd */
+
+/* structures to retrieve information about streams/samples from the server */
+typedef struct esd_server_info {
+
+    int version; 		/* server version encoded as an int */
+    esd_format_t format;	/* magic int with the format info */
+    int rate;			/* sample rate */
+
+} esd_server_info_t;
+
+typedef struct esd_player_info {
+
+    struct esd_player_info *next; /* point to next entry in list */
+    esd_server_info_t *server;	/* the server that contains this stream */
+    
+    int source_id;		/* either a stream fd or sample id */
+    char name[ ESD_NAME_MAX ];	/* name of stream for remote control */
+    esd_format_t format;	/* magic int with the format info */
+    int rate;			/* sample rate */
+
+} esd_player_info_t;
+
+typedef struct esd_sample_info {
+
+    struct esd_sample_info *next; /* point to next entry in list */
+    esd_server_info_t *server;	/* the server that contains this sample */
+    
+    int sample_id;		/* either a stream fd or sample id */
+    char name[ ESD_NAME_MAX ];	/* name of stream for remote control */
+    esd_format_t format;	/* magic int with the format info */
+    int rate;			/* sample rate */
+    int sample_length;		/* total buffer length */
+
+} esd_sample_info_t;
+
+typedef struct esd_info {
+
+    esd_server_info_t *server;
+    esd_player_info_t *player_list;
+    esd_sample_info_t *sample_list;
+
+} esd_info_t;
+
+/* define callbacks for esd_update_info() */
+/* what to do when a stream connects, or sample is played */
+typedef int esd_new_player_callback_t( esd_player_info_t * );
+/* what to do when a stream disconnects, or sample stops playing */
+typedef int esd_old_player_callback_t( esd_player_info_t * );
+/* what to do when a sample is cached */
+typedef int esd_new_sample_callback_t( esd_sample_info_t * );
+/* what to do when a sample is uncached */
+typedef int esd_old_sample_callback_t( esd_sample_info_t * );
+
+typedef struct esd_update_info_callbacks {
+    esd_new_player_callback_t *esd_new_player_callback;
+    esd_old_player_callback_t *esd_old_player_callback;
+    esd_new_sample_callback_t *esd_new_sample_callback;
+    esd_old_sample_callback_t *esd_old_sample_callback;
+} esd_update_info_callbacks_t;
+
+/* print server into to stdout */
+void esd_print_server_info( esd_server_info_t *server_info );
+/* print all info to stdout */
+void esd_print_all_info( esd_info_t *all_info );
+
+/* retrieve server properties (sample rate, format, version number) */
+esd_server_info_t *esd_get_server_info( int esd );
+/* release all memory allocated for the server properties structure */
+void esd_free_server_info( esd_server_info_t *server_info );
+
+/* retrieve all information from server */
+esd_info_t *esd_get_all_info( int esd );
+
+/* retrieve all information from server, and update until unsubsribed or closed */
+esd_info_t *esd_subscribe_all_info( int esd );
+
+/* call to update the info structure with new information, and call callbacks */
+esd_info_t *esd_update_info( int esd, esd_info_t *info, 
+			     esd_update_info_callbacks_t *callbacks );
+esd_info_t *esd_unsubscribe_info( int esd );
+
+/* release all memory allocated for the esd info structure */
+void esd_free_esd_info( esd_info_t *info );
+
+/*******************************************************************/
 /* audio.c - abstract the sound hardware for cross platform usage */
 extern esd_format_t esd_audio_format;
 extern int esd_audio_rate;
@@ -141,23 +255,5 @@ void esd_audio_flush();
 }
 #endif
 
-/* length of the audio buffer size */
-#define ESD_BUF_SIZE (4 * 1024)
-
-/* length of the authorization key, octets */
-#define ESD_KEY_LEN (16)
-
-/* default port for the EsounD server */
-#define ESD_DEFAULT_PORT (5001)
-
-/* default sample rate for the EsounD server */
-#define ESD_DEFAULT_RATE (44100)
-
-/* maximum length of a stream/sample name */
-#define ESD_NAME_MAX (128)
-
-/* a magic number to identify the relative endianness of a client */
-#define ESD_ENDIAN_KEY \
-	( ('E' << 24) + ('N' << 16) + ('D' << 8) + ('N') )
 
 #endif /* #ifndef ESD_H */

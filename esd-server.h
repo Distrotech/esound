@@ -191,7 +191,19 @@ int mix_players_8s( void *mixed, int length );
 /* evil macros for debugging protocol */
 #define ESDBG /* define this term for excessive debugging information */
 
-#ifdef ESDBG
+#ifdef ESDBG /* expand debug macros to yield diagnostic information */
+
+#define ESDBG_TRACE(x) \
+	do { \
+	    if ( esdbg_trace ) \
+    		x; \
+	} while( 0 );
+
+#define ESDBG_COMMS(x) \
+	do { \
+	    if ( esdbg_comms ) \
+    		x; \
+	} while( 0 );
 
 #define ESD_READ_INT(s,a,l,r,d) \
 	do { \
@@ -245,7 +257,10 @@ int mix_players_8s( void *mixed, int length );
 	    } \
         } while ( 0 );
 
-#else /* #ifdef ESDBG */
+#else /* #ifdef ESDBG */ /* expand debug macros to simply do, and not say */
+
+#define ESDBG_TRACE(x)
+#define ESDBG_COMMS(x)
 
 #define ESD_READ_INT(s,a,l,r,d) \
 	do { \
