@@ -10,22 +10,21 @@ DIE=0
 	echo
 	echo "You must have autoconf installed to compile esound."
 	echo "Download the appropriate package for your distribution,"
-	echo "or get the source tarball at ftp://ftp.gnu.org/pub/gnu/"
+	echo "or get the source tarball at http://ftp.gnu.org/pub/gnu/automake/"
 	DIE=1
 }
 
 (libtool --version) < /dev/null > /dev/null 2>&1 || {
 	echo
 	echo "You must have libtool installed to compile esound."
-	echo "Get ftp://alpha.gnu.org/gnu/libtool-1.0h.tar.gz"
-	echo "(or a newer version if it is available)"
+	echo "Get it from http://ftp.gnu.org/pub/gnu/libtool/"
 	DIE=1
 }
 
-(automake-1.4 --version) < /dev/null > /dev/null 2>&1 || {
+(automake --version) < /dev/null > /dev/null 2>&1 || {
 	echo
 	echo "You must have automake installed to compile esound."
-	echo "Get ftp://ftp.cygnus.com/pub/home/tromey/automake-1.2d.tar.gz"
+	echo "Get http://ftp.gnu.org/pub/gnu/automake/"
 	echo "(or a newer version if it is available)"
 	DIE=1
 }
@@ -36,11 +35,11 @@ fi
 
 THEDIR="`pwd`"
 cd $srcdir
-aclocal-1.4 $ACLOCAL_FLAGS || exit 1
+aclocal $ACLOCAL_FLAGS || exit 1
 libtoolize --force || exit 1
 autoheader || exit 1
 autoconf || exit 1
-automake-1.4 --gnu --add-missing || exit 1
+automake --gnu --add-missing || exit 1
 cd "$THEDIR"
 
 if test -z "$*"; then

@@ -1,3 +1,13 @@
+2004-01-14  Frederic Crozat  <fcrozat@mandrakesoft.com>
+
+	* autogen.sh:
+	Don't force automake 1.4, now that we support 1.7.
+	Fix url for various tools.
+
+	* Makefile.am:
+	Fix build with automake 1.7 (Patch from Thomas Cataldo
+	<tom@aliacom.fr>).
+
 2003-10-10  Frederic Crozat  <fcrozat@mandrakesoft.com>
 
 	* esound.pc.in: Add missing sound-libs param.
