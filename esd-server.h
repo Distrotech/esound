@@ -21,6 +21,7 @@ enum esd_client_state {
     ESD_NEEDS_ENDCHECK, 	/* need to validate this client/request */
     ESD_STREAMING_DATA,		/* data from here on is streamed data */
     ESD_CACHING_SAMPLE,		/* midway through caching a sample */
+    ESD_NEEDS_REQDATA,		/* more data needed to complere request */
     ESD_NEXT_REQUEST,		/* proceed to next request */
 
     ESD_CLIENT_STATE_MAX	/* place holder */
@@ -153,7 +154,9 @@ int mix_players_16s( void *mixed, int length );
 #define maybe_swap_32(c,x) \
 	( (c) ? (swap_endian_32( (x) )) : (x) )
 
-/* evil macros for debugging protocol, TODO: #ifdef ESDBG this block... */
+/* evil macros for debugging protocol */
+#ifdef ESDBG
+
 #define ESD_READ_INT(s,a,l,r,d) \
 	do { \
 	    int esd_ri; \
@@ -205,5 +208,29 @@ int mix_players_16s( void *mixed, int length );
 		printf( "...)\n" ); \
 	    } \
         } while ( 0 );
+
+#else /* #ifdef ESDBG */
+
+#define ESD_READ_INT(s,a,l,r,d) \
+	do { \
+    	    r = read( s, a, l ); \
+        } while ( 0 );
+
+#define ESD_READ_BIN(s,a,l,r,d) \
+	do { \
+    	    r = read( s, a, l ); \
+        } while ( 0 );
+
+#define ESD_WRITE_INT(s,a,l,r,d) \
+	do { \
+    	    r = write( s, a, l ); \
+        } while ( 0 );
+
+#define ESD_WRITE_BIN(s,a,l,r,d) \
+	do { \
+    	    r = write( s, a, l ); \
+        } while ( 0 );
+
+#endif /* #ifdef ESDBG */
 
 #endif /* #ifndef ESD_SERVER_H */

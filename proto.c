@@ -347,8 +347,10 @@ int esd_proto_sample_free( esd_client_t *client )
     int sample_id, client_id, actual;
 
     ESD_READ_INT( client->fd, &client_id, sizeof(client_id), actual, "smp free" );
-    if ( sizeof( sample_id ) != actual )
-	return 0;
+    if ( sizeof( sample_id ) != actual ) {
+	client->state = ESD_NEEDS_REQDATA;
+	return 1;
+    }
 
     sample_id = maybe_swap_32( client->swap_byte_order, client_id );
 
@@ -371,9 +373,10 @@ int esd_proto_sample_play( esd_client_t *client )
     int sample_id, client_id, actual;
     
     ESD_READ_INT( client->fd, &client_id, sizeof(client_id), actual, "smp play" );
-    if ( sizeof( client_id ) != actual )
-	return 0;
-
+    if ( sizeof( client_id ) != actual ) {
+	client->state = ESD_NEEDS_REQDATA;
+	return 1;
+    }
     sample_id = maybe_swap_32( client->swap_byte_order, client_id );
 
     if ( esdbg_trace )
@@ -396,8 +399,10 @@ int esd_proto_sample_loop( esd_client_t *client )
     int sample_id, client_id, actual;
 
     ESD_READ_INT( client->fd, &client_id, sizeof(client_id), actual, "smp loop" );
-    if ( sizeof( client_id ) != actual )
-	return 0;
+    if ( sizeof( client_id ) != actual ) {
+	client->state = ESD_NEEDS_REQDATA;
+	return 1;
+    }
 
     sample_id = maybe_swap_32( client->swap_byte_order, client_id );
 
@@ -422,8 +427,10 @@ int esd_proto_sample_stop( esd_client_t *client )
     int sample_id, client_id, actual;
 
     ESD_READ_INT( client->fd, &client_id, sizeof(client_id), actual, "smp stop" );
-    if ( sizeof( client_id ) != actual )
-	return 0;
+    if ( sizeof( client_id ) != actual ) {
+	client->state = ESD_NEEDS_REQDATA;
+	return 1;
+    }
     
     sample_id = maybe_swap_32( client->swap_byte_order, client_id );
 
@@ -551,6 +558,30 @@ int poll_client_requests()
 	else if ( client->state == ESD_CACHING_SAMPLE ) {
 	    if ( esdbg_trace ) printf( "resuming sample cache\n" );
 	    is_ok = esd_proto_sample_cache( client );
+	}
+	else if ( client->state == ESD_NEEDS_REQDATA ) {
+	    if ( esdbg_trace ) printf( "resuming request data\n" );
+
+	    switch ( client->request )
+	    {
+	    case ESD_PROTO_SAMPLE_FREE:
+		is_ok = esd_proto_sample_free( client ); break;
+ 
+	    case ESD_PROTO_SAMPLE_PLAY:
+		is_ok = esd_proto_sample_play( client ); break;
+ 
+	    case ESD_PROTO_SAMPLE_LOOP:
+		is_ok = esd_proto_sample_loop( client ); break;
+		
+	    case ESD_PROTO_SAMPLE_STOP:
+		is_ok = esd_proto_sample_stop( client ); break;
+
+	    default:
+		if ( esdbg_trace ) printf( "(%02d) invalid request: %d\n",
+					   client->fd, client->request );
+		break;
+	    }
+	    
 	}
  	else {
  

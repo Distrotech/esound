@@ -1,3 +1,11 @@
+1998-07-16  Yo Ric Dude  <ericmit@ix.netcom.com>
+
+	* esd-server.h, proto.c, samples.c:
+	everything but recording works for irix. irix->linux connectivity
+	and back works ok, except for remote recording.  keeping track
+	of client states seems to be uglier than it needs to be. not so
+	mental note to look into that. 
+
 1998-07-15  Yo Ric Dude  <ericmit@ix.netcom.com>
 
 	* esd-server.h, proto.c, samples.c, test-script:

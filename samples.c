@@ -104,12 +104,13 @@ void erase_sample( int id )
 #define min(a,b) ( ( (a)<(b) ) ? (a) : (b) )
 int read_sample( esd_sample_t *sample )
 {
-    int actual = -1, total = sample->cached_length;
+    int actual = 0, total = sample->cached_length;
 
-    while ( ( total < sample->sample_length ) && ( actual != 0 ) ) {
-	actual = read( sample->parent->fd, sample->data_buffer + total,
-		       min( ESD_BUF_SIZE, sample->sample_length-total) );
-	total += actual;
+    while ( ( total < sample->sample_length ) && ( actual >= 0 ) ) {
+	ESD_READ_BIN( sample->parent->fd, sample->data_buffer + total,
+		      min( ESD_BUF_SIZE, sample->sample_length-total),
+		      actual, "rd_samp" );
+	if ( actual > 0 ) total += actual; /* irix may return -1 if no data */
     }
 
     /* TODO: what if total != sample_length ? */
@@ -124,7 +125,7 @@ int read_sample( esd_sample_t *sample )
 esd_sample_t *new_sample( esd_client_t *client )
 {
     esd_sample_t *sample;
-    int client_id;
+    int client_id, actual;
 
     /* make sure we have the memory to save the client... */
     sample = (esd_sample_t*) malloc( sizeof(esd_sample_t) );
@@ -135,19 +136,22 @@ esd_sample_t *new_sample( esd_client_t *client )
     /* and initialize the sample */
     sample->next = NULL;
     sample->parent = NULL;
-    read( client->fd, &sample->format, sizeof(sample->format) );
+    ESD_READ_INT( client->fd, &sample->format, sizeof(sample->format),
+		  actual, "ns fmt" );
     if ( client->swap_byte_order )
 	sample->format = swap_endian_32( sample->format );
 
-    read( client->fd, &sample->rate, sizeof(sample->rate) );
+    ESD_READ_INT( client->fd, &sample->rate, sizeof(sample->rate),
+		  actual, "ns rate" );
     if ( client->swap_byte_order )
 	sample->rate = swap_endian_32( sample->rate );
 
-    read( client->fd, &sample->sample_length, sizeof(sample->sample_length) );
+    ESD_READ_INT( client->fd, &sample->sample_length, sizeof(sample->sample_length),
+		  actual, "ns len" );
     if ( client->swap_byte_order )
 	sample->sample_length = swap_endian_32( sample->sample_length );
 
-    read( client->fd, sample->name, ESD_NAME_MAX );
+    ESD_READ_BIN( client->fd, sample->name, ESD_NAME_MAX, actual, "ns name" );
     sample->name[ ESD_NAME_MAX - 1 ] = '\0';
 
     sample->sample_id = esd_next_sample_id++;
@@ -176,7 +180,7 @@ esd_sample_t *new_sample( esd_client_t *client )
 
     client_id = maybe_swap_32( client->swap_byte_order, 
 			       sample->sample_id );
-    write( client->fd, &client_id, sizeof(client_id) );
+    ESD_WRITE_INT( client->fd, &client_id, sizeof(client_id), actual, "ns ack" );
     fsync( client->fd );
 
     return sample;
