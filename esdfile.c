@@ -51,11 +51,7 @@ int esd_play_file( const char *name_prefix, const char *filename, int fallback )
     */
 
     /* open the audio file */
-#ifdef __EMX__
     in_file = afOpenFile( filename, "rb", NULL );
-#else
-    in_file = afOpenFile( filename, "r", NULL );
-#endif
     if ( !in_file )
 	return 0;
 
@@ -150,11 +146,7 @@ int esd_file_cache( int esd, const char *name_prefix, const char *filename )
     */
 
     /* open the audio file */
-#ifdef __EMX__
     in_file = afOpenFile( filename, "rb", NULL );
-#else
-    in_file = afOpenFile( filename, "r", NULL );
-#endif
     if ( !in_file )
 	return -1;
 

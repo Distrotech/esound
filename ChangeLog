@@ -1,3 +1,11 @@
+2000-11-28  Stanislav Brabec  <utx@penguin.cz>
+
+	* esd.c: unlink(ESD_UNIX_SOCKET_DIR) -> unlink(ESD_UNIX_SOCKET_DIR),
+	support for --help and help for -nobeeps.
+	* esdlib.c: Typo fixes.
+	* esdfile.c: Open files via "rb" on all systems. It is standard C,
+	does no harm on systems where it isn't needed (Unix).
+
 2000-10-30  Heikki Hannikainen <hessu@hes.iki.fi>
 
 	* clients.c, esd-server.h, esd.c, players.c, proto.ci: Added

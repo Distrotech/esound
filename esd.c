@@ -15,7 +15,7 @@
 
 /*******************************************************************/
 /* esd.c - prototypes */
-void set_audio_buffer( void *buf, esd_format_t format, int magl, int magr, 
+void set_audio_buffer( void *buf, esd_format_t format, int magl, int magr,
 		int freq, int speed, int length, long offset );
 void clean_exit( int signum );
 void reset_signal( int signum );
@@ -53,7 +53,7 @@ int esd_spawnpid = 0;           /* The PID of the process that spawned us (for u
 /*******************************************************************/
 /* just to create the startup tones for the fun of it */
 void set_audio_buffer( void *buf, esd_format_t format,
-		       int magl, int magr, 
+		       int magl, int magr,
 		       int freq, int speed, int length, long offset )
 {
     int i;
@@ -62,7 +62,7 @@ void set_audio_buffer( void *buf, esd_format_t format,
 
     unsigned char *uc_buf = (unsigned char *)buf;
     signed short *ss_buf = (signed short *)buf;
-    
+
     /* printf( "fmt=%d, ml=%d, mr=%d, freq=%d, speed=%d, len=%ld\n",
        format, magl, magr, freq, speed, length ); */
 
@@ -83,8 +83,8 @@ void set_audio_buffer( void *buf, esd_format_t format,
 	}
 	break;
     default:
-	fprintf( stderr, 
-		 "unsupported format for set_audio_buffer: 0x%08x\n", 
+	fprintf( stderr,
+		 "unsupported format for set_audio_buffer: 0x%08x\n",
 		 format );
 	exit( 1 );
     }
@@ -100,7 +100,7 @@ void reset_daemon( int signum )
 {
     int tumbler;
 
-    ESDBG_TRACE( 
+    ESDBG_TRACE(
 	printf( "(ca) resetting sound daemon on signal %d\n",
 		signum ); );
 
@@ -138,9 +138,9 @@ void reset_daemon( int signum )
 void clean_exit(int signum) {
     /* just clean up as best we can and terminate from here */
     esd_client_t * client = esd_clients_list;
-    
+
 /*    fprintf( stderr, "received signal %d: terminating...\n", signum );*/
-    
+
     /* free the sound device */
     esd_audio_close();
 
@@ -156,9 +156,9 @@ void clean_exit(int signum) {
    if (!esd_use_tcpip)
     {
       unlink(ESD_UNIX_SOCKET_NAME);
-      unlink(ESD_UNIX_SOCKET_DIR);
+      rmdir(ESD_UNIX_SOCKET_DIR);
     }
-  
+
 
     /* trust the os to clean up the memory for the samples and such */
     exit( 0 );
@@ -177,7 +177,7 @@ esd_connect_unix(void)
   struct sockaddr_un socket_unix;
   int socket_out = -1;
   int curstate = 1;
-  
+
   /* create the socket, and set for non-blocking */
   socket_out = socket( AF_UNIX, SOCK_STREAM, 0 );
   if ( socket_out < 0 )
@@ -187,13 +187,13 @@ esd_connect_unix(void)
     return -1;
   if ( setsockopt( socket_out, SOL_SOCKET, SO_REUSEADDR,
 		  &curstate, sizeof(curstate) ) < 0 )
-    return -1;  
+    return -1;
   /* set the connect information */
   socket_unix.sun_family = AF_UNIX;
-  strncpy(socket_unix.sun_path, ESD_UNIX_SOCKET_NAME, sizeof(socket_unix.sun_path));  
+  strncpy(socket_unix.sun_path, ESD_UNIX_SOCKET_NAME, sizeof(socket_unix.sun_path));
   if ( connect( socket_out,
 	       (struct sockaddr *) &socket_unix, SUN_LEN(&socket_unix) ) < 0 )
-    return -1;  
+    return -1;
   return socket_out;
 }
 
@@ -208,8 +208,8 @@ int open_listen_socket( int port )
     struct sockaddr_un socket_unix;
     int socket_listen = -1;
     struct linger lin;
-      
-   
+
+
     /* create the socket, and set for non-blocking */
     if (esd_use_tcpip)
       socket_listen=socket(AF_INET, SOCK_STREAM, 0);
@@ -231,7 +231,7 @@ int open_listen_socket( int port )
 	  if (errno == EACCES)
 	    {
 	      /* not allowed access */
-	      fprintf(stderr, 
+	      fprintf(stderr,
 		      "esd: Esound sound daemon unable to create unix domain socket:\n"
 		      "%s\n"
 		      "This socket already exists and is not accessible by esd.\n"
@@ -244,7 +244,7 @@ int open_listen_socket( int port )
 	  if (esd_connect_unix() >= 0)
 	    {
 	      /* not allowed access */
-	      fprintf(stderr, 
+	      fprintf(stderr,
 		      "esd: Esound sound daemon already running or stale UNIX socket\n"
 		      "%s\n"
 		      "This socket already exists indicating esd is already running.\n"
@@ -255,7 +255,7 @@ int open_listen_socket( int port )
       unlink(ESD_UNIX_SOCKET_NAME);
       socket_listen=socket(AF_UNIX, SOCK_STREAM, 0);
     }
-    if (socket_listen < 0) 
+    if (socket_listen < 0)
     {
 	fprintf(stderr,"Unable to create socket\n");
 	return( -1 );
@@ -270,7 +270,7 @@ int open_listen_socket( int port )
     lin.l_onoff=1;	/* block a closing socket for 1 second */
     lin.l_linger=100;	/* if data is waiting to be sent */
     if ( setsockopt( socket_listen, SOL_SOCKET, SO_LINGER,
-		     &lin, sizeof(struct linger) ) < 0 ) 
+		     &lin, sizeof(struct linger) ) < 0 )
     {
 	fprintf(stderr,"Unable to set socket linger value to %d\n",
 		lin.l_linger);
@@ -314,7 +314,7 @@ int open_listen_socket( int port )
 	  if (!esd_use_tcpip)
 	    {
 	      unlink(ESD_UNIX_SOCKET_NAME);
-	      unlink(ESD_UNIX_SOCKET_DIR);
+	      rmdir(ESD_UNIX_SOCKET_DIR);
 	    }
 	  exit(1);
 	}
@@ -326,7 +326,7 @@ int open_listen_socket( int port )
       if (!esd_use_tcpip)
 	{
 	  unlink(ESD_UNIX_SOCKET_NAME);
-	  unlink(ESD_UNIX_SOCKET_DIR);
+	  rmdir(ESD_UNIX_SOCKET_DIR);
 	}
       exit(1);
     }
@@ -409,10 +409,10 @@ int main ( int argc, char *argv[] )
 		esd_audio_device = argv[ arg ];
 		if ( !esd_audio_device ) {
 		    esd_port = ESD_DEFAULT_PORT;
-		    fprintf( stderr, "- could not read device: %s\n", 
+		    fprintf( stderr, "- could not read device: %s\n",
 			     argv[ arg ] );
 		}
-		fprintf( stderr, "- using device %s\n", 
+		fprintf( stderr, "- using device %s\n",
 			 esd_audio_device );
 	    }
 	} else if ( !strcmp( argv[ arg ], "-port" ) ) {
@@ -420,24 +420,24 @@ int main ( int argc, char *argv[] )
 		esd_port = atoi( argv[ arg ] );
 		if ( !esd_port ) {
 		    esd_port = ESD_DEFAULT_PORT;
-		    fprintf( stderr, "- could not read port: %s\n", 
+		    fprintf( stderr, "- could not read port: %s\n",
 			     argv[ arg ] );
 		}
-		fprintf( stderr, "- accepting connections on port %d\n", 
+		fprintf( stderr, "- accepting connections on port %d\n",
 			 esd_port );
 	    }
 	} else if ( !strcmp( argv[ arg ], "-b" ) ) {
 	    fprintf( stderr, "- server format: 8 bit samples\n" );
-	    default_format &= ~ESD_MASK_BITS; default_format |= ESD_BITS8; 
+	    default_format &= ~ESD_MASK_BITS; default_format |= ESD_BITS8;
 	} else if ( !strcmp( argv[ arg ], "-r" ) ) {
 	    if ( ++arg != argc ) {
 		default_rate = atoi( argv[ arg ] );
 		if ( !default_rate ) {
 		    default_rate = ESD_DEFAULT_RATE;
-		    fprintf( stderr, "- could not read rate: %s\n", 
+		    fprintf( stderr, "- could not read rate: %s\n",
 			     argv[ arg ] );
 		}
-		fprintf( stderr, "- server format: sample rate = %d Hz\n", 
+		fprintf( stderr, "- server format: sample rate = %d Hz\n",
 			 default_rate );
 	    }
 	} else if ( !strcmp( argv[ arg ], "-as" ) ) {
@@ -445,10 +445,10 @@ int main ( int argc, char *argv[] )
 		esd_autostandby_secs = atoi( argv[ arg ] );
 		if ( !esd_autostandby_secs ) {
 		    esd_autostandby_secs = ESD_DEFAULT_AUTOSTANDBY_SECS;
-		    fprintf( stderr, "- could not read autostandby timeout: %s\n", 
+		    fprintf( stderr, "- could not read autostandby timeout: %s\n",
 			     argv[ arg ] );
 		}
-/*		fprintf( stderr, "- autostandby timeout: %d seconds\n", 
+/*		fprintf( stderr, "- autostandby timeout: %d seconds\n",
 			 esd_autostandby_secs );*/
 	    }
 #ifdef ESDBG
@@ -479,7 +479,7 @@ int main ( int argc, char *argv[] )
 	} else if ( !strcmp( argv[ arg ], "-v" ) || !strcmp( argv[ arg ], "--version" ) ) {
 		fprintf(stderr, "Esound version " VERSION "\n");
 		exit (0);
-	} else if ( !strcmp( argv[ arg ], "-h" ) ) {
+	} else if ( !strcmp( argv[ arg ], "-h" || !strcmp( argv[ arg ], "--help" ) ) {
 	    fprintf( stderr, "Usage: esd [options]\n\n" );
 	    fprintf( stderr, "  -d DEVICE   force esd to use sound device DEVICE\n" );
 	    fprintf( stderr, "  -b          run server in 8 bit sound mode\n" );
@@ -489,6 +489,7 @@ int main ( int argc, char *argv[] )
 	    fprintf( stderr, "  -tcp        use tcp/ip sockets instead of unix domain\n" );
 	    fprintf( stderr, "  -public     make tcp/ip access public (other than localhost)\n" );
 	    fprintf( stderr, "  -terminate  terminate esd daemone after last client exits\n" );
+	    fprintf( stderr, "  -nobeeps    disable startup beeps\n" );
 #ifdef ESDBG
 	    fprintf( stderr, "  -vt         enable trace diagnostic info\n" );
 	    fprintf( stderr, "  -vc         enable comms diagnostic info\n" );
@@ -509,11 +510,11 @@ int main ( int argc, char *argv[] )
     if (!esd_use_tcpip)
       {
 	unlink(ESD_UNIX_SOCKET_NAME);
-	unlink(ESD_UNIX_SOCKET_DIR);
+	rmdir(ESD_UNIX_SOCKET_DIR);
       }
-    exit( 1 );	    
+    exit( 1 );	
   }
-  
+
 #define ESD_AUDIO_STUFF \
     esd_sample_size = ( (esd_audio_format & ESD_MASK_BITS) == ESD_BITS16 ) \
 	? sizeof(signed short) : sizeof(unsigned char); \
@@ -605,7 +606,7 @@ int main ( int argc, char *argv[] )
 		    if (!esd_use_tcpip)
 		      {
 			unlink(ESD_UNIX_SOCKET_NAME);
-			unlink(ESD_UNIX_SOCKET_DIR);
+			rmdir(ESD_UNIX_SOCKET_DIR);
 		      }
 		    if(esd_spawnpid)
 		      kill(esd_spawnpid, SIGALRM); /* Startup failed */
@@ -626,7 +627,7 @@ int main ( int argc, char *argv[] )
     output_buffer = (void *) malloc( esd_buf_size_octets );
     memset( output_buffer, 0, esd_buf_size_octets );
 
-    
+
     /* install signal handlers for program integrity */
     signal( SIGINT, clean_exit );	/* for ^C */
     signal( SIGTERM, clean_exit );	/* for default kill */
@@ -636,15 +637,15 @@ int main ( int argc, char *argv[] )
     /* send some sine waves just to check the sound connection */
     i = 0;
     if ( esd_beeps ) {
-	magl = magr = ( (esd_audio_format & ESD_MASK_BITS) == ESD_BITS16) 
+	magl = magr = ( (esd_audio_format & ESD_MASK_BITS) == ESD_BITS16)
 	    ? 30000 : 100;
 
 	for ( freq = 55 ; freq < esd_audio_rate/2 ; freq *= 2, i++ ) {
 	    /* repeat the freq for a few buffer lengths */
 	    for ( j = 0 ; j < esd_audio_rate / 4 / esd_buf_size_samples ; j++ ) {
-		set_audio_buffer( output_buffer, esd_audio_format, 
+		set_audio_buffer( output_buffer, esd_audio_format,
 				  ( (i%2) ? magl : 0 ),  ( (i%2) ? 0 : magr ),
-				  freq, esd_audio_rate, esd_buf_size_samples, 
+				  freq, esd_audio_rate, esd_buf_size_samples,
 				  j * esd_buf_size_samples );
 		esd_audio_write( output_buffer, esd_buf_size_octets );
 	    }
@@ -667,7 +668,7 @@ int main ( int argc, char *argv[] )
 	/* accept new connections */
 	get_new_clients( listen_socket );
 
-      
+
 	if ((esd_clients_list == NULL) && (!first) && (esd_terminate)) {
 /*	  fprintf(stderr, "No clients!\n");*/
 	  clean_exit(0);
@@ -691,12 +692,12 @@ int main ( int argc, char *argv[] )
 	/* we handle this even when length == 0 because a filter could have
 	 * closed, and we don't want to eat the processor if one did.. */
 	if ( esd_filter_list && !esd_on_standby ) {
-	    length = filter_write( output_buffer, length, 
+	    length = filter_write( output_buffer, length,
 				   esd_audio_format, esd_audio_rate );
 	}
 	
 	if ( length > 0 /* || esd_monitor */ ) {
-	    /* do_sleep = 0; */ 
+	    /* do_sleep = 0; */
 	    if ( !esd_on_standby ) {
 		/* standby check goes in here, so esd will eat sound data */
 		/* TODO: eat a round of data with a better algorithm */
@@ -728,10 +729,10 @@ int main ( int argc, char *argv[] )
 	}
 
 	/* if someone's recording the sound stream, send them data */
-	if ( esd_recorder && !esd_on_standby ) { 
+	if ( esd_recorder_list && !esd_on_standby ) {
 	    length = esd_audio_read( output_buffer, esd_buf_size_octets );
 	    if ( length ) {
-		length = recorder_write( output_buffer, length ); 
+		length = recorder_write( output_buffer, length );
 		esd_last_activity = time( NULL );
 	    }
 	}

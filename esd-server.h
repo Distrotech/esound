@@ -154,7 +154,7 @@ int poll_client_requests(void);
 
 /* players.c - manage the players, recorder, and monitor */
 extern esd_player_t *esd_players_list;
-extern esd_player_t *esd_recorder;
+extern esd_player_t *esd_recorder_list;
 extern esd_player_t *esd_monitor_list;
 
 void dump_players(void);
@@ -162,6 +162,8 @@ void add_player( esd_player_t *player );
 void erase_player( esd_player_t *player );
 void free_player( esd_player_t *player );
 void erase_monitor( esd_player_t *monitor );
+void add_recorder( esd_player_t *recorder );
+void erase_recorder( esd_player_t *recorder );
 
 esd_player_t *new_stream_player( esd_client_t *client );
 esd_player_t *new_sample_player( int id, int loop );
