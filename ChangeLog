@@ -1,8 +1,9 @@
-2000-10-24  Heikki Hannikainen <hessu@hes.iki.fi>
+2000-10-30  Heikki Hannikainen <hessu@hes.iki.fi>
 
-	* clients.c, esd-server.h, esd.c, players.c, proto.c: Added
+	* clients.c, esd-server.h, esd.c, players.c, proto.ci: Added
 	support for multiple recording clients. Pretty straightforward
 	cloning of player clients handling code.
+	* 0.2.21
 
 2000-09-13  Timur Bakeyev <mc@bat.ru>
 

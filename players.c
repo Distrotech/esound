@@ -461,6 +461,7 @@ void monitor_write( void *output_buffer, int length ) {
 int recorder_write( void *buffer, int length ) {
 
     esd_player_t *recorder, *remove = NULL;
+    int wrote_len;
     
     recorder = esd_recorder_list;
 
@@ -468,11 +469,11 @@ int recorder_write( void *buffer, int length ) {
 	/* write it out */
 	ESDBG_TRACE( printf( "(%02d) writing recorder data\n", 
 			recorder->source_id ); );
-	length = write_player(recorder, buffer,  length, 
+	wrote_len = write_player(recorder, buffer,  length, 
 			esd_audio_rate, esd_audio_format);
 	
 	/* see how it went */
-	if ( length < 0 ) {
+	if ( wrote_len < 0 ) {
 		/* couldn't send anything, close it down */
 		ESDBG_TRACE( printf( "(%02d) closing recorder\n", 
 			recorder->source_id ); );
@@ -496,7 +497,7 @@ int recorder_write( void *buffer, int length ) {
 	esd_audio_open();
     }
     
-    return length;
+    return wrote_len;
 }
 
 /*******************************************************************/
