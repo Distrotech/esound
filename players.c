@@ -206,7 +206,7 @@ int read_player( esd_player_t *player )
 	break;
 
     default:
-	printf( "read_player: format %08x not supported\n", 
+	printf( "read_player: format 0x%08x not supported\n", 
 		player->format );
 	return -1;
     }
@@ -293,7 +293,7 @@ void recorder_write() {
 
 /*******************************************************************/
 /* allocate and initialize a player from client stream */
-esd_player_t *new_stream_player( int client_fd )
+esd_player_t *new_stream_player( esd_client_t *client )
 {
     esd_player_t *player;
 
@@ -306,11 +306,17 @@ esd_player_t *new_stream_player( int client_fd )
     /* and initialize the player */
     player->next = NULL;
     player->parent = NULL;
-    read( client_fd, &player->format, sizeof(player->format) );
+    read( client->fd, &player->format, sizeof(player->format) );
+    if ( client->swap_byte_order )
+	player->format = switch_endian_32( player->format );
+
     player->format &= ~ESD_MASK_MODE; /* force to ESD_STREAM */
-    read( client_fd, &player->rate, sizeof(player->rate) );
-    player->source_id = client_fd;
-    read( client_fd, player->name, ESD_NAME_MAX );
+    read( client->fd, &player->rate, sizeof(player->rate) );
+    if ( client->swap_byte_order )
+	player->rate = switch_endian_32( player->rate );
+
+    player->source_id = client->fd;
+    read( client->fd, player->name, ESD_NAME_MAX );
     player->name[ ESD_NAME_MAX - 1 ] = '\0';
 
     printf( "stream %s: 0x%08x at %d Hz\n", player->name, 

@@ -37,11 +37,12 @@ void clear_auth( int signum )
 
 /*******************************************************************/
 /* checks for authorization to use the sound daemon */
-int validate_source( int fd, struct sockaddr_in source, int owner_only )
+int validate_source( esd_client_t *client, struct sockaddr_in source, int owner_only )
 {
     char submitted_key[ESD_KEY_LEN];
+    int endian;
 
-    if ( ESD_KEY_LEN != read( fd, submitted_key, ESD_KEY_LEN ) ) {
+    if ( ESD_KEY_LEN != read( client->fd, submitted_key, ESD_KEY_LEN ) ) {
 	/* not even ESD_KEY_LEN bytes available? shut it down */
 	return 0;
     }
@@ -52,19 +53,19 @@ int validate_source( int fd, struct sockaddr_in source, int owner_only )
 	esd_is_locked = 1;
 	memcpy( esd_owner_key, submitted_key, ESD_KEY_LEN );
 	esd_is_owned = 1;
-	return 1;
+	goto check_endian;
     }
 
     if( !esd_is_locked && !owner_only ) {
 	/* anyone can connect to it */
 	/* printf( "esd auth: esd not locked, accepted.\n" ); */
-	return 1;
+	goto check_endian;
     }
 
     if( !memcmp( esd_owner_key, submitted_key, ESD_KEY_LEN ) ) {
 	/* the client key matches the owner, trivial acceptance */
 	/* printf( "esd auth: source authorized to use esd\n" ); */
-	return 1;
+	goto check_endian;
     }
 
     /* TODO: maybe check based on source ip? */
@@ -72,6 +73,27 @@ int validate_source( int fd, struct sockaddr_in source, int owner_only )
     /* the client is not authorized to connect to the server */
     printf( "esd auth: NOT authorized to use esd, closing conn.\n" );
     return 0;
+
+ check_endian:
+    if ( sizeof(endian) != read( client->fd, &endian, sizeof(endian) ) ) {
+	/* not enough bytes available? shut it down */
+	return 0;
+    }
+
+    if ( endian == ESD_ENDIAN_KEY ) {
+	/* printf( "same endian order.\n" ); */
+	client->swap_byte_order = 0;
+    } else if ( endian == ESD_SWAP_ENDIAN_KEY ) {
+	/* printf( "different endian order!\n" ); */
+	client->swap_byte_order = 1;
+    } else {
+	printf( "unknown endian key: 0x%08x (same = 0x%08x, diff = 0x%08x)\n",
+		endian, ESD_ENDIAN_KEY, ESD_SWAP_ENDIAN_KEY );
+	return 0;
+    }
+
+    /* now we're done */
+    return 1;
 }
 
 /*******************************************************************/
@@ -165,7 +187,7 @@ int esd_proto_stream_play( esd_client_t *client )
 {
     /* spawn a new player to handle this stream */
     esd_player_t *player = NULL;
-    player = new_stream_player( client->fd );
+    player = new_stream_player( client );
     
     /* we got one, right? */
     if ( !player ) {
@@ -190,7 +212,7 @@ int esd_proto_stream_recorder( esd_client_t *client )
     }
 
     /* sign up the new recorder client */
-    esd_recorder = new_stream_player( client->fd );
+    esd_recorder = new_stream_player( client );
     if ( esd_recorder != NULL ) {
 
 	/* let the device know we want to record */
@@ -221,7 +243,7 @@ int esd_proto_stream_monitor( esd_client_t *client )
     }
 
     /* sign up the new monitor client */
-    esd_monitor = new_stream_player( client->fd );
+    esd_monitor = new_stream_player( client );
     if ( esd_monitor != NULL ) {
 	/* flesh out the monitor */
 	esd_monitor->parent = client;
@@ -243,7 +265,7 @@ int esd_proto_sample_cache( esd_client_t *client )
     int length;
     printf( "proto: caching sample (%d)\n", client->fd );
 
-    sample = new_sample( client->fd );
+    sample = new_sample( client );
     /* add to the list of sample */
     if ( sample != NULL ) {
 	sample->parent = client;
@@ -273,6 +295,9 @@ int esd_proto_sample_free( esd_client_t *client )
 	 != sizeof( sample_id ) )
 	return 0;
 
+    if ( client->swap_byte_order )
+	sample_id = switch_endian_32( sample_id );
+
     printf( "proto: erasing sample (%d)\n", sample_id );
     erase_sample( sample_id );
 
@@ -293,7 +318,10 @@ int esd_proto_sample_play( esd_client_t *client )
     if ( read( client->fd, &sample_id, sizeof(sample_id) ) 
 	 != sizeof( sample_id ) )
 	return 0;
-    
+
+    if ( client->swap_byte_order )
+	sample_id = switch_endian_32( sample_id );
+
     printf( "playing sample <%d>\n", sample_id );
     if ( !play_sample( sample_id, 0 ) )
 	sample_id = 0;
@@ -315,7 +343,10 @@ int esd_proto_sample_loop( esd_client_t *client )
     if ( read( client->fd, &sample_id, sizeof(sample_id) ) 
 	 != sizeof( sample_id ) )
 	return 0;
-    
+
+    if ( client->swap_byte_order )
+	sample_id = switch_endian_32( sample_id );
+
     printf( "looping sample <%d>\n", sample_id );
     if ( !play_sample( sample_id, 1 ) )
 	sample_id = 0;
@@ -338,6 +369,9 @@ int esd_proto_sample_stop( esd_client_t *client )
 	 != sizeof( sample_id ) )
 	return 0;
     
+    if ( client->swap_byte_order )
+	sample_id = switch_endian_32( sample_id );
+
     printf( "stopping sample <%d>\n", sample_id );
     if ( !stop_sample( sample_id ) )
 	sample_id = 0;
@@ -377,7 +411,7 @@ static int do_validated_action ( esd_client_t *client )
 	break;
 
     default:
-        printf( "unknown protocol request:  %d (check esd.h)\n",
+        printf( "unknown protocol request:  0x%08x (check esd.h)\n",
 	        client->request );
         is_ok = 0;
         break;
@@ -427,7 +461,7 @@ int poll_client_requests()
 
  	if ( client->state == ESD_NEEDS_VALIDATION ) {
  	    /* validate client */
- 	    is_ok = validate_source( client->fd, client->source, 0 );
+ 	    is_ok = validate_source( client, client->source, 0 );
  
  	    if ( is_ok ) {
  		is_ok = do_validated_action( client );
@@ -445,7 +479,9 @@ int poll_client_requests()
  	    /* make sure there's a request as EOF may return as readable */
  	    length = read( client->fd, &client->request, 
 			   sizeof(client->request) );
- 
+	    if ( client->swap_byte_order )
+		client->request = switch_endian_32( client->request );
+
  	    if ( length <= 0 ) {
  		/* no more data available from that client, close it */
  		printf( "no more protocol requests for client (%d)\n", 
@@ -500,7 +536,7 @@ int poll_client_requests()
  		    break;
  
  		default:
- 		    printf( "unknown protocol request:  %d (check esd.h)\n",
+ 		    printf( "unknown protocol request:  0x%08x (check esd.h)\n",
  			    client->request );
  		    is_ok = 0;
  		    break;

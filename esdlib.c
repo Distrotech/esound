@@ -12,6 +12,7 @@
 int esd_send_auth( int sock )
 {
     int auth_fd = -1, i = 0;
+    int endian = ESD_ENDIAN_KEY;
     char *auth_filename = 0, auth_key[ESD_KEY_LEN];
     char *home = NULL;
     char tumbler = '\0';
@@ -20,13 +21,13 @@ int esd_send_auth( int sock )
     /* assemble the authorization filename */
     home = getenv( "HOME" );
     if ( !home ) {
-	printf( "HOME environment variable not set?\n" );
+	fprintf( stderr, "HOME environment variable not set?\n" );
 	return -1;
     }
 
     namelen = strlen(home) + sizeof("/.esd_auth");
     if ((auth_filename = malloc(namelen + 1)) == 0) {
-	printf( "Memory exhausted\n" );
+	fprintf( stderr, "Memory exhausted\n" );
 	return -1;
     }
 
@@ -66,7 +67,13 @@ int esd_send_auth( int sock )
 	/* send key failed */
 	goto exit_fd;
 
+    /* send the key to the server */
+    if ( sizeof(endian) != write( sock, &endian, sizeof(endian) ) )
+	/* send key failed */
+	goto exit_fd;
+
     /* we've run the gauntlet, everything's ok, proceed as usual */
+    fsync( sock );
     retval = 1;
 
  exit_fd:
@@ -169,7 +176,8 @@ int esd_open_sound( char *host )
 
         /* Resolving the host name */
         if ( ( he = gethostbyname( host ) ) == NULL ) {
-	    printf("Can\'t resolve host name \"%s\"!\n", host);
+	    fprintf( stderr, "Can\'t resolve host name \"%s\"!\n", 
+		     host);
 	    return(-1);
         }
 	/* TODO: is bcopy portable? maybe memcpy is more appropriate */
@@ -181,9 +189,10 @@ int esd_open_sound( char *host )
 	    port = atoi( espeaker + host_div + 1 );
 	if ( !port ) 
 	    port = ESD_DEFAULT_PORT;
-	printf( "(remote) host is %s : %d\n", host, port );
+	/* printf( "(remote) host is %s : %d\n", host, port ); */
     } else if( !inet_aton( default_host, &socket_addr.sin_addr ) ) {
-	printf( "couldn't convert %s to inet address\n", default_host );
+	fprintf( stderr, "couldn't convert %s to inet address\n", 
+		 default_host );
 	return -1;
     }
 
@@ -396,7 +405,8 @@ int esd_sample_cache( int esd, esd_format_t format, int rate, long size, char *n
 	strncpy( name_buf, name, ESD_NAME_MAX );
     else
 	name_buf[ 0 ] = '\0';
-    printf( "caching sample: %s (%d) - %ld bytes\n", name_buf, esd, size );
+    /* printf( "caching sample: %s (%d) - %ld bytes\n", 
+	    name_buf, esd, size ); */
 
     /* send the necessary information */
     if ( write( esd, &proto, sizeof(proto) ) != sizeof(proto) )
@@ -429,7 +439,7 @@ int esd_sample_free( int esd, int sample )
     int id;
     int proto = ESD_PROTO_SAMPLE_FREE;
 
-    printf( "freeing sample (%d) - <%d>\n", esd, sample );
+    /* printf( "freeing sample (%d) - <%d>\n", esd, sample ); */
 
     /* send the necessary information */
     if ( write( esd, &proto, sizeof(proto) ) != sizeof(proto) )
@@ -453,7 +463,7 @@ int esd_sample_play( int esd, int sample )
     int is_ok;
     int proto = ESD_PROTO_SAMPLE_PLAY;
 
-    printf( "playing sample (%d) - <%d>\n", esd, sample );
+    /* printf( "playing sample (%d) - <%d>\n", esd, sample ); */
 
     /* send the necessary information */
     if ( write( esd, &proto, sizeof(proto) ) != sizeof(proto) )
@@ -478,7 +488,7 @@ int esd_sample_loop( int esd, int sample )
     int is_ok;
     int proto = ESD_PROTO_SAMPLE_LOOP;
 
-    printf( "looping sample (%d) - <%d>\n", esd, sample );
+    /* printf( "looping sample (%d) - <%d>\n", esd, sample ); */
 
     /* send the necessary information */
     if ( write( esd, &proto, sizeof(proto) ) != sizeof(proto) )
@@ -502,7 +512,7 @@ int esd_sample_stop( int esd, int sample )
     int is_ok;
     int proto = ESD_PROTO_SAMPLE_STOP;
 
-    printf( "stopping sample (%d) - <%d>\n", esd, sample );
+    /* printf( "stopping sample (%d) - <%d>\n", esd, sample ); */
 
     /* send the necessary information */
     if ( write( esd, &proto, sizeof(proto) ) != sizeof(proto) )

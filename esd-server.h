@@ -109,7 +109,7 @@ extern esd_player_t *esd_monitor;
 void dump_players();
 void add_player( esd_player_t *player );
 void erase_player( esd_player_t *player );
-esd_player_t *new_stream_player( int client_fd );
+esd_player_t *new_stream_player( esd_client_t *client );
 esd_player_t *new_sample_player( int id, int loop );
 
 int read_player( esd_player_t *player );
@@ -122,7 +122,7 @@ extern esd_sample_t *esd_samples_list;
 void dump_samples();
 void add_sample( esd_sample_t *sample );
 void erase_sample( int id );
-esd_sample_t *new_sample( int client_fd );
+esd_sample_t *new_sample( esd_client_t *client );
 int read_sample( esd_sample_t *sample );
 int play_sample( int sample_id, int loop );
 int stop_sample( int sample_id );
@@ -136,6 +136,14 @@ int mix_players_16s( void *mixed, int length );
 /* evil evil macros */
 
 /* switch endian order for cross platform playing */
-#define switch_endian_16(x) ( (x)>>8 & ( (x)&0xFF<<8 ) )
+#define switch_endian_16(x) ( ( (x) >> 8 ) | ( ((x)&0xFF) << 8 ) )
+#define switch_endian_32(x) \
+	( ( (x) >> 24 ) | ( ((x)&0xFF0000) >> 8 ) | \
+	  ( ((x)&0xFF00) << 8 ) | ( ((x)&0xFF) << 24 ) )
+
+/* the endian key is transferred in binary, if it's read into int, */
+/* and matches ESD_ENDIAN_KEY (ENDN), then the endianness of the */
+/* server and the client match; if it's SWAP_ENDIAN_KEY, swap data */
+#define ESD_SWAP_ENDIAN_KEY switch_endian_32(ESD_ENDIAN_KEY)
 
 #endif /* #ifndef ESD_SERVER_H */

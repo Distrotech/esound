@@ -1,5 +1,12 @@
 1998-07-04  Yo Ric Dude  <ericmit@ix.netcom.com>
 
+	* esd-server.h, esd.h, esdlib.c, players.c, proto.c, samples.c,
+	woo! the endian swapping detection is in place, and works, at
+	least for byte streams.  still need translation functions in
+	the mix logic, to byte swap data buffers before addition.
+
+1998-07-04  Yo Ric Dude  <ericmit@ix.netcom.com>
+
 	* clients.c, esd-server.h, proto.c: following the lead of 
 	the need_validation flag, it's possible that the same problem
 	could occur while caching a sample, changed need_validation to

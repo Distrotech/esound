@@ -114,7 +114,7 @@ int read_sample( esd_sample_t *sample )
 
 /*******************************************************************/
 /* allocate and initialize a sample from client stream */
-esd_sample_t *new_sample( int client_fd )
+esd_sample_t *new_sample( esd_client_t *client )
 {
     esd_sample_t *sample;
 
@@ -127,10 +127,19 @@ esd_sample_t *new_sample( int client_fd )
     /* and initialize the sample */
     sample->next = NULL;
     sample->parent = NULL;
-    read( client_fd, &sample->format, sizeof(sample->format) );
-    read( client_fd, &sample->rate, sizeof(sample->rate) );
-    read( client_fd, &sample->sample_length, sizeof(sample->sample_length) );
-    read( client_fd, sample->name, ESD_NAME_MAX );
+    read( client->fd, &sample->format, sizeof(sample->format) );
+    if ( client->swap_byte_order )
+	sample->format = switch_endian_32( sample->format );
+
+    read( client->fd, &sample->rate, sizeof(sample->rate) );
+    if ( client->swap_byte_order )
+	sample->rate = switch_endian_32( sample->rate );
+
+    read( client->fd, &sample->sample_length, sizeof(sample->sample_length) );
+    if ( client->swap_byte_order )
+	sample->sample_length = switch_endian_32( sample->sample_length );
+
+    read( client->fd, sample->name, ESD_NAME_MAX );
     sample->name[ ESD_NAME_MAX - 1 ] = '\0';
 
     sample->sample_id = esd_next_sample_id++;
@@ -153,7 +162,7 @@ esd_sample_t *new_sample( int client_fd )
 
     printf( "sample: <%d> [0x%p] - %d bytes\n", 
 	    sample->sample_id, sample, sample->sample_length );
-    write( client_fd, &sample->sample_id, sizeof(sample->sample_id) );
+    write( client->fd, &sample->sample_id, sizeof(sample->sample_id) );
 
     return sample;
 }

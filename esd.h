@@ -98,7 +98,7 @@ typedef unsigned char octet;
 /* opens channel, authenticates connection, and prefares for protos */
 /* returns EsounD socket for communication, result < 0 = error */
 /* server = listen socket (localhost:5001, 192.168.168.0:9999 */
-/* rate, format = (bits | endian | channels | stream | func) */
+/* rate, format = (bits | channels | stream | func) */
 int esd_open_sound( char *host );
 
 /* lock/unlock will disable/enable foreign clients from connecting */
@@ -162,5 +162,9 @@ void esd_audio_flush();
 
 /* maximum length of a stream/sample name */
 #define ESD_NAME_MAX (128)
+
+/* a magic number to identify the relative endianness of a client */
+#define ESD_ENDIAN_KEY \
+	( ('E' << 24) + ('N' << 16) + ('D' << 8) + ('N') )
 
 #endif /* #ifndef ESD_H */
