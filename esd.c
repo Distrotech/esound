@@ -728,7 +728,7 @@ int main ( int argc, char *argv[] )
 	}
 
 	/* if someone's recording the sound stream, send them data */
-	if ( esd_recorder && !esd_on_standby ) { 
+	if ( esd_recorder_list && !esd_on_standby ) { 
 	    length = esd_audio_read( output_buffer, esd_buf_size_octets );
 	    if ( length ) {
 		length = recorder_write( output_buffer, length ); 

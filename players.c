@@ -5,7 +5,7 @@
 /*******************************************************************/
 /* globals */
 esd_player_t *esd_players_list = NULL;
-esd_player_t *esd_recorder = NULL;
+esd_player_t *esd_recorder_list = NULL;
 esd_player_t *esd_monitor_list = NULL;
 
 /*******************************************************************/
@@ -72,6 +72,7 @@ void add_player( esd_player_t *player )
 
     player->next = esd_players_list;
     esd_players_list = player;
+
     return;
 }
 
@@ -109,6 +110,54 @@ void erase_player( esd_player_t *player )
 
     /* hmm, we didn't find the desired player, just get on with life */
     ESDBG_TRACE( printf( "-%02d- player not found\n", player->source_id ); );
+    return;
+}
+
+
+/*******************************************************************/
+/* add a complete new recorder into the list of recorders at head */
+void add_recorder( esd_player_t *recorder )
+{
+    /* printf ( "adding player %p\n", new_player ); */
+    if ( !recorder ) {
+	ESDBG_TRACE( printf( "<NIL> can't add non-existent recorder!\n" ); );
+	return;
+    }
+
+    recorder->next = esd_recorder_list;
+    esd_recorder_list = recorder;
+
+    return;
+}
+
+/*******************************************************************/
+/* erase a recorder from the recorder list */
+void erase_recorder( esd_player_t *recorder )
+{
+    esd_player_t **prevp = &esd_recorder_list;
+    esd_player_t *current = esd_recorder_list;
+
+    /* iterate until we hit a NULL */
+    while ( current != NULL )
+    {
+	/* see if we hit the target player */
+	if ( current == recorder ) {
+	    *prevp = current->next;
+
+	    /* TODO: delete if needed */
+
+	    free_player( recorder );
+
+	    return;
+	}
+
+	/* iterate through the list */
+	prevp = &current->next;
+	current = current->next;
+    }
+
+    /* hmm, we didn't find the desired recorder, just get on with life */
+    ESDBG_TRACE( printf( "-%02d- recorder not found\n", recorder->source_id ); );
     return;
 }
 
@@ -411,30 +460,42 @@ void monitor_write( void *output_buffer, int length ) {
 
 int recorder_write( void *buffer, int length ) {
 
-    /* write it out */
-    ESDBG_TRACE( printf( "(%02d) writing recorder data\n", 
-			 esd_recorder->source_id ); );
-    length = write_player( esd_recorder, buffer,  length, 
-			   esd_audio_rate, esd_audio_format);
+    esd_player_t *recorder, *remove = NULL;
+    
+    recorder = esd_recorder_list;
 
-    /* see how it went */
-    if ( length < 0 ) {
+    while (recorder != NULL) {
+	/* write it out */
+	ESDBG_TRACE( printf( "(%02d) writing recorder data\n", 
+			recorder->source_id ); );
+	length = write_player(recorder, buffer,  length, 
+			esd_audio_rate, esd_audio_format);
+	
+	/* see how it went */
+	if ( length < 0 ) {
+		/* couldn't send anything, close it down */
+		ESDBG_TRACE( printf( "(%02d) closing recorder\n", 
+			recorder->source_id ); );
+		
+		remove = recorder;
+	}
 
-	/* couldn't send anything, close it down */
-	ESDBG_TRACE( printf( "(%02d) closing recorder\n", 
-			     esd_recorder->source_id ); );
+	recorder = recorder->next;
 
+	if ( remove ) {
+		erase_client( remove->parent );
+		erase_recorder( remove );
+		remove = NULL;
+	}
+    }
+    
+    if (!esd_recorder_list) {
 	/* stop recording */
 	esd_audio_close();
 	esd_audio_format &= ~ESD_RECORD;
 	esd_audio_open();
-
-	/* clear the recorder */
-	erase_client( esd_recorder->parent );
-	free_player( esd_recorder );
-	esd_recorder = NULL;
     }
-
+    
     return length;
 }
 
