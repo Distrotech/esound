@@ -1,3 +1,13 @@
+New Stuff in EsounD version 0.2.21:
+
+o  esd supports for multiple recording clients
+	- multiple esd_record_stream or esd_record_stream_fallback can
+	now run simultaneously
+
+o  security improvements
+	- you should upgrade to 0.2.21 - older version have security
+	holes, which can compromite account of any esd user
+
 New Stuff in EsounD version 0.2:
 
 o  esd_play_stream_fallback, esd_record_stream_fallback 
