@@ -6,10 +6,41 @@
 /* print server into to stdout */
 void esd_print_server_info( esd_server_info_t *server_info )
 {
-    printf( "server info:\n" );
-    printf( "- version = %d\n", server_info->version );
-    printf( "- format  = 0x%08x\n", server_info->format );
-    printf( "- rate    = %d\n", server_info->rate );
+    printf( "server version = %d\n", server_info->version );
+    printf( "server format  = 0x%08x\n", server_info->format );
+    printf( "server rate    = %d\n", server_info->rate );
+    return;
+}
+
+/*********************************************************************/
+/* print player into to stdout */
+void esd_print_player_info( esd_player_info_t *player_info )
+{
+    printf( "player %d format  = 0x%08x\n", 
+	    player_info->source_id, player_info->format );
+    printf( "player %d rate    = %d\n", 
+	    player_info->source_id, player_info->rate );
+    printf( "player %d left    = %d\n", 
+	    player_info->source_id, player_info->left_vol_scale );
+    printf( "player %d right   = %d\n", 
+	    player_info->source_id, player_info->right_vol_scale );
+    return;
+}
+
+/*********************************************************************/
+/* print server into to stdout */
+void esd_print_sample_info( esd_sample_info_t *sample_info )
+{
+    printf( "sample %d format  = 0x%08x\n", 
+	    sample_info->sample_id, sample_info->format );
+    printf( "sample %d rate    = %d\n", 
+	    sample_info->sample_id, sample_info->rate );
+    printf( "sample %d left    = %d\n", 
+	    sample_info->sample_id, sample_info->left_vol_scale );
+    printf( "sample %d right   = %d\n", 
+	    sample_info->sample_id, sample_info->right_vol_scale );
+    printf( "sample %d length  = %d\n", 
+	    sample_info->sample_id, sample_info->length );
     return;
 }
 
@@ -21,28 +52,20 @@ void esd_print_all_info( esd_info_t *all_info )
     esd_sample_info_t *sample_info;
 
     /* dump server info */
-    printf( "server info:\n" );
-    printf( "- version = %d\n", all_info->server->version );
-    printf( "- format  = 0x%08x\n", all_info->server->format );
-    printf( "- rate    = %d\n", all_info->server->rate );
+    esd_print_server_info( all_info->server );
 
     /* dump player info */
     for ( player_info = all_info->player_list 
 	      ; player_info != NULL ; player_info = player_info->next )
     {
-	    printf( "player %d: %s\n", player_info->source_id, player_info->name );
-	    printf( "- format  = 0x%08x\n", player_info->format );
-	    printf( "- rate    = %d\n", player_info->rate );
+	esd_print_player_info( player_info );
     }
 
     /* dump sample info */
     for ( sample_info = all_info->sample_list 
 	      ; sample_info != NULL ; sample_info = sample_info->next )
     {
-	    printf( "sample %d: %s\n", sample_info->sample_id, sample_info->name );
-	    printf( "- format  = 0x%08x\n", sample_info->format );
-	    printf( "- rate    = %d\n", sample_info->rate );
-	    printf( "- length  = %d\n", sample_info->length );
+	esd_print_sample_info( sample_info );
     }
 
     return;
@@ -134,6 +157,8 @@ esd_info_t *esd_get_all_info( int esd )
 	read( esd, &player_info->name, ESD_NAME_MAX );
 	player_info->name[ ESD_NAME_MAX - 1 ] = '\0';
 	read( esd, &player_info->rate, sizeof(player_info->rate) );
+	read( esd, &player_info->left_vol_scale, sizeof(player_info->left_vol_scale) );
+	read( esd, &player_info->right_vol_scale, sizeof(player_info->right_vol_scale) );
 	if ( read( esd, &player_info->format, sizeof(player_info->format) )
 	     != sizeof(player_info->format) ) {
 	    free( player_info );
@@ -161,6 +186,8 @@ esd_info_t *esd_get_all_info( int esd )
 	read( esd, &sample_info->name, ESD_NAME_MAX );
 	sample_info->name[ ESD_NAME_MAX - 1 ] = '\0';
 	read( esd, &sample_info->rate, sizeof(sample_info->rate) );
+	read( esd, &sample_info->left_vol_scale, sizeof(sample_info->left_vol_scale) );
+	read( esd, &sample_info->right_vol_scale, sizeof(sample_info->right_vol_scale) );
 	read( esd, &sample_info->format, sizeof(sample_info->format) );
 	if ( read( esd, &sample_info->length, sizeof(sample_info->length) )
 	     != sizeof(sample_info->length) ) {
@@ -230,3 +257,59 @@ void esd_free_all_info( esd_info_t *info )
     free( info );
     return;
 }
+
+
+/* reset the volume panning for a stream */
+int esd_set_stream_pan( int esd, int stream_id, 
+			int left_scale, int right_scale )
+{
+    int ok;
+    int proto = ESD_PROTO_STREAM_PAN;
+
+    /* send the stream panning information */
+    if ( write( esd, &proto, sizeof(proto) ) != sizeof(proto) )
+	return -1;
+    if ( write( esd, &stream_id, sizeof(stream_id) ) != sizeof(stream_id) )
+	return -1;
+    if ( write( esd, &left_scale, sizeof(left_scale) ) != sizeof(left_scale) )
+	return -1;
+    if ( write( esd, &right_scale, sizeof(right_scale) ) != sizeof(right_scale) )
+	return -1;
+
+    /* flush the socket */
+    /* fsync( sock ); */
+    
+    /* read the status back from the server */
+    if ( read( esd, &ok, sizeof(ok) ) != sizeof(ok) )
+	return -1;
+
+    return ok;
+}
+
+/* reset the default volume panning for a sample */
+int esd_set_default_sample_pan( int esd, int sample_id, 
+				int left_scale, int right_scale )
+{
+    int ok;
+    int proto = ESD_PROTO_SAMPLE_PAN;
+
+    /* send the stream panning information */
+    if ( write( esd, &proto, sizeof(proto) ) != sizeof(proto) )
+	return -1;
+    if ( write( esd, &sample_id, sizeof(sample_id) ) != sizeof(sample_id) )
+	return -1;
+    if ( write( esd, &left_scale, sizeof(left_scale) ) != sizeof(left_scale) )
+	return -1;
+    if ( write( esd, &right_scale, sizeof(right_scale) ) != sizeof(right_scale) )
+	return -1;
+
+    /* flush the socket */
+    /* fsync( sock ); */
+    
+    /* read the status back from the server */
+    if ( read( esd, &ok, sizeof(ok) ) != sizeof(ok) )
+	return -1;
+
+    return ok;
+}
+

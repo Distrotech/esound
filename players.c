@@ -419,6 +419,7 @@ esd_player_t *new_stream_player( esd_client_t *client )
 
     /* everything's ok, return the allocated player */
     /* player->last_read = time(NULL); */
+    player->left_vol_scale = player->right_vol_scale = ESD_VOLUME_BASE;
 
     if ( esdbg_trace )
 	printf( "(%02d) player: [%p]\n", player->source_id, player );
@@ -462,6 +463,8 @@ esd_player_t *new_sample_player( int sample_id, int loop )
     }
     player->rate = sample->rate;
     player->source_id = sample->sample_id;
+    player->left_vol_scale = sample->left_vol_scale;
+    player->right_vol_scale = sample->right_vol_scale;
 
     if ( esdbg_trace )
 	printf( "<%02d> connection format: 0x%08x at %d Hz\n", 

@@ -644,7 +644,7 @@ int mix_players_16s( void *output, int length )
 	}
     }
 
-    if ( esdbg_trace ) {
+    if ( esdbg_comms ) {
 	printf( "maximum stream length = %d bytes\n", max );
     }
 

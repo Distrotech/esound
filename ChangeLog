@@ -1,3 +1,10 @@
+1998-11-09  Yo Ric Dude  <ricdude@ix.netcom.com>
+
+	* esd-server.h, esd.h, esdctl.c, esdlib.c, esdmgr.c, mix.c,
+	players.c, proto.c, samples.c: initial support for setting stereo
+	panning of streams and samples, just need to update mix.c to do
+	the scaling...
+
 Sat Nov  7 05:28:03 PST 1998 Manish Singh <yosh@gimp.org>
 
 	* esddsp.c: Hmmph. The ES1370 driver blocks on open unless

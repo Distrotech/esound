@@ -24,6 +24,8 @@ extern "C" {
 #define ESD_ENDIAN_KEY \
 	( ('E' << 24) + ('N' << 16) + ('D' << 8) + ('N') )
 
+#define ESD_VOLUME_BASE (256)
+
 /*************************************/
 /* what can we do to/with the EsounD */
 enum esd_proto { 
@@ -59,6 +61,10 @@ enum esd_proto {
     ESD_PROTO_ALL_INFO,     /* get all information (server info, players, samples) */
     ESD_PROTO_SUBSCRIBE,    /* track new and removed players and samples */
     ESD_PROTO_UNSUBSCRIBE,  /* stop tracking updates */
+
+    /* esd remote control */
+    ESD_PROTO_STREAM_PAN,   /* set stream panning */
+    ESD_PROTO_SAMPLE_PAN,   /* set default sample panning */
 
     ESD_PROTO_MAX           /* for bounds checking */
 };
@@ -173,6 +179,9 @@ typedef struct esd_player_info {
     int source_id;		/* either a stream fd or sample id */
     char name[ ESD_NAME_MAX ];	/* name of stream for remote control */
     int rate;			/* sample rate */
+    int left_vol_scale;		/* volume scaling */
+    int right_vol_scale;
+
     esd_format_t format;	/* magic int with the format info */
 
 } esd_player_info_t;
@@ -185,6 +194,9 @@ typedef struct esd_sample_info {
     int sample_id;		/* either a stream fd or sample id */
     char name[ ESD_NAME_MAX ];	/* name of stream for remote control */
     int rate;			/* sample rate */
+    int left_vol_scale;		/* volume scaling */
+    int right_vol_scale;
+
     esd_format_t format;	/* magic int with the format info */
     int length;			/* total buffer length */
 
@@ -217,6 +229,8 @@ typedef struct esd_update_info_callbacks {
 
 /* print server into to stdout */
 void esd_print_server_info( esd_server_info_t *server_info );
+void esd_print_player_info( esd_player_info_t *player_info );
+void esd_print_sample_info( esd_sample_info_t *sample_info );
 /* print all info to stdout */
 void esd_print_all_info( esd_info_t *all_info );
 
@@ -238,6 +252,15 @@ esd_info_t *esd_unsubscribe_info( int esd );
 
 /* release all memory allocated for the esd info structure */
 void esd_free_all_info( esd_info_t *info );
+
+
+/* reset the volume panning for a stream */
+int esd_set_stream_pan( int esd, int stream_id, 
+			int left_scale, int right_scale );
+
+/* reset the default volume panning for a sample */
+int esd_set_default_sample_pan( int esd, int sample_id, 
+				int left_scale, int right_scale );
 
 /*******************************************************************/
 /* audio.c - abstract the sound hardware for cross platform usage */

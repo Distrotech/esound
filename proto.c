@@ -531,7 +531,8 @@ int esd_proto_server_info( esd_client_t *client )
 /* play a sample cached by the client, return boolean ok */
 int esd_proto_all_info( esd_client_t *client )
 {
-    int version, rate, format, actual, source_id, sample_id, length;
+    int version, rate, left, right, format;
+    int actual, source_id, sample_id, length;
     esd_player_t *player;
     esd_sample_t *sample;
     const char *name;
@@ -559,6 +560,8 @@ int esd_proto_all_info( esd_client_t *client )
 	    name = ( (player->format & ESD_MASK_MODE) == ESD_STREAM ) 
 		? player->name : ( (esd_sample_t*) (player->parent) )->name;
 	    rate = maybe_swap_32( client->swap_byte_order, player->rate );
+	    left = maybe_swap_32( client->swap_byte_order, player->left_vol_scale );
+	    right = maybe_swap_32( client->swap_byte_order, player->right_vol_scale );
 	    format = maybe_swap_32( client->swap_byte_order, player->format );
 	} else {
 	    source_id = rate = format = 0;
@@ -568,6 +571,8 @@ int esd_proto_all_info( esd_client_t *client )
 	ESD_WRITE_INT( client->fd, &source_id, sizeof(source_id), actual, "ai p.id" );
 	ESD_WRITE_BIN( client->fd, name, ESD_NAME_MAX, actual, "ai p.nm" );
 	ESD_WRITE_INT( client->fd, &rate, sizeof(rate), actual, "ai p.rate" );
+	ESD_WRITE_INT( client->fd, &left, sizeof(left), actual, "ai p.lt" );
+	ESD_WRITE_INT( client->fd, &right, sizeof(right), actual, "ai p.rt" );
 	ESD_WRITE_INT( client->fd, &format, sizeof(format), actual, "ai p.fmt" );
 	if ( sizeof( format ) != actual )
 	    return 0;
@@ -582,6 +587,8 @@ int esd_proto_all_info( esd_client_t *client )
 	    sample_id = maybe_swap_32( client->swap_byte_order, sample->sample_id );
 	    name = sample->name;
 	    rate = maybe_swap_32( client->swap_byte_order, sample->rate );
+	    left = maybe_swap_32( client->swap_byte_order, sample->left_vol_scale );
+	    right = maybe_swap_32( client->swap_byte_order, sample->right_vol_scale );
 	    format = maybe_swap_32( client->swap_byte_order, sample->format );
 	    length = maybe_swap_32( client->swap_byte_order, sample->sample_length );
 	} else {
@@ -589,11 +596,13 @@ int esd_proto_all_info( esd_client_t *client )
 	    name = no_name;
 	}
 
-	ESD_WRITE_INT( client->fd, &sample_id, sizeof(sample_id), actual, "ai p.id" );
-	ESD_WRITE_BIN( client->fd, name, ESD_NAME_MAX, actual, "ai p.nm" );
-	ESD_WRITE_INT( client->fd, &rate, sizeof(rate), actual, "ai p.rate" );
-	ESD_WRITE_INT( client->fd, &format, sizeof(format), actual, "ai p.fmt" );
-	ESD_WRITE_INT( client->fd, &length, sizeof(length), actual, "ai p.fmt" );
+	ESD_WRITE_INT( client->fd, &sample_id, sizeof(sample_id), actual, "ai s.id" );
+	ESD_WRITE_BIN( client->fd, name, ESD_NAME_MAX, actual, "ai s.nm" );
+	ESD_WRITE_INT( client->fd, &rate, sizeof(rate), actual, "ai s.rate" );
+	ESD_WRITE_INT( client->fd, &left, sizeof(left), actual, "ai s.lt" );
+	ESD_WRITE_INT( client->fd, &right, sizeof(right), actual, "ai s.rt" );
+	ESD_WRITE_INT( client->fd, &format, sizeof(format), actual, "ai s.fmt" );
+	ESD_WRITE_INT( client->fd, &length, sizeof(length), actual, "ai s.fmt" );
 	if ( sizeof( length ) != actual )
 	    return 0;
 
@@ -603,6 +612,106 @@ int esd_proto_all_info( esd_client_t *client )
     client->state = ESD_NEXT_REQUEST;
     return 1;
 }
+
+
+/*******************************************************************/
+/* set the stereo panning for a stream */
+int esd_proto_stream_pan( esd_client_t *client )
+{
+    int client_id, client_left, client_right, client_ok, actual;
+    int stream_id, left, right, ok;
+    esd_player_t *player;
+    
+    ESD_READ_INT( client->fd, &client_id, 
+		  sizeof(client_id), actual, "panstr id" );
+    ESD_READ_INT( client->fd, &client_left, 
+		  sizeof(client_left), actual, "panstr lt" );
+    ESD_READ_INT( client->fd, &client_right, 
+		  sizeof(client_right), actual, "panstr rt" );
+    if ( sizeof( client_right ) != actual ) {
+	return 0;
+    }
+    stream_id = maybe_swap_32( client->swap_byte_order, client_id );
+    left = maybe_swap_32( client->swap_byte_order, client_left );
+    right = maybe_swap_32( client->swap_byte_order, client_right );
+
+    if ( esdbg_trace )
+	printf( "(%02d) proto: panning stream <%d> [%d, %d]\n", 
+		client->fd, stream_id, left, right );
+
+    /* find the stream, and reset panning */
+    ok = 0;
+    for ( player = esd_players_list ; player != NULL ; player = player->next )
+    {
+	if ( player->source_id == stream_id 
+	     && ( (player->format & ESD_MASK_MODE) == ESD_STREAM ) )
+	{
+	    player->left_vol_scale = left;
+	    player->right_vol_scale = right;
+	    ok = 1;
+	    break;
+	}
+    }
+
+    /* let the client know how it went */
+    client_ok = maybe_swap_32( client->swap_byte_order, ok );
+    ESD_WRITE_INT( client->fd, &client_ok, sizeof(client_ok), actual, "panstr ok" );
+    if ( sizeof( client_ok ) != actual )
+	return 0;
+
+    client->state = ESD_NEXT_REQUEST;
+    return 1;
+}
+
+
+/*******************************************************************/
+/* set the default panning for a stream */
+int esd_proto_sample_pan( esd_client_t *client )
+{
+    int client_id, client_left, client_right, client_ok, actual;
+    int sample_id, left, right, ok;
+    esd_sample_t *sample;
+    
+    ESD_READ_INT( client->fd, &client_id, 
+		  sizeof(client_id), actual, "pansam id" );
+    ESD_READ_INT( client->fd, &client_left, 
+		  sizeof(client_left), actual, "pansam lt" );
+    ESD_READ_INT( client->fd, &client_right, 
+		  sizeof(client_right), actual, "pansam rt" );
+    if ( sizeof( client_right ) != actual ) {
+	return 0;
+    }
+    sample_id = maybe_swap_32( client->swap_byte_order, client_id );
+    left = maybe_swap_32( client->swap_byte_order, client_left );
+    right = maybe_swap_32( client->swap_byte_order, client_right );
+
+    if ( esdbg_trace )
+	printf( "(%02d) proto: panning sample <%d> [%d, %d]\n", 
+		client->fd, sample_id, left, right );
+
+    /* find the stream, and reset panning */
+    ok = 0;
+    for ( sample = esd_samples_list ; sample != NULL ; sample = sample->next )
+    {
+	if ( sample->sample_id == sample_id )
+	{
+	    sample->left_vol_scale = left;
+	    sample->right_vol_scale = right;
+	    ok = 1;
+	    break;
+	}
+    }
+
+    /* let the client know how it went */
+    client_ok = maybe_swap_32( client->swap_byte_order, ok );
+    ESD_WRITE_INT( client->fd, &client_ok, sizeof(client_ok), actual, "panstr ok" );
+    if ( sizeof( client_ok ) != actual )
+	return 0;
+
+    client->state = ESD_NEXT_REQUEST;
+    return 1;
+}
+
 
 /*******************************************************************/
 /* now that we trust the client, do it's bidding, return boolean ok */
@@ -825,6 +934,14 @@ int poll_client_requests()
 			     "(%02d) proto: unimplemented protocol request:  0x%08x\n",
 			     client->fd, client->request );
 		    is_ok = 0;
+		    break;
+
+		case ESD_PROTO_STREAM_PAN:
+ 		    is_ok = esd_proto_stream_pan( client );
+		    break;
+
+		case ESD_PROTO_SAMPLE_PAN:
+ 		    is_ok = esd_proto_sample_pan( client );
 		    break;
 
  		default:

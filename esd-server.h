@@ -65,6 +65,8 @@ typedef struct esd_player {
 
     esd_format_t format;	/* magic int with the format info */
     int rate;			/* sample rate */
+    int left_vol_scale;		/* volume scaling */
+    int right_vol_scale;
 
     int source_id;		/* either a stream fd or sample id */
     octet *data_buffer;		/* buffer to hold sound data */
@@ -85,6 +87,8 @@ typedef struct esd_sample {
 
     esd_format_t format;	/* magic int with the format info */
     int rate;			/* sample rate */
+    int left_vol_scale;		/* volume scaling */
+    int right_vol_scale;
 
     int sample_id;		/* the sample's id number */
     octet *data_buffer;		/* buffer to hold sound data */

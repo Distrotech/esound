@@ -35,6 +35,9 @@ void exit_usage( const char *who, int errcode, const char *why, const char *what
 	     "stop name                     stop the looping sample at end\n"
 	     "serverinfo                    get server info from server\n"
 	     "allinfo                       get player and sample info from server\n"
+	     "panstream <id> <left> <right> set panning for a stream\n"
+	     "pansample <id> <left> <right> set default panning for a sample\n"
+	     "                              - left/right pan values scaled to 256.\n"
 	     "\n" );
 
     /* terminate with given error code */
@@ -43,7 +46,8 @@ void exit_usage( const char *who, int errcode, const char *why, const char *what
 
 int main(int argc, char **argv)
 {
-    int esd = -1, arg = 0, option_index = 0, ok;
+    int esd = -1, arg = 0, option_index = 0;
+    int id = 0, left = 256, right = 256, ok;
     char *server = NULL;
     esd_server_info_t *server_info = NULL;
     esd_info_t *all_info = NULL;
@@ -144,6 +148,30 @@ int main(int argc, char **argv)
 	    } else {
 		esd_print_all_info( all_info );
 		esd_free_all_info( all_info );
+	    }
+	}
+	else if ( !strcmp( "panstream", argv[ optind ] ) ) {
+	    id = atoi( argv[ ++optind ] );
+	    left = atoi( argv[ ++optind ] );
+	    right = atoi( argv[ ++optind ] );
+
+	    if ( !id || !left || !right ) {
+		fprintf( stderr, "panstream failed, id = %d, left = %d, right = %d\n",
+			 id, left, right );
+	    } else {
+		esd_set_stream_pan( esd, id, left, right );
+	    }
+	}
+	else if ( !strcmp( "pansample", argv[ optind ] ) ) {
+	    id = atoi( argv[ ++optind ] );
+	    left = atoi( argv[ ++optind ] );
+	    right = atoi( argv[ ++optind ] );
+
+	    if ( !id || !left || !right ) {
+		fprintf( stderr, "pansample failed, id = %d, left = %d, right = %d\n",
+			 id, left, right );
+	    } else {
+		esd_set_default_sample_pan( esd, id, left, right );
 	    }
 	}
 	else {
