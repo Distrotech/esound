@@ -1,3 +1,9 @@
+1999-04-11  James Henstridge <james@daa.com.au>
+
+	* esound.spec.in: moved %{prefix}/lib/lib*.so files to the main
+	esound package from the devel one, as esddsp requires them to
+	function correctly.
+
 Thu Apr  8 23:08:56 PDT 1999 Manish Singh <yosh@gimp.org>
 
 	* acinclude.m4
