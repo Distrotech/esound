@@ -1,3 +1,9 @@
+2004-03-01  Frédéric Crozat  <fred@crozat.net>
+
+	* util.c: (esd_get_socket_dirname):
+	Fix crash when AUDIODEV doesn't contain '/' (Bug #135113,
+	patch from Stefan Heinsen <stefan.heinsen@gmx.de>).
+
 2004-01-19  Stanislav Brabec  <sbrabec@suse.cz>
 
 	* esd.m4: Fixed quoting in esd.m4 to AC_DEFUN([],[]) for latest
@@ -45,6 +51,9 @@
 2003-09-22  Kjartan Maraas  <kmaraas@gnome.org>
 
 	* docs/esd.1.in: Fix a small typo in the man page.
+
+2003-09-03  Frederic Crozat  <fcrozat@mandrakesoft.com>
+	* Release 0.2.32
 
 2003-09-03  Frederic Crozat  <fcrozat@mandrakesoft.com>
 

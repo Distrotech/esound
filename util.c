@@ -30,8 +30,10 @@ esd_get_socket_dirname (void)
 		if (!(audiodev = getenv("AUDIODEV"))) {
 			audiodev = "";
 		} else {
-			audiodev = strrchr(audiodev, '/');
-			audiodev++;
+			char *newdev = strrchr(audiodev, '/');
+			if (newdev != NULL) {
+				audiodev = newdev++;
+			}
 		}
 		dirname = malloc(strlen(audiodev) + sizeof("/tmp/.esd"));
 		strcpy(dirname, "/tmp/.esd");
