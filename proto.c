@@ -264,7 +264,8 @@ int esd_proto_standby( esd_client_t *client )
     ok = esd_validate_source( client, client->proto_data, 1 );
 
     if ( ok ) ok = esd_server_standby();
-    esd_forced_standby = 1;
+    if(!esd_on_autostandby)
+	    esd_forced_standby = 1;
 
     client_ok = maybe_swap_32( client->swap_byte_order, ok );
     ESD_WRITE_INT( client->fd, &client_ok, sizeof(client_ok), 
