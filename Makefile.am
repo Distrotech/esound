@@ -1,6 +1,8 @@
 EXTRA_DIST = \
 EsounD.html \
-TIPS
+TIPS \
+test-script \
+test.wav
 
 lib_LTLIBRARIES = libesd.la
 

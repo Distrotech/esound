@@ -86,9 +86,9 @@ int main(int argc, char **argv)
 
     printf( "sample uploaded, %d bytes\n", total );
 
-    printf( "press ^C to quit, <enter> to trigger.\n" );
+    printf( "press \'q\' <enter> to quit, <enter> to trigger.\n" );
     while ( !terminate ) {
-	getchar();
+	if ( getchar() == 'q' ) break;
 	printf( "<playing sample>\n" );
 	esd_sample_play( sock, sample_id );
     }

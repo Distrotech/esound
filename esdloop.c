@@ -85,11 +85,8 @@ int main(int argc, char **argv)
     printf( "sample uploaded, %d bytes\n", total );
     esd_sample_loop( sock, sample_id );
 
-    printf( "press ^C to terminate loop\n" );
-    while ( !terminate )
-    {
-	/* wait for the termination signal */
-    }
+    printf( "press <enter> to quit.\n" );
+    getchar();
 
     /* TODO: make sample_free clean out all playing samples */
     esd_sample_stop( sock, sample_id );
