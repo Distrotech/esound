@@ -1,6 +1,8 @@
 
 #include "config.h"
 #include "esd.h"
+#include "genrand.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -185,6 +187,8 @@ int esd_send_auth( int sock )
     retval = 0;
     /* open the authorization file */
     if ( -1 == (auth_fd = open( auth_filename, O_RDONLY ) ) ) {
+        unsigned char randbuf[ESD_KEY_LEN];
+
 	/* it doesn't exist? create one */
 	auth_fd = open( auth_filename, O_RDWR | O_CREAT | O_EXCL,
 			S_IRUSR | S_IWUSR );
@@ -195,26 +199,11 @@ int esd_send_auth( int sock )
 	    goto exit_fn;
 	}
 
-	/* spew random garbage for a key */
-	for ( i = 0 ; i < ESD_KEY_LEN ; i++ ) {
-	    char *envpath; long envrand;
-
-	    envpath = getenv("PATH");
-	    if(envpath)
-		envrand = (long)envpath; 
-	    else
-		envrand = 1;
-	    srand( time(NULL) * (getpid() * getuid() * getgid()) * ((long)&retval) * envrand);
-	    tumbler = rand() % 256;
-	    write( auth_fd, &tumbler, 1 );
-	}
-
-	/* rewind the file to the beginning, and proceed */
-	lseek( auth_fd, 0, SEEK_SET );
-    }
-
-    /* read the key from the authorization file */
-    if ( ESD_KEY_LEN != read( auth_fd, auth_key, ESD_KEY_LEN ) )
+	esound_genrand(auth_key, ESD_KEY_LEN);
+	write( auth_fd, randbuf, ESD_KEY_LEN);
+    } else
+      /* read the key from the authorization file */
+      if ( ESD_KEY_LEN != read( auth_fd, auth_key, ESD_KEY_LEN ) )
 	goto exit_fd;
 
     /* send the key to the server */

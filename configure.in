@@ -42,6 +42,7 @@ AC_C_BIGENDIAN
 
 dnl Check for system libs needed
 
+AC_FUNC_ALLOCA
 AC_CHECK_FUNCS(setenv putenv)
 AC_CHECK_FUNC(connect,,[AC_CHECK_LIB(socket,connect)])
 AC_CHECK_FUNC(gethostbyname,,[AC_CHECK_LIB(nsl,gethostbyname)])
@@ -117,13 +118,8 @@ if test "x$enable_local_sound" = "xyes"; then
       test "${ac_cv_header_machine_soundcard_h}" = "yes"; then
 
       dnl Platform mklinux/powerpc needs special care and feeding
-      if test "${host_cpu}" = "powerpc"; then
-        found_sound=yes
-        AC_DEFINE(DRIVER_MKLINUX)
-      else
-        found_sound=yes
-        AC_DEFINE(DRIVER_OSS)
-      fi
+      found_sound=yes
+      AC_DEFINE(DRIVER_OSS)
    fi
 
    if test "${ac_cv_header_sys_audio_h}" = "yes"; then
