@@ -1,3 +1,8 @@
+1998-12-22  Yo Ric Dude  <ricdude@ix.netcom.com>
+
+	* audio_alsa.c, clients.c: from bibek, more alsa patches and a
+ 	slightly more sane "can i pause" algorithm.
+
 Mon Dec 21 21:44:44 EST 1998 Mandrake <mandrake@mandrake.net>
 
 	* esdlib.c - fixed some warnings.

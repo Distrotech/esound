@@ -259,7 +259,8 @@ int wait_for_clients_and_data( int listen )
 	timeout_ptr = &timeout;
 
 	/* we might not be doing something useful, kill audio echos */
-	esd_audio_pause();
+	if ( !esd_players_list && !esd_recorder )
+	    esd_audio_pause();
     }
 
     select( max_fd+1, &rd_fds, NULL, NULL, timeout_ptr );

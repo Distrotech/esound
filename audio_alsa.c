@@ -135,13 +135,24 @@ int esd_audio_open()
     format.rate = esd_audio_rate;
     format.channels = ( ( esd_audio_format & ESD_MASK_CHAN) == ESD_STEREO ) 
 	? 2 : 1;
-    if ( ( ret = snd_pcm_playback_format( handle, &format ) ) < 0 ) {
-	fprintf( stderr, "set format failed: %s\n", snd_strerror( ret ) );
-	esd_audio_close();
-	esd_audio_fd = -1;
-	return ( -1 );
+
+    if( mode == SND_PCM_OPEN_DUPLEX || mode == SND_PCM_OPEN_PLAYBACK ) {
+        if ( ( ret = snd_pcm_playback_format( handle, &format ) ) < 0 ) {
+	    fprintf( stderr, "set playback format failed: %s\n", snd_strerror( ret ) );
+	    esd_audio_close();
+	    esd_audio_fd = -1;
+	    return ( -1 );
+	}
     }
-    
+    if( mode == SND_PCM_OPEN_DUPLEX || mode == SND_PCM_OPEN_RECORD ) {
+        if ( ( ret = snd_pcm_record_format( handle, &format ) ) < 0 ) {
+	    fprintf( stderr, "set record format failed: %s\n", snd_strerror( ret ) );
+	    esd_audio_close();
+	    esd_audio_fd = -1;
+	    return ( -1 );
+	}
+    }    
+
     params.fragment_size = 4*1024;
     params.fragments_max = 2;
     params.fragments_room = 1;
@@ -177,7 +188,9 @@ void esd_audio_close()
 #define ARCH_esd_audio_pause
 void esd_audio_pause()
 {
-    snd_pcm_drain_playback( handle );
+    /* apparently this gets rid of pending data, which isn't the effect
+       we're going for, namely, play the data in the buffers and stop */
+    /* snd_pcm_drain_playback( handle ); */
 }
 
 #define ARCH_esd_audio_read
