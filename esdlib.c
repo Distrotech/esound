@@ -558,7 +558,7 @@ esd_connect_unix(const char *host)
 static int is_host_local(const char* host) 
 {
     char hnbuf[256]="";
-    if (!(host || *host)) return 1;
+    if (!host || !*host) return 1;
 
     gethostname(hnbuf, sizeof(hnbuf));
     return (!strcasecmp(host,hnbuf) || !strcasecmp(host, "localhost"));
