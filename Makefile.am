@@ -148,4 +148,5 @@ EXTRA_DIST = \
 	test.wav 	\
 	getopt.h 	\
 	TODO		\
+	MAINTAINERS	\
 	$(AUDIO_BACKENDS)

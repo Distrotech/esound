@@ -13,6 +13,8 @@
 #include <unistd.h>
 #endif
 
+#include <netdb.h>
+
 /*******************************************************************/
 /* esd.c - prototypes */
 void set_audio_buffer( void *buf, esd_format_t format, int magl, int magr,
@@ -20,7 +22,7 @@ void set_audio_buffer( void *buf, esd_format_t format, int magl, int magr,
 void clean_exit( int signum );
 void reset_signal( int signum );
 void reset_daemon( int signum );
-int open_listen_socket( int port );
+int open_listen_socket( const char *hostname, int port );
 
 /*******************************************************************/
 /* globals */
@@ -51,6 +53,8 @@ int esd_terminate = 0;          /* terminate after the last client exits */
 int esd_public = 0;             /* allow connects from hosts other than localhost */
 int esd_spawnpid = 0;           /* The PID of the process that spawned us (for use by esdlib only) */
 int esd_spawnfd = 0;           /* The PID of the process that spawned us (for use by esdlib only) */
+
+static char *programname = NULL;
 
 /*******************************************************************/
 /* just to create the startup tones for the fun of it */
@@ -303,7 +307,7 @@ struct stat dir_stats;
 
 /*******************************************************************/
 /* returns the listening socket descriptor */
-int open_listen_socket( int port )
+int open_listen_socket(const char *hostname, int port )
 {
     /*********************/
     /* socket test setup */
@@ -311,6 +315,8 @@ int open_listen_socket( int port )
     struct sockaddr_un socket_unix;
     int socket_listen = -1;
     struct linger lin;
+
+	struct hostent *resolved;
 
 
     /* create the socket, and set for non-blocking */
@@ -376,10 +382,21 @@ int open_listen_socket( int port )
       memset(&socket_addr, 0, sizeof(struct sockaddr_in));
       socket_addr.sin_family = AF_INET;
       socket_addr.sin_port = htons( port );
-      if (esd_public)
-	socket_addr.sin_addr.s_addr = htonl( INADDR_ANY );
-      else
-	socket_addr.sin_addr.s_addr = htonl( INADDR_LOOPBACK );
+
+	/* if hostname is set, bind to its first address */
+	if (hostname)
+	{
+		if (!(resolved=gethostbyname2(hostname, AF_INET)))
+		{
+			herror(programname);
+			return -1;
+		}
+		memcpy(&(socket_addr.sin_addr), resolved->h_addr_list[0], resolved->h_length);
+	} else if (esd_public)
+		socket_addr.sin_addr.s_addr = htonl( INADDR_ANY );
+	else
+		socket_addr.sin_addr.s_addr = htonl( INADDR_LOOPBACK );
+
       if ( bind( socket_listen,
 		(struct sockaddr *) &socket_addr,
 		sizeof(struct sockaddr_in) ) < 0 )
@@ -478,6 +495,8 @@ int main ( int argc, char *argv[] )
 
     void *output_buffer = NULL;
 
+    char *hostname=NULL;
+
     /* begin test scaffolding parameters */
     /* int format = AFMT_U8; AFMT_S16_LE; */
     /* int stereo = 0; */     /* 0=mono, 1=stereo */
@@ -489,6 +508,8 @@ int main ( int argc, char *argv[] )
 
     int default_format = ESD_BITS16 | ESD_STEREO;
     /* end test scaffolding parameters */
+
+    programname = *argv;
 
     /* parse the command line args */
     for ( arg = 1 ; arg < argc ; arg++ ) {
@@ -514,6 +535,14 @@ int main ( int argc, char *argv[] )
 		fprintf( stderr, "- accepting connections on port %d\n",
 			 esd_port );
 	    }
+
+	} else if ( !strcmp( argv[ arg ], "-bind" ) ) {
+	    if ( ++arg != argc )
+		{
+			hostname = argv[ arg ];
+		}
+		fprintf( stderr, "- accepting connections on port %d\n",
+			 esd_port );
 	} else if ( !strcmp( argv[ arg ], "-b" ) ) {
 	    fprintf( stderr, "- server format: 8 bit samples\n" );
 	    default_format &= ~ESD_MASK_BITS; default_format |= ESD_BITS8;
@@ -591,6 +620,7 @@ int main ( int argc, char *argv[] )
 	    fprintf( stderr, "  -vm         enable mixer diagnostic info\n" );
 #endif
 	    fprintf( stderr, "  -port PORT  listen for connections at PORT (only for tcp/ip)\n" );
+	    fprintf( stderr, "  -bind ADDRESS binds to ADDRESS (only for tcp/ip)\n" );
 	    fprintf( stderr, "\nPossible devices are:  %s\n", esd_audio_devices() );
 	    exit( 0 );
 	} else {
@@ -599,7 +629,7 @@ int main ( int argc, char *argv[] )
     }
 
     /* open the listening socket */
-    listen_socket = open_listen_socket( esd_port );
+  listen_socket = open_listen_socket(hostname, esd_port );
   if ( listen_socket < 0 ) {
     fprintf( stderr, "fatal error opening socket\n" );
     if (!esd_use_tcpip)
