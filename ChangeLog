@@ -1,3 +1,8 @@
+2002-03-13  chris chabot <chabotc@reviewboard.com>
+
+    * Cleaned up spec file, added .pc file to its file list,
+    and added audiofile to dependency list
+
 2002-03-13  jacob berkman  <jacob@ximian.com>
 
 	* Makefile.am (dist-hook): don't fail if docs weren't built
