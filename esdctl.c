@@ -141,6 +141,14 @@ int main(int argc, char **argv)
 	    ok = esd_sample_getid( esd, argv[ ++optind ] );
 	    printf( "%d\n", ok );
 	}
+	else if ( !strcmp( "free", argv[ optind ] ) ) {
+	    ok = esd_sample_free( esd, esd_sample_getid(esd, argv[ ++optind ]) );
+	    printf( "%d\n", ok );
+	}
+	else if ( !strcmp( "play", argv[ optind ] ) ) {
+	    ok = esd_sample_free( esd, esd_sample_getid(esd, argv[ ++optind ]) );
+	    printf( "%d\n", ok );
+	}
 	else if ( !strcmp( "serverinfo", argv[ optind ] ) ) {
 	    server_info = esd_get_server_info( esd );
 

@@ -1,3 +1,7 @@
+1999-06-14  Elliot Lee  <sopwith@redhat.com>
+
+	* esdlib.c: Fix bug #1276 - don't try to auto-spawn if $ESPEAKER is set.
+
 Tue Jun  8 18:13:22 1999  John Ellis  <johne@bellatlantic.net>
 
 	* esdmgr.c esd_get_all_info(): Fix memory leaks: player_info and

@@ -78,6 +78,7 @@ int main(int argc, char **argv)
     signal( SIGKILL, clean_exit );
     signal( SIGPIPE, clean_exit );
 
+	sock = esd_open_sound( host );
     if ( cache_mode == 1 ) {
 	source = fopen( name, "r" );
 
@@ -86,13 +87,11 @@ int main(int argc, char **argv)
 	    return -1;
 	}
     
+	if ( sock <= 0 ) 
+	    return 1;
 	format = bits | channels | mode | func;
 	printf( "opening socket, format = 0x%08x at %d Hz\n", 
 		format, rate );
-   
-	sock = esd_open_sound( host );
-	if ( sock <= 0 ) 
-	    return 1;
 	
 	stat( name, &source_stats );
 	sample_id = esd_sample_cache( sock, format, rate, source_stats.st_size, filename );
@@ -118,7 +117,6 @@ int main(int argc, char **argv)
 	printf( "sample <%d> uploaded, %d bytes\n", sample_id, total );
     } 
     else if ( cache_mode == 0) {
-	sock = esd_open_sound( host );
 	if ( sock <= 0 ) 
 	    return 1;
 	
@@ -137,16 +135,18 @@ int main(int argc, char **argv)
 	strcpy(filename, name);
     }
 
-    printf( "name is \'%s\'.\n", filename );
-
     reget_sample_id = esd_sample_getid( sock, filename );
 
+if(cache_mode != 2) {
     printf( "reget of sample %s id is <%d>\n", filename, reget_sample_id );
     if(( reget_sample_id != sample_id && cache_mode != 2)
        || reget_sample_id < 0) {
 	printf( "sample id's do not make sense! (cache mode %d)\n", cache_mode );
 	exit( 1 );
     }
+} else sample_id = reget_sample_id;
+
+    printf( "name is \'%s\', id is %d.\n", filename, sample_id );
 
     printf( "press \'q\' <enter> to quit, <enter> to trigger.\n" );
     while ( !terminate ) {

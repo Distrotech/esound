@@ -502,7 +502,7 @@ int esd_open_sound( const char *host )
     {
       esd_config_read();
 
-      if (!esd_no_spawn)
+      if (!esd_no_spawn && !getenv("ESPEAKER"))
 	{
 	  int childpid;
 
