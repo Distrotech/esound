@@ -1,4 +1,16 @@
 ===============
+Version 0.2.33
+===============
+	* use new ALSA PCM API if available (Lukasz Mach and Eddy Mylyono)
+	* fix build on AIX and OSF (Albert Chin-A-Young)
+	* don't try to close audio device if not opened (Debian)
+	* fix build with latest automake (Stanislav Bradec)
+	* no longer required automake 1.4 (Thomas Cataldo)
+	* Fix Darwin build (Jerry Talkington)
+	* fix typo in manpage (Kjartan Maraas)
+	* Fix crash when AUDIODEV doesn't contain '/' (Stefan Heinsen)
+
+===============
 Version 0.2.32
 ===============
 	* Fix build when IPv6 is disabled (Soren Jacobsen)

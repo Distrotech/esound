@@ -1,5 +1,11 @@
 2004-03-01  Frédéric Crozat  <fred@crozat.net>
 
+	* NEWS:
+	* configure.in:
+	Release 0.2.33
+
+2004-03-01  Frédéric Crozat  <fred@crozat.net>
+
 	* util.c: (esd_get_socket_dirname):
 	Fix crash when AUDIODEV doesn't contain '/' (Bug #135113,
 	patch from Stefan Heinsen <stefan.heinsen@gmx.de>).
