@@ -13,8 +13,8 @@ int esd_buf_size_octets = 0; 	/* size of audio buffer in bytes */
 int esd_buf_size_samples = 0; 	/* size of audio buffer in samples */
 int esd_sample_size = 0;	/* size of sample in bytes */
 
-volatile int esd_terminate = 0;	/* signals set this for a clean exit */
 int esd_beeps = 1;		/* whether or not to beep on startup */
+int listen_socket = -1;		/* socket we're accepting connections on */
 
 /*******************************************************************/
 /* just to create the startup tones for the fun of it */
@@ -62,9 +62,27 @@ void set_audio_buffer( void *buf, esd_format_t format,
 /*******************************************************************/
 /* to properly handle signals */
 void clean_exit(int signum) {
+    /* just clean up as best we can and terminate from here */
+    esd_client_t * client = esd_clients_list;
+    
     fprintf( stderr, "received signal %d: terminating...\n", signum );
-    esd_terminate = 1;
-    return;
+    
+    /* free the sound device */
+    esd_audio_close();
+
+    /* close the listening socket */
+    close( listen_socket );
+
+    /* close the clients */
+    while ( client != NULL )
+    {
+	close( client->fd );
+	client = client->next;
+    }
+
+    /* trust the os to clean up the memory for the samples and such */
+    fprintf( stderr, "bye bye.\n" );
+    exit( 0 );
 }
 
 void reset_signal(int signum) {
@@ -136,7 +154,6 @@ int main ( int argc, char *argv[] )
     /* Enlightened sound Daemon */
 
     int audio = -1;
-    int listen_socket = -1;
     int esd_port = ESD_DEFAULT_PORT;
     int length = 0;
     int arg = 0;
@@ -254,7 +271,7 @@ int main ( int argc, char *argv[] )
     esd_audio_pause();
 
     /* until we kill the daemon */
-    while ( !esd_terminate )
+    while ( 1 )
     {
 	/* block while waiting for more clients and new data */
 	wait_for_clients_and_data( listen_socket );
@@ -322,8 +339,9 @@ int main ( int argc, char *argv[] )
 	    nanosleep( &restrain, NULL );
 	}
 
-    }
+    } /* while ( 1 ) */
 
+    /* how we'd get here, i have no idea */
     esd_audio_close();
     close( listen_socket );
 

@@ -93,7 +93,6 @@ Pass the device spec to esd_audio_open (?)
 
 change on the fly?
 
+esdctl on, with another device on /dev/dsp will actually kill esd.
 
-int find_sample_from_name( char *name );
-
-int esd_close( int esd );
+monitoring with stalled data streams still eats cpu like the cookie monster

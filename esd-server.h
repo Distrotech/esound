@@ -40,12 +40,8 @@ typedef struct esd_client {
     struct sockaddr_in source;	/* data maintained about source */
 
     int swap_byte_order;	/* for big/little endian compatibility */
-    /* TODO: need to detect endianness of client - tweak the protocol so it */
-    /* always sends an int = 0x0001 as the first piece of data after */
-    /* authentication if server reads 0x0001, it's the same endianness, */
-    /* no swapping needed.  if the server reads 0x1000, set this flag,  */
-    /* read_data() should then swap all the bytes before the mixing */
-    /* subsystem gets a hold of it. */
+    /* TODO: read_data() should then swap all the bytes */
+    /* before the mixing subsystem gets a hold of it. */
 } esd_client_t;
 
 /* a player is what produces data for a sound */
