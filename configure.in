@@ -1,7 +1,7 @@
 dnl Initialize the autoconf settings
 
 AC_INIT(esd.h)
-AM_INIT_AUTOMAKE(esound, 0.2.4)
+AM_INIT_AUTOMAKE(esound, 0.2.5)
 AM_CONFIG_HEADER(config.h)
 
 dnl Check for tools
