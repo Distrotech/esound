@@ -14,12 +14,13 @@ int esd_audio_open()
 
     int afd = -1;
     int mode = O_WRONLY;
-    int gain = 128;
-    int bsize = (0x0100 << 16);
+    int gain = AUDIO_MAX_GAIN;
+    int bsize;
     int port = AUDIO_OUT_SPEAKER;
     int flags, test;
     struct audio_gains agains;
     struct audio_describe adescribe;
+    struct audio_limits alimit;
 
     if ((esd_audio_format & ESD_MASK_FUNC) == ESD_RECORD) {
 	fprintf(stderr, "No idea how to record audio on hp-ux boxen, FIXME\n");
@@ -50,7 +51,8 @@ int esd_audio_open()
     if ((esd_audio_format & ESD_MASK_BITS) == ESD_BITS16)
         flags = AUDIO_FORMAT_LINEAR16BIT;
     else
-	flags = AUDIO_FORMAT_LINEAR8BIT; /* FIXME: is this right? */
+	flags = AUDIO_FORMAT_ULAW; /* FIXME: is this right? */
+    /* TODO: probably need a linear2ulaw before sending the mix to the audio device */
     if (ioctl(afd, AUDIO_SET_DATA_FORMAT, flags) == -1) {
 	perror("AUDIO_SET_DATA_FORMAT");
 	close(afd);
@@ -61,7 +63,7 @@ int esd_audio_open()
     if ((esd_audio_format & ESD_MASK_CHAN) == ESD_STEREO)
 	flags = 2;
     else
-	flags = 0;
+	flags = 1;
     if (ioctl(afd, AUDIO_SET_CHANNELS, flags) == -1) {
 	perror("AUDIO_SET_CHANNELS");
 	close(afd);
@@ -107,14 +109,41 @@ int esd_audio_open()
     agains.transmit_gain = adescribe.min_transmit_gain +
 	(adescribe.max_transmit_gain - adescribe.min_transmit_gain) *
 	gain / 256;
-    
+
+#if 0    
     if (ioctl(afd, AUDIO_SET_GAINS, &agains) == -1) {
 	perror("AUDIO_SET_GAINS");
 	close(afd);
 	esd_audio_fd = -1;
 	return -1;
     }
+#else
+    if (ioctl(afd, AUDIO_SET_GAINS, AUDIO_MAX_GAIN)) {
+	perror("AUDIO_SET_GAINS");
+	close(afd);
+	esd_audio_fd = -1;
+	return -1;
+    }
+#endif
+
+    if (!ioctl(afd, AUDIO_GET_LIMITS, &alimit)) {
+	bsize = (0x0100 << 16);
+    } else {
+	bsize = alimit.max_transmit_buffer_size;
+    }
     
+    while (bsize) {
+	if (ioctl(afd, AUDIO_SET_TXBUFSIZE, bsize) != -1) {
+	    break;
+	}
+	bsize >>= 1;
+    }
+    if (!bsize) {
+	close(afd);
+	esd_audio_fd = -1;
+	return -1;
+    }
+
     if (ioctl(afd, AUDIO_SET_TXBUFSIZE, bsize) == -1) {
 	perror("AUDIO_SET_TXBUFSIZE");
 	close(afd);

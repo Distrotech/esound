@@ -236,14 +236,11 @@ int mix_players_16s( void *mixed, int length );
 
 /* MkLinux on the PowerMac is weird because it is a big-endian processor,
    but it uses little-endian sound streams */
+/* TODO: beef up mix.c, and add function pointers for the basic functions */
 #ifdef DRIVER_MKLINUX
-static __inline__ short MAYBE_SWAP(short x) {
-    return ((x&0xFF00)>>8) | ((x&0x00FF)<<8);
-}
+#define MAYBE_SWAP_FOR_MK(x) ( (((x)&0xFF00)>>8) | (((x)&0x00FF)<<8) )
 #else
-static __inline__ short MAYBE_SWAP(short x) {
-    return x;
-}
+#define MAYBE_SWAP_FOR_MK(x) (x)
 #endif  
 
 #endif /* #ifndef ESD_SERVER_H */

@@ -1,5 +1,9 @@
 1998-08-09  Yo Ric Dude  <ericmit@ix.netcom.com>
 
+	* audio_irix.c: Kimball Thurston - corrections for irix.
+
+	* audio_hpux.c: Dave Glowacki - corrections for hpux and {esdcat,rec,mon}
+
 	* Makefile.am, acconfig.h, audio.c, configure.in: Nick Lopez - added
 	support for the Advanced Linux Sound Architecture. It seems to work 
 	just fine on my SB16 with ALSA driver 0.1.4 and lib 0.0.9.

@@ -15,7 +15,7 @@ int main(int argc, char **argv)
     int mode = ESD_STREAM, func = ESD_PLAY ;
     esd_format_t format = 0;
 
-    FILE *source = stdin;
+    FILE *source = source;
     char *host = NULL;
     char *name = NULL;
     
@@ -37,15 +37,22 @@ int main(int argc, char **argv)
 	{
 	    arg++;
 	    rate = atoi( argv[ arg ] );
+	} else if (source) {
+	    printf("%s: ignoring extra file '%s'\n", argv[0], argv[arg]);
 	} else {
 	    name = argv[ arg ];
 	    if ( (source = fopen( name, "r" )) == NULL ) {
-		printf( "failed to open specified input file: %s", name );
+		printf( "couldn't open sound file: %s\n", argv[0], name );
 		return 1;
 	    }
 	}
     }
     
+    /* use stdin if no file specified */
+    if (!source) {
+	source = stdin;
+    }
+
     format = bits | channels | mode | func;
     printf( "opening socket, format = 0x%08x at %d Hz\n", 
 	    format, rate );

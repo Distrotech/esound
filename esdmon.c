@@ -14,7 +14,7 @@ int main(int argc, char **argv)
     int mode = ESD_STREAM, func = ESD_PLAY ;
     esd_format_t format = 0;
 
-    FILE *target = stdout;
+    FILE *target = NULL;
     char *host = NULL;
     char *name = NULL;
     
@@ -36,9 +36,18 @@ int main(int argc, char **argv)
 	{
 	    arg++;
 	    rate = atoi( argv[ arg ] );
+	} else if (target) {
+	    printf("%s: ignoring extra file '%s'\n", argv[0], argv[arg]);
 	} else {
 	    target = fopen( argv[arg], "w" );
+	    if (!target) {
+		printf("%s: couldn't write to '%s'\n", argv[0], argv[arg]);
+	    }
 	}
+    }
+
+    if ( !target ) {
+	target = stdout;
     }
     
     format = bits | channels | mode | func;

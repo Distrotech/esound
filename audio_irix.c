@@ -1,12 +1,18 @@
 /*
- * Again, completely untested... Use at your own risk =)
- *   code's by Karl Anders Oygard
+ * Audio code using SGI's dmedia library
+ * - original code by Karl Anders Oygard
+ * - recording support added by Kimball Thurston 7/22/98
+ *
+ * Currently the code is implemented using SGI's old library interface
+ * ( 5.X and before ). This is still supported under at least 6.3 and 6.4
+ * It is unknown how long they will continue to support this API...
  */
 
 #include <assert.h>
 #include <dmedia/audio.h>
 
-ALport audioport;
+ALport outaudioport;
+ALport inaudioport;
 
 #define ARCH_esd_audio_open
 int esd_audio_open()
@@ -15,10 +21,13 @@ int esd_audio_open()
     audioconfig = ALnewconfig();
   
     if (!audioconfig) {
+	printf( "Couldn't initialize new audio config\n" );
 	esd_audio_fd = -1;
 	return esd_audio_fd;
     } else {
-	long pvbuf[] = { AL_OUTPUT_COUNT, 0, AL_MONITOR_CTL, 0, AL_OUTPUT_RATE, 0};
+	long pvbuf[] = { AL_OUTPUT_COUNT, 0, 
+			 AL_MONITOR_CTL, 0, 
+			 AL_OUTPUT_RATE, 0 };
     
 	if (ALgetparams(AL_DEFAULT_DEVICE, pvbuf, 6) < 0)
 	    if (oserror() == AL_BAD_DEVICE_ACCESS) {
@@ -48,8 +57,8 @@ int esd_audio_open()
 
 	ALsetqueuesize(audioconfig, ESD_BUF_SIZE * 2);
     
-	audioport = ALopenport("esd", "w", audioconfig);
-	if (audioport == (ALport) 0) {
+	outaudioport = ALopenport("esd", "w", audioconfig);
+	if (outaudioport == (ALport) 0) {
 	    switch (oserror()) {
 	    case AL_BAD_NO_PORTS:
 		printf( "system is out of ports\n");
@@ -73,33 +82,79 @@ int esd_audio_open()
 	    esd_audio_fd = -1;
 	    return esd_audio_fd;
 	}
-	ALsetfillpoint(audioport, ESD_BUF_SIZE);
-    }
+	ALsetfillpoint(outaudioport, ESD_BUF_SIZE);
 
-    esd_audio_fd = ALgetfd(audioport);
+	esd_audio_fd = ALgetfd(outaudioport);
+
+	/*
+	 * If we are recording, open a second port to read from
+	 * and return that fd instead
+	 */
+	if ( (esd_audio_format & ESD_MASK_FUNC) == ESD_RECORD ) {
+	    inaudioport = ALopenport("esd", "r", audioconfig);
+	    if (inaudioport == (ALport) 0) {
+		switch (oserror()) {
+		case AL_BAD_NO_PORTS:
+		    printf( "system is out of ports\n");
+		    esd_audio_fd = -1;
+		    return esd_audio_fd;
+		    break;
+	
+		case AL_BAD_DEVICE_ACCESS:
+		    printf("couldn't access audio device\n");
+		    esd_audio_fd = -1;
+		    return esd_audio_fd;
+		    break;
+	
+		case AL_BAD_OUT_OF_MEM:
+		    printf("out of memory\n");
+		    esd_audio_fd = -1;
+		    return esd_audio_fd;
+		    break;
+		default:
+		    printf( "Unknown error opening port\n" );
+		}
+				/* don't know how we got here, but it must be bad */
+		esd_audio_fd = -1;
+		return esd_audio_fd;
+	    }
+	    ALsetfillpoint(inaudioport, ESD_BUF_SIZE);
+
+	    esd_audio_fd = ALgetfd(inaudioport);
+	}
+
+    }
     return esd_audio_fd;
 }
 
 #define ARCH_esd_audio_close
 void esd_audio_close()
 {
+    /*
+     * I guess this chunk of code is meant to make sure that
+     * everything that was sent to the output got written
+     * - let's leave that in for now, but it could cause a
+     * delay when the user hits stop
+     * -KDT
+     */
     if (esd_audio_fd >= 0) {
 	fd_set write_fds;
 	FD_ZERO(&write_fds);
 	FD_SET(esd_audio_fd, &write_fds);	
     
-	ALsetfillpoint(audioport, ESD_BUF_SIZE * 2);
+	ALsetfillpoint(outaudioport, ESD_BUF_SIZE * 2);
 	select(esd_audio_fd + 1, NULL, &write_fds, NULL, NULL);
     }
     
-    ALcloseport(audioport);
+    ALcloseport(outaudioport);
+    ALcloseport(inaudioport);
 }
 
 #define ARCH_esd_audio_write
 int esd_audio_write(void *buffer, int buf_size)
 {
-    if (ALwritesamps(audioport, buffer, buf_size / 2) == 0) {
-	ALsetfillpoint(audioport, ESD_BUF_SIZE);
+    if (ALwritesamps(outaudioport, buffer, buf_size / 2) == 0) {
+	ALsetfillpoint(outaudioport, ESD_BUF_SIZE);
 	return buf_size;
     }
     else
@@ -109,8 +164,8 @@ int esd_audio_write(void *buffer, int buf_size)
 #define ARCH_esd_audio_read
 int esd_audio_read(void *buffer, int buf_size)
 {
-    if (ALreadsamps(audioport, buffer, buf_size / 2) == 0) {
-	ALsetfillpoint(audioport, ESD_BUF_SIZE);
+    if (ALreadsamps(inaudioport, buffer, buf_size / 2) == 0) {
+	ALsetfillpoint(inaudioport, ESD_BUF_SIZE);
 	return buf_size;
     }
     else

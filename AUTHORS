@@ -30,7 +30,11 @@ Additional Credits:
 
     mackman, linuxppc patches.
 
-    Nick Lopez <kimo_sabe@usa.net>: ALSA port
+    Nick Lopez <kimo_sabe@usa.net>: ALSA port.
+
+    Dave Glowacki <dglo@SSEC.WISC.EDU>: audio_hpux patches.
+
+    Kimball Thurston: audio_irix patches.
 
     Your Name Here, simply submit a patch, or port an existing 
     application for use with this package.
