@@ -16,6 +16,7 @@ bin_SCRIPTS = \
 EXTRA_SCRIPTS = esddsp
 
 EXTRA_DIST = \
+	esd-config.in	\
         esd.conf        \
 	esd.m4 		\
 	TIPS 		\
