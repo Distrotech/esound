@@ -1,3 +1,11 @@
+1998-08-07  Yo Ric Dude  <ericmit@ix.netcom.com>
+
+	* esdlib.c: switched to memcpy instead of bcopy.
+	* audio_solaris.c: added a few more recognized devices.
+		thx to Tynian and Peter Asobeck for Solaris devices.
+	* audio_oss.c: powerpc patches courtesy of mackman.
+	* esdcat.c: forgot to check the FILE* returned from open, thx vendu.
+	
 1998-07-16  Yo Ric Dude  <ericmit@ix.netcom.com>
 
 	* esd-server.h, proto.c, samples.c:

@@ -39,7 +39,10 @@ int main(int argc, char **argv)
 	    rate = atoi( argv[ arg ] );
 	} else {
 	    name = argv[ arg ];
-	    source = fopen( name, "r" );
+	    if ( (source = fopen( name, "r" )) == NULL ) {
+		printf( "failed to open specified input file: %s", name );
+		return 1;
+	    }
 	}
     }
     

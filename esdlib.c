@@ -183,8 +183,7 @@ int esd_open_sound( char *host )
 		     connect_host);
 	    return(-1);
         }
-	/* TODO: is bcopy portable? maybe memcpy is more appropriate */
-	bcopy( he->h_addr, (struct in_addr *) &socket_addr.sin_addr,
+	memcpy( (struct in_addr *) &socket_addr.sin_addr, he->h_addr,
 	       sizeof( struct in_addr ) );
 
 	/* get port */

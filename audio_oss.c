@@ -8,6 +8,11 @@
 #  endif
 #endif
 
+/* FreeBSD uses a different identifier? what other BSDs? */
+#ifdef FREEBSD
+#define SNDCTL_DSP_SETDUPLEX DSP_CAP_DUPLEX
+#endif
+
 #define ARCH_esd_audio_open
 int esd_audio_open()
 {
@@ -34,6 +39,7 @@ int esd_audio_open()
     }
 
     /* set the sound driver fragment size and number */
+#if !defined(__powerpc__) /* does not exist on powerpc */
     /* fragment = max_buffers << 16 + log2(buffer_size), (256 16) */
     value = test = ( 0x0100 << 16 ) + 0x0008;
     if (ioctl(afd, SNDCTL_DSP_SETFRAGMENT, &test) == -1)
@@ -50,10 +56,17 @@ int esd_audio_open()
         esd_audio_fd = -1;
         return( -1 );
     }
+#endif /* #if !defined(__powerpc__) */
 
     /* set the sound driver audio format for playback */
+#if defined(__powerpc__)
+    value = test = ( (esd_audio_format & ESD_MASK_BITS) == ESD_BITS16 )
+        ? /* 16 bit */ AFMT_S16_NE : /* 8 bit */ AFMT_U8;
+#else /* #if !defined(__powerpc__) */
     value = test = ( (esd_audio_format & ESD_MASK_BITS) == ESD_BITS16 )
         ? /* 16 bit */ AFMT_S16_LE : /* 8 bit */ AFMT_U8;
+#endif /* #if !defined(__powerpc__) */
+
     if (ioctl(afd, SNDCTL_DSP_SETFMT, &test) == -1)
     {   /* Fatal error */
         perror("SNDCTL_DSP_SETFMT");
