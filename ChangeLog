@@ -1,3 +1,7 @@
+1999-01-25  Yo Ric Dude  <ericmit@ix.netcom.com>
+
+	* mix.c, proto.c: volume control wired into the mix functions.
+
 1999-01-24  Yo Ric Dude  <ericmit@ix.netcom.com>
 
 	* filter.c, players.c: fix filters to work with the translation

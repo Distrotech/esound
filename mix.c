@@ -25,6 +25,11 @@ int mix_from_mono_8u( void *dest_buf, unsigned int dest_len,
 		      int dest_rate, esd_format_t dest_format, 
 		      unsigned char *source_data_uc, int src_len, int src_rate );
 
+int mix_mono_8u_to_stereo_32s_sv( esd_player_t *player, int length );
+int mix_stereo_8u_to_stereo_32s_sv( esd_player_t *player, int length );
+int mix_mono_16s_to_stereo_32s_sv( esd_player_t *player, int length );
+int mix_stereo_16s_to_stereo_32s_sv( esd_player_t *player, int length );
+
 int mix_mono_8u_to_stereo_32s( esd_player_t *player, int length );
 int mix_stereo_8u_to_stereo_32s( esd_player_t *player, int length );
 int mix_mono_16s_to_stereo_32s( esd_player_t *player, int length );
@@ -42,16 +47,34 @@ mix_func_t *get_mix_func( esd_player_t *player )
     {
     case ESD_BITS8:
 	if ( ( player->format & ESD_MASK_CHAN ) == ESD_MONO )
-	    return mix_mono_8u_to_stereo_32s;
+	    if ( ( player->left_vol_scale == ESD_VOLUME_BASE )
+		 && ( player->right_vol_scale == ESD_VOLUME_BASE ) )
+		return mix_mono_8u_to_stereo_32s_sv;
+	    else
+		return mix_mono_8u_to_stereo_32s;
 	else if ( ( player->format & ESD_MASK_CHAN ) == ESD_STEREO )
-	    return mix_stereo_8u_to_stereo_32s;
+	    if ( ( player->left_vol_scale == ESD_VOLUME_BASE )
+		 && ( player->right_vol_scale == ESD_VOLUME_BASE ) )
+		return mix_stereo_8u_to_stereo_32s_sv;
+	    else
+		return mix_stereo_8u_to_stereo_32s;
 	else
 	    return NULL;
     case ESD_BITS16:
 	if ( ( player->format & ESD_MASK_CHAN ) == ESD_MONO )
-	    return mix_mono_16s_to_stereo_32s;
+	    if ( ( player->left_vol_scale == ESD_VOLUME_BASE )
+		 && ( player->right_vol_scale == ESD_VOLUME_BASE ) )
+		return mix_mono_16s_to_stereo_32s_sv;
+	    else
+		return mix_mono_16s_to_stereo_32s;
 	else if ( ( player->format & ESD_MASK_CHAN ) == ESD_STEREO )
-	    return mix_stereo_16s_to_stereo_32s;
+	    if ( ( player->left_vol_scale == ESD_VOLUME_BASE )
+		 && ( player->right_vol_scale == ESD_VOLUME_BASE ) )
+		return mix_stereo_16s_to_stereo_32s_sv;
+	    else {
+printf( "mix_stereo_16s_to_stereo_32s\n" );
+		return mix_stereo_16s_to_stereo_32s;
+	    }
 	else
 	    return NULL;
     default:
@@ -555,7 +578,7 @@ int mix_from_mono_8u( void *dest_buf, unsigned int dest_len,
 /*******************************************************************/
 /* takes the input player, and mixes to 16 bit signed waveform */
 
-int mix_mono_8u_to_stereo_32s( esd_player_t *player, int length )
+int mix_mono_8u_to_stereo_32s_sv( esd_player_t *player, int length )
 {
     int rd_dat = 0;
     unsigned int wr_dat=0;
@@ -580,7 +603,7 @@ int mix_mono_8u_to_stereo_32s( esd_player_t *player, int length )
     return wr_dat * sizeof(signed short);
 }
 
-int mix_stereo_8u_to_stereo_32s( esd_player_t *player, int length )
+int mix_stereo_8u_to_stereo_32s_sv( esd_player_t *player, int length )
 {
     int rd_dat = 0;
     unsigned int wr_dat=0;
@@ -612,7 +635,7 @@ int mix_stereo_8u_to_stereo_32s( esd_player_t *player, int length )
     return wr_dat * sizeof(signed short);
 }    
 
-int mix_mono_16s_to_stereo_32s( esd_player_t *player, int length )
+int mix_mono_16s_to_stereo_32s_sv( esd_player_t *player, int length )
 {
     int rd_dat = 0;
     unsigned int wr_dat=0;
@@ -636,7 +659,7 @@ int mix_mono_16s_to_stereo_32s( esd_player_t *player, int length )
     return wr_dat * sizeof(signed short);
 }	
 
-int mix_stereo_16s_to_stereo_32s( esd_player_t *player, int length )
+int mix_stereo_16s_to_stereo_32s_sv( esd_player_t *player, int length )
 {
     int rd_dat = 0;
     unsigned int wr_dat=0;
@@ -659,6 +682,147 @@ int mix_stereo_16s_to_stereo_32s( esd_player_t *player, int length )
 	{
 	    rd_dat = wr_dat * player->rate / esd_audio_rate;
 	    sample = source_data_ss[ rd_dat++ ];
+	    mixed_buffer[ wr_dat++ ] += sample;
+	}
+    }
+ 
+    return wr_dat * sizeof(signed short);
+}
+
+/*******************************************************************/
+/* take input player, mix to 16 bit signed waveform, volume control */
+
+int mix_mono_8u_to_stereo_32s( esd_player_t *player, int length )
+{
+    int rd_dat = 0;
+    unsigned int wr_dat=0;
+    signed short sample;
+    register unsigned char *source_data_uc 
+	= (unsigned char *) player->data_buffer;
+
+    ESDBG_MIXER( printf( "mixing mono 8u to stereo 32s\n" ); );
+
+    while ( wr_dat < length/sizeof(signed short) )
+    {
+	rd_dat = wr_dat * player->rate / esd_audio_rate;
+	rd_dat /= 2;	/* adjust for mono */
+	
+	sample = source_data_uc[ rd_dat++ ];
+	sample -= 127; sample *= 256;
+	
+	sample = sample * player->left_vol_scale / ESD_VOLUME_BASE;
+	sample = sample * player->right_vol_scale / ESD_VOLUME_BASE;
+
+	mixed_buffer[ wr_dat++ ] += sample;
+	mixed_buffer[ wr_dat++ ] += sample;
+    }
+    
+    return wr_dat * sizeof(signed short);
+}
+
+int mix_stereo_8u_to_stereo_32s( esd_player_t *player, int length )
+{
+    int rd_dat = 0;
+    unsigned int wr_dat=0;
+    signed short sample;
+    register unsigned char *source_data_uc 
+	= (unsigned char *) player->data_buffer;
+
+    ESDBG_MIXER( printf( "mixing stereo 8u to stereo 32s\n" ); );
+
+    if ( player->rate == esd_audio_rate ) {
+	while ( wr_dat < length/sizeof(signed short) )
+	{
+	    sample = ( source_data_uc[ wr_dat ] - 127 ) * 256;
+	    sample = sample * player->left_vol_scale / ESD_VOLUME_BASE;
+	    mixed_buffer[ wr_dat++ ] += sample;
+
+	    sample = ( source_data_uc[ wr_dat ] - 127 ) * 256;
+	    sample = sample * player->right_vol_scale / ESD_VOLUME_BASE;
+	    mixed_buffer[ wr_dat++ ] += sample;
+	}
+    } else {
+	while ( wr_dat < length/sizeof(signed short) )
+	{
+	    rd_dat = wr_dat * player->rate / esd_audio_rate;
+	    if ( rd_dat % 2 ) rd_dat++;
+
+	    sample = source_data_uc[ rd_dat++ ];
+	    sample -= 127; sample *= 256;
+	    sample = sample * player->left_vol_scale / ESD_VOLUME_BASE;
+	    mixed_buffer[ wr_dat++ ] += sample;
+
+	    sample = source_data_uc[ rd_dat++ ];
+	    sample -= 127; sample *= 256;
+	    sample = sample * player->right_vol_scale / ESD_VOLUME_BASE;
+	    mixed_buffer[ wr_dat++ ] += sample;
+	}
+    }
+    
+    return wr_dat * sizeof(signed short);
+}    
+
+int mix_mono_16s_to_stereo_32s( esd_player_t *player, int length )
+{
+    int rd_dat = 0;
+    unsigned int wr_dat=0;
+    signed short sample;
+    register signed short *source_data_ss
+	= (signed short *) player->data_buffer;
+
+    ESDBG_MIXER( printf( "mixing mono 16s to stereo 32s\n" ); );
+
+    /* mix mono, 16 bit sound source to stereo, 16 bit */
+    while ( wr_dat < length/sizeof(signed short) )
+    {
+	rd_dat = wr_dat * player->rate / esd_audio_rate;
+	rd_dat /= 2;	/* adjust for mono */
+	
+	sample = source_data_ss[ rd_dat++ ];
+	
+	mixed_buffer[ wr_dat++ ] 
+	    += sample * player->left_vol_scale / ESD_VOLUME_BASE;
+	mixed_buffer[ wr_dat++ ] 
+	    += sample * player->right_vol_scale / ESD_VOLUME_BASE;
+    }
+    return wr_dat * sizeof(signed short);
+}	
+
+int mix_stereo_16s_to_stereo_32s( esd_player_t *player, int length )
+{
+    int rd_dat = 0;
+    unsigned int wr_dat=0;
+    signed short sample;
+    register signed short *source_data_ss
+	= (signed short *) player->data_buffer;
+
+    ESDBG_MIXER( printf( "mixing stereo 16s to stereo 32s\n" ); );
+
+    if ( player->rate == esd_audio_rate ) {
+	/* optimize for simple increment by one and add loop */
+	while ( wr_dat < length/sizeof(signed short) )
+	{
+	    sample = source_data_ss[ wr_dat ];
+	    sample = sample * player->left_vol_scale / ESD_VOLUME_BASE;
+	    mixed_buffer[ wr_dat++ ] += sample;
+
+	    sample = source_data_ss[ wr_dat ];
+	    sample = sample * player->right_vol_scale / ESD_VOLUME_BASE;
+	    mixed_buffer[ wr_dat++ ] += sample;
+	}
+    } else {
+	/* non integral multiple of sample rates, do it the hard way */
+	while ( wr_dat < length/sizeof(signed short) )
+	{
+	    rd_dat = wr_dat * player->rate / esd_audio_rate;
+	    if ( rd_dat % 2 ) rd_dat++;
+
+	    sample = source_data_ss[ rd_dat++ ];
+	    sample = sample * player->left_vol_scale / ESD_VOLUME_BASE;
+	    mixed_buffer[ wr_dat++ ] += sample;
+
+	    sample = source_data_ss[ rd_dat++ ];
+	    sample = sample * player->right_vol_scale / ESD_VOLUME_BASE;
 	    mixed_buffer[ wr_dat++ ] += sample;
 	}
     }

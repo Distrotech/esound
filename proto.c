@@ -683,6 +683,7 @@ int esd_proto_stream_pan( esd_client_t *client )
 	{
 	    player->left_vol_scale = left;
 	    player->right_vol_scale = right;
+	    player->mix_func = get_mix_func( player );
 	    ok = 1;
 	    break;
 	}
