@@ -1,3 +1,8 @@
+1998-10-17  Raja R Harinath  <harinath@cs.umn.edu>
+
+	* configure.in (nanosleep): Make this work on Solaris.
+	From Brandon S. Allbery.
+
 1998-10-17  Yo Ric Dude  <ricdude@ix.netcom.com>
 
 	* esddsp.c: added Yosh's slick trick for transparently
@@ -515,4 +520,3 @@ Sat Apr  4 19:57:07 1998  Yo 'Ric Dude  <ricdude@piranha>
 	* esd.h, esdmon.c, esdsample.c, samples.c, audio.c, clients.c,
 	esd.c, esdcat.c, esdlib.c, esdlock.c, esdrec.c, esdunlock.c,
 	mix.c, players.c: Initial revision
-
