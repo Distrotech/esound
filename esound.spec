@@ -53,7 +53,7 @@ make prefix=$RPM_BUILD_ROOT%{prefix} install
 %postun -p /sbin/ldconfig
 
 %clean
-#rm -rf $RPM_BUILD_ROOT
+rm -rf $RPM_BUILD_ROOT
 
 %files
 %defattr(-, root, root)
