@@ -36,6 +36,7 @@ int esd_audio_open()
         mode = O_RDWR;
 
     mode |= O_NONBLOCK;
+
     /* open the sound device */
     device = esd_audio_device ? esd_audio_device : "/dev/dsp";
     if ((afd = open(device, mode, 0)) == -1)
@@ -43,6 +44,10 @@ int esd_audio_open()
         perror(device);
         return( -2 );
     }
+
+    mode = fcntl(afd, F_GETFL);
+    mode &= ~O_NONBLOCK;
+    fcntl(afd, F_SETFL);
 
     /* TODO: check that this is allowable */
     /* set for full duplex operation, if recording */
