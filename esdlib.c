@@ -152,12 +152,11 @@ int esd_get_latency(int esd)
  **/
 int esd_send_auth( int sock )
 {
-    int auth_fd = -1, i = 0;
+    int auth_fd = -1;
     int endian = ESD_ENDIAN_KEY;
     int reply;
     char *auth_filename = 0, auth_key[ESD_KEY_LEN];
     char *home = NULL;
-    char tumbler = '\0';
     int namelen, retval;
     void (*phandler)(int);
   
