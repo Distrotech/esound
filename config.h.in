@@ -1,0 +1,39 @@
+/* config.h.in.  Generated automatically from configure.in by autoheader.  */
+
+#undef PACKAGE
+#undef VERSION
+#undef DRIVER_OSS
+#undef DRIVER_AIX
+#undef DRIVER_IRIX
+#undef DRIVER_HPUX
+#undef DRIVER_SOLARIS
+
+/* Define if you have the <dmedia/audio.h> header file.  */
+#undef HAVE_DMEDIA_AUDIO_H
+
+/* Define if you have the <machine/soundcard.h> header file.  */
+#undef HAVE_MACHINE_SOUNDCARD_H
+
+/* Define if you have the <sun/audioio.h> header file.  */
+#undef HAVE_SUN_AUDIOIO_H
+
+/* Define if you have the <sys/audio.h> header file.  */
+#undef HAVE_SYS_AUDIO_H
+
+/* Define if you have the <sys/audio.io.h> header file.  */
+#undef HAVE_SYS_AUDIO_IO_H
+
+/* Define if you have the <sys/audioio.h> header file.  */
+#undef HAVE_SYS_AUDIOIO_H
+
+/* Define if you have the <sys/soundcard.h> header file.  */
+#undef HAVE_SYS_SOUNDCARD_H
+
+/* Define if you have the nsl library (-lnsl).  */
+#undef HAVE_LIBNSL
+
+/* Define if you have the resolv library (-lresolv).  */
+#undef HAVE_LIBRESOLV
+
+/* Define if you have the socket library (-lsocket).  */
+#undef HAVE_LIBSOCKET
