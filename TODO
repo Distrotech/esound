@@ -106,3 +106,5 @@ sample_size is a long, and is not 64 bit clean (reads an int), but longs on
 64 bit arch's are bigger than 32 bit arch's. make it an int, 
 "32 bits should be enough for everyone"  this will change the protocol
 signature, save it for a little while.
+
+why does getid hang the server??? when the name doesn't exist? wtf???

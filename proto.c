@@ -382,6 +382,7 @@ int esd_proto_sample_getid(esd_client_t *client)
     while(sample) {
 	if(!strcmp(sample->name, namebuf))
 	    break;
+	sample = sample->next;
     }
 
     if(sample)

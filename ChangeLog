@@ -1,3 +1,8 @@
+1998-10-13  Yo Ric Dude  <ricdude@ix.netcom.com>
+
+	* esdlib.c, proto.c: trap for NULL name sent to sample_getid(),
+ 	and check for sample names beyond the head of the list.
+
 Mon Oct 12 23:12:03 CDT 1998 Frank Belew <frb@umr.edu>
 
 	* esd.h: removed anything resembling a socket header

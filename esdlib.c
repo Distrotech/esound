@@ -518,7 +518,13 @@ int esd_sample_getid( int esd, const char *name)
 
     if ( write( esd, &proto, sizeof(proto) ) != sizeof(proto) )
 	return -1;
-    strncpy(namebuf, name, ESD_NAME_MAX); namebuf[ESD_NAME_MAX - 1] = '\0';
+
+    /* prepare the name buffer */
+    if ( name )
+	strncpy( namebuf, name, ESD_NAME_MAX );
+    else
+	namebuf[ 0 ] = '\0';
+
     if ( write( esd, namebuf, ESD_NAME_MAX ) != ESD_NAME_MAX )
 	return -1;
 
