@@ -230,7 +230,9 @@ struct stat dir_stats;
 #endif
 
   if (mkdir(ESD_UNIX_SOCKET_DIR, ESD_UNIX_SOCKET_DIR_MODE) == 0) {
-    chmod(ESD_UNIX_SOCKET_DIR, ESD_UNIX_SOCKET_DIR_MODE);
+    if (chmod(ESD_UNIX_SOCKET_DIR, ESD_UNIX_SOCKET_DIR_MODE) != 0) {
+      return -1;
+    }
     return 0;
   }
   /* If mkdir failed with EEXIST, test if it is a directory with

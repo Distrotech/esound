@@ -436,7 +436,7 @@ unlink (const char *filename)
   if (!strcmp (filename, "/tmp/X11Amp_CTRL") && (num = getenv (ENVSET)))
     {
       char buf[PATH_MAX] = "/tmp/X11Amp_CTRL";
-      strcat (buf, num);
+      strncat (buf, num, (PATH_MAX - strlen(buf) - 1));
       return (*func) (buf); 
     }
   else
@@ -458,9 +458,9 @@ sockaddr_mangle (sa_func_t func, int fd, struct sockaddr *addr, int len)
 
       struct sockaddr_un *new_addr = malloc (len);
 
-      strcat (buf, num);
+      strncat (buf, num, (PATH_MAX - strlen(buf) - 1));
       memcpy (new_addr, addr, len);
-      strcpy (new_addr->sun_path, buf);
+      strncpy (new_addr->sun_path, buf, strlen(new_addr->sun_path));
 
       ret = (*func) (fd, (struct sockaddr *) new_addr, len);
 

@@ -137,7 +137,7 @@ int main(int argc, char **argv)
 
 	printf( "sample <%d> uploaded: %s\n", sample_id, filename );
     } else if (cache_mode == 2) {
-	strcpy(filename, name);
+	strncpy( filename, name, ESD_NAME_MAX );
     }
 
     reget_sample_id = esd_sample_getid( sock, filename );

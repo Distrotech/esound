@@ -4,7 +4,8 @@
 
 /*******************************************************************/
 /* globals */
-esd_player_t *esd_players_list = NULL;
+
+esd_player_t *esd_players_list = NULL; 
 esd_player_t *esd_recorder_list = NULL;
 esd_player_t *esd_monitor_list = NULL;
 
