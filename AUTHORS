@@ -57,6 +57,8 @@ Additional Credits:
 
     Miodrag Vallat: unnecessary fsync() cleanup, rounding patch.
 
+    Bob Bell <bobbell@zk3.dec.com> is the man behind audio_osf.c
+
     A whole list of people in the ChangeLog, who fail to appear here.
 
     The masses of "early adopters" who beat the snot out of esound
