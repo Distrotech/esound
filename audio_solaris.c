@@ -193,13 +193,17 @@ int esd_audio_open()
 
     /* SUNW,CS4231 and compatible drivers */
     {
-	int gain = 64;	/* Range: 0 - 255 */
+        /* Volume, balance and output device should be controlled by
+	   an external program - that way the user can his preferences
+	   for all players */
+	/* int gain = 64;	/* Range: 0 - 255 */
 	int port;
 	int bsize = 8180;
 	audio_info_t ainfo;
       
 	if ( esd_audio_device == NULL )
-	    port = AUDIO_SPEAKER;
+	    /* Don't change the output device unless specificaly requested */
+	    port = 0;
 	else if ( !strcmp( esd_audio_device, "lineout" ) )
 	    port = AUDIO_LINE_OUT;
 	else if ( !strcmp( esd_audio_device, "speaker" ) )
@@ -228,9 +232,10 @@ int esd_audio_open()
 	    ainfo.play.precision = 8;
       
 	ainfo.play.encoding = AUDIO_ENCODING_LINEAR;
-	ainfo.play.gain = gain;
-	ainfo.play.port = port;
-	ainfo.play.balance = AUDIO_MID_BALANCE;
+	/* ainfo.play.gain = gain; */
+	if(port)
+	    ainfo.play.port = port;
+	/* ainfo.play.balance = AUDIO_MID_BALANCE; */
 	ainfo.play.buffer_size = bsize;
 	ainfo.output_muted = 0;
       

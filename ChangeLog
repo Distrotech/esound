@@ -1,3 +1,10 @@
+2000-05-01  Drazen Kacar  <dave@srce.hr>
+
+	* audio_solaris.c: Don't set the output device, volume and
+	balance when opening audio device. Those should be configurable
+	by an external program and the values set that way preserved
+	as defaults for sunsequent playing. (bugs #2587 and #5682)
+
 2000-03-04  Yo Ric Dude  <ricdude@toad.net>
 
 	* esound.spec.in, configure.in: don't include processed sgml docs 
