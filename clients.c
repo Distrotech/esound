@@ -198,8 +198,6 @@ int get_new_clients( int listen )
     return 0;
 }
 
-extern void add_ice_fd (fd_set *rd_fds, int *max_fd);
-
 static int is_paused_here = 0;
 /*******************************************************************/
 /* blocks waiting for data from the listener, and client conns. */
@@ -228,9 +226,6 @@ int wait_for_clients_and_data( int listen )
 	/* next client */
 	client = client->next;
     }
-
-    /* add the ICE connection to the list */
-    add_ice_fd (&rd_fds, &max_fd);
 
     /* if we're doing something useful, make sure we return immediately */
     if ( esd_recorder || esd_playing_samples ) {

@@ -258,23 +258,19 @@ int esd_server_resume(void)
     return ok;
 }
 
-extern void session_init (char* argv0, char* id);
-extern void poll_ice_msgs(void);
-
-int esd_port = ESD_DEFAULT_PORT;
 /*******************************************************************/
 int main ( int argc, char *argv[] )
 {
     /***************************/
     /* Enlightened sound Daemon */
 
+    int esd_port = ESD_DEFAULT_PORT;
     int length = 0;
     int arg = 0;
 
     void *output_buffer = NULL;
 
     char *device = NULL;
-    char *id = NULL;
 
     /* begin test scaffolding parameters */
     /* int format = AFMT_U8; AFMT_S16_LE; */
@@ -334,10 +330,6 @@ int main ( int argc, char *argv[] )
 		}
 		fprintf( stderr, "- autostandby timeout: %d seconds\n", 
 			 esd_autostandby_secs );
-	    }
-	} else if ( !strcmp( argv[ arg ], "--sm-client-id" ) ) {
-	    if ( ++arg != argc ) {
-	        id = argv [ arg ];
 	    }
 #ifdef ESDBG
 	} else if ( !strcmp( argv[ arg ], "-vt" ) ) {
@@ -429,9 +421,6 @@ int main ( int argc, char *argv[] )
     /* pause the sound output */
     esd_audio_pause();
 
-    /* Inform gnome-session we are up and running */
-    session_init (argv[0], id);
-
     /* until we kill the daemon */
     while ( 1 )
     {
@@ -443,9 +432,6 @@ int main ( int argc, char *argv[] )
 
 	/* check for new protocol requests */
 	poll_client_requests();
-
-	/* check for new ICE messages from SM protocol. */
-	poll_ice_msgs();
 
 	/* mix new requests, and output to device */
 	refresh_mix_funcs(); /* TODO: set a flag to cue when to do this */
