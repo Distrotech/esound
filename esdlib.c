@@ -658,9 +658,9 @@ int esd_open_sound( const char *host )
 		char *cmd;
 
 		setsid();
-		cmd = malloc(sizeof("esd  -spawnfd 999999") + (esd_spawn_options?strlen(esd_spawn_options):0));
+		cmd = malloc(strlen(SERVERDIR"/esd  -spawnfd 999999") + (esd_spawn_options?strlen(esd_spawn_options):0));
 
-		sprintf(cmd, "esd %s -spawnfd %d", esd_spawn_options?esd_spawn_options:"", esd_pipe[1]);
+		sprintf(cmd, "%s/esd %s -spawnfd %d", SERVERDIR, esd_spawn_options?esd_spawn_options:"", esd_pipe[1]);
 
 		execl("/bin/sh", "/bin/sh", "-c", cmd, NULL);
 		perror("execl");

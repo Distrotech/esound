@@ -1,3 +1,14 @@
+2002-07-09  Brian Cameron  <Brian.Cameron@sun.com>
+
+	* configure.in: Added -with-esd-dir option.
+	* esound.pc.in: Added esd_serverdir
+	* Makefile.am:  ADD -DSERVERDIR to INCLUDES
+	* esdlib.c:     Call esd from SERVERDIR.  Replaced sizeof()
+                    call with strlen() which is more appropriate.
+	Allow users to specify the location of the esd executable.  This
+	is useful for setups which want to place the esd daemon in
+	libexec rather than bin.
+
 2002-06-19  Frederic Crozat  <fcrozat@mandrakesoft.com>
 
 	* configure.in: Release 0.2.28

@@ -214,6 +214,20 @@ else
    AC_DEFINE(DRIVER_NONE)
 fi
 
+dnl offer daemon in serverdir
+
+AC_ARG_WITH(esd-dir, [  --with-esd-dir=PATH     specify location of esound daemon ])
+
+if test "x$with_esd_dir" = "x" ; then
+  ESD_DIR='$(prefix)/bin'
+  ESD_PC_DIR='${prefix}/bin'
+else
+  ESD_DIR=$with_esd_dir
+  ESD_PC_DIR=$with_esd_dir
+fi
+AC_SUBST(ESD_DIR)
+AC_SUBST(ESD_PC_DIR)
+
 dnl make sure we have the library, -laudiofile
 
 build_esdplay=false

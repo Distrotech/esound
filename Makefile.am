@@ -3,7 +3,8 @@ SUBDIRS = docs
 
 SPEC_FILE = esound.spec
 
-INCLUDES = $(AUDIOFILE_CFLAGS) -DSYSCONFDIR=\"$(sysconfdir)\"
+INCLUDES = $(AUDIOFILE_CFLAGS) -DSYSCONFDIR=\"$(sysconfdir)\" \
+    -DSERVERDIR=\"$(ESD_DIR)\"
 
 if BUILD_ESDDSP
 ESDDSP = esddsp
@@ -60,8 +61,12 @@ libesddsp_la_SOURCES = \
 include_HEADERS = \
 	esd.h
 
+esddir = @ESD_DIR@
+
+esd_PROGRAMS = \
+	esd		
+
 bin_PROGRAMS = \
-	esd		\
 	esdcat		\
 	esdctl		\
 	esdfilt		\
