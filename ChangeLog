@@ -1,3 +1,8 @@
+2003-03-20  Frederic Crozat  <fcrozat@mandrakesoft.com>
+
+	* audio_alsa09.c: fix license, it is LGPL, not GPL (bug #108799).
+	(patch from Santiago Otero <siryurian@terra.es>)
+
 2003-02-24  Stanislav Brabec  <sbrabec@suse.cz>
 
 	* docs/esd.1.in, esd.c: Updated man page, typo fix.
