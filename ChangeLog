@@ -1,3 +1,8 @@
+1998-06-10  Yo Ric Dude  <ericmit@ix.netcom.com>
+
+	* samples.c, players.c, clients.c: fixed the perpetual looping
+	sample problem.  incremented version to 0.2.2 for possible release.
+
 1998-06-06  Yo Ric Dude  <ericmit@ix.netcom.com>
 
 	* samples.c, players.c, clients.c: rigged up the sample freeing

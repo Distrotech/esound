@@ -175,17 +175,25 @@ int stop_sample( int id )
 {
     esd_player_t *player = esd_players_list;
 
+    printf( "stopping sample (%d)\n", id );
+
     /* iterate until we hit a NULL */
     while ( player != NULL )
     {
+	printf( "checking player [0x%p], format = 0x%08x, id = %d\n",
+		player, player->format, player->source_id );
+
 	/* see if we hit the target sample, and it's really a sample */
-	if ( ( (player->format) & ESD_MASK_MODE == ESD_SAMPLE )
+	if ( ( ( (player->format) & ESD_MASK_MODE ) == ESD_SAMPLE )
 	     && ( player->source_id == id ) ) {
 
 	    /* remove the loop setting on the sample */
 	    player->format &= ~ESD_MASK_FUNC;
 	    player->format |= ESD_STOP;
 
+	    printf( "found sample (%d), prepared for removal - 0x%08x\n",
+		    id, player->format );
+	    
 	    return 1;
 	}
 

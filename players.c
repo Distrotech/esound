@@ -34,8 +34,9 @@ void free_player( esd_player_t *player )
     } else if ( ( player->format & ESD_MASK_MODE ) == ESD_SAMPLE ) {
 	sample = (esd_sample_t *) (player->parent);
 	sample->ref_count--;
-	printf( "free player: (%d, #%d) [0x%p]\n", 
-		player->source_id, sample->ref_count, player );
+	printf( "free player: (%d, #%d) [0x%p] ?%d\n", 
+		player->source_id, sample->ref_count, player,
+		sample->erase_when_done );
 
 	if ( sample->erase_when_done && !sample->ref_count ) {
 	    printf( "free_player: erasing sample (%d)\n", sample->sample_id );
@@ -143,6 +144,17 @@ int read_player( esd_player_t *player )
 
     case ESD_SAMPLE:
 
+	/* printf( "player [0x%p], pos = %d, format = 0x%08x\n", 
+		player, player->last_pos, player->format ); */
+	
+	/* only keep going if we didn't want to stop looping */
+	if ( ( player->last_pos ) == 0 &&
+	    ( ( ((esd_sample_t*)player->parent)->format & ESD_MASK_FUNC ) 
+	      == ESD_STOP ) ) 
+	{
+	    return -1;
+	}
+
 	/* copy the data from the sample to the player */
 	actual = ( ((esd_sample_t*)player->parent)->sample_length 
 		   - player->last_pos > player->buffer_length )
@@ -172,15 +184,19 @@ int read_player( esd_player_t *player )
 	    ? player->buffer_length - actual
 	    : ((esd_sample_t*)player->parent)->sample_length - player->last_pos;
 	if ( actual_2nd >= 0 ) {
-	    memcpy( player->data_buffer + actual, 
-		    ((esd_sample_t*)player->parent)->data_buffer 
-		    + player->last_pos, actual_2nd );
-	    player->last_pos += actual_2nd;
-	    actual += actual_2nd;
+	    /* only keep going if we didn't want to stop looping */
+	    if ( ( ((esd_sample_t*)player->parent)->format & ESD_MASK_FUNC )
+		 != ESD_STOP ) {
+		memcpy( player->data_buffer + actual, 
+			((esd_sample_t*)player->parent)->data_buffer 
+			+ player->last_pos, actual_2nd );
+		player->last_pos += actual_2nd;
+		actual += actual_2nd;
 
-	    /* make sure we're not at the end */
-	    if ( player->last_pos >= ((esd_sample_t*)player->parent)->sample_length ) {
-		player->last_pos = 0;
+		/* make sure we're not at the end */
+		if ( player->last_pos >= ((esd_sample_t*)player->parent)->sample_length ) {
+		    player->last_pos = 0;
+		}
 	    }
 	} else {
 	    /* something horrible has happened to the sample */
