@@ -80,7 +80,10 @@ EXTRA_esdplay_SOURCES = \
 
 LDADD = libesd.la -lm
 
-esdplay_LDADD = @LIBOBJS@ $(AF_LIB) $(LDADD)
+LIBOBJS = @LIBOBJS@
+
+esdctl_LDADD = $(LIBOBJS) $(LDADD)
+esdplay_LDADD = $(LIBOBJS) $(AF_LIB) $(LDADD)
 
 m4datadir = $(datadir)/aclocal
 m4data_DATA = esd.m4
