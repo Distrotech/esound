@@ -5,6 +5,7 @@
 #include <sys/stat.h>
 #include <sys/un.h>
 #include <errno.h>
+#include <signal.h>
 
 #ifndef HAVE_NANOSLEEP
 #include <sys/time.h>
@@ -47,6 +48,8 @@ int esd_on_autostandby = 0;	/* set when auto paused for auto reawaken */
 int esd_use_tcpip = 0;          /* use tcp/ip sockets instead of unix domain */
 int esd_terminate = 0;          /* terminate after the last client exits */
 int esd_public = 0;             /* allow connects from hosts other than localhost */
+int esd_spawnpid = 0;           /* The PID of the process that spawned us (for use by esdlib only) */
+
 /*******************************************************************/
 /* just to create the startup tones for the fun of it */
 void set_audio_buffer( void *buf, esd_format_t format,
@@ -471,6 +474,9 @@ int main ( int argc, char *argv[] )
 	    esd_public = 1;
 	} else if ( !strcmp( argv[ arg ], "-terminate" ) ) {
 	    esd_terminate = 1;
+	} else if ( !strcmp( argv[ arg ], "-spawnpid" ) ) {
+	    if ( ++arg < argc )
+		esd_spawnpid = atoi( argv[ arg ] );
 	} else if ( !strcmp( argv[ arg ], "-h" ) ) {
 	    fprintf( stderr, "Usage: esd [options]\n\n" );
 	    fprintf( stderr, "  -d DEVICE   force esd to use sound device DEVICE\n" );
@@ -524,7 +530,10 @@ int main ( int argc, char *argv[] )
   itmp = esd_audio_open();
   if (itmp == -2) { /* Special return value indicates open of device failed, don't bother
 		       trying */
-	exit (2);
+    if(esd_spawnpid)
+      kill(esd_spawnpid, SIGALRM); /* Startup failed */
+
+    exit (2);
   } else if ( itmp < 0 ) {
     fprintf(stderr, "Audio device open for 44.1Khz, stereo, 16bit failed\n"
 	    "Trying 44.1Khz, 8bit stereo.\n");
@@ -588,6 +597,9 @@ int main ( int argc, char *argv[] )
 			unlink(ESD_UNIX_SOCKET_NAME);
 			unlink(ESD_UNIX_SOCKET_DIR);
 		      }
+		    if(esd_spawnpid)
+		      kill(esd_spawnpid, SIGALRM); /* Startup failed */
+
 		    exit( 1 );
 		  }
 		}
@@ -630,6 +642,10 @@ int main ( int argc, char *argv[] )
 
     /* pause the sound output */
     esd_audio_pause();
+
+    /* Startup succeeded */
+    if(esd_spawnpid)
+      kill(esd_spawnpid, SIGUSR1);
 
     /* until we kill the daemon */
     while ( 1 )

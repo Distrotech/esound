@@ -557,6 +557,20 @@ esd_connect_unix(const char *host)
   return -1;
 }
 
+static int got_sigusr1 = 0, got_sigalrm = 0;
+static void
+esd_handle_sig(int signum)
+{
+  switch(signum) {
+  case SIGUSR1:
+    got_sigusr1++;
+    break;
+  case SIGALRM:
+    got_sigalrm++;
+    break;
+  }
+}
+
 /**
  * esd_open_sound: open a connection to ESD and get authorization
  * @host: Specifies hostname and port to connect to as "hostname:port"
@@ -606,11 +620,23 @@ int esd_open_sound( const char *host )
 
   /* Connections failed, period. Since nobody gave us a remote esd to use, let's try spawning one. */
   if(! host) {
-    int childpid;
+    int childpid, mypid;
+    struct sigaction sa, sa_orig;
+    struct sigaction sa_alarm, sa_orig_alarm;
 
     esd_config_read();
 
     if (esd_no_spawn) goto finish_connect;
+
+    /* All this hackery so we can stop thrashing around if esd startup fails */
+    mypid = getpid();
+    memset(&sa, '\0', sizeof(sa));
+    memset(&sa_alarm, '\0', sizeof(sa));
+    sa.sa_handler = esd_handle_sig;
+    sa_alarm.sa_handler = esd_handle_sig;
+    sigaction(SIGUSR1, &sa, &sa_orig);
+    alarm(0);
+    sigaction(SIGALRM, &sa_alarm, &sa_orig_alarm);
 
     childpid = fork();
     if(!childpid) {
@@ -622,7 +648,7 @@ int esd_open_sound( const char *host )
 	setsid();
 	cmd = malloc(sizeof("esd ") + esd_spawn_options?strlen(esd_spawn_options):0);
 
-	sprintf(cmd, "esd %s", esd_spawn_options?esd_spawn_options:"");
+	sprintf(cmd, "esd %s -spawnpid %d", esd_spawn_options?esd_spawn_options:"", mypid);
 
 	execl("/bin/sh", "/bin/sh", "-c", cmd, NULL);
 	perror("execl");
@@ -641,23 +667,21 @@ int esd_open_sound( const char *host )
      * dependent, so read from config file.
      */
     for(connect_count = 0; connect_count < esd_spawn_wait_ms; connect_count++) {
-#if defined(HAVE_NANOSLEEP) && !defined(HAVE_USLEEP)
-      struct timespec timewait;
-#endif
-    
-      socket_out = esd_connect_unix(host);
-      if (socket_out < 0)
-	socket_out = esd_connect_tcpip(host);
-      if (socket_out >= 0) break;
+      alarm(10);
+      pause(); /* Until we either get USR1 (esd startup failed), USR2 (esd startup OK), or ALRM (timeout) */
+      alarm(0);
 
-#if defined(HAVE_USLEEP)
-      usleep(1000);
-#elif defined(HAVE_NANOSLEEP)
-      timewait.tv_sec = 0;
-      timewait.tv_nsec = 1000000;
-      nanosleep(&timewait, NULL);
-#endif
+      if(got_sigusr1) {
+	socket_out = esd_connect_unix(host);
+	if (socket_out < 0)
+	  socket_out = esd_connect_tcpip(host);
+	if (socket_out >= 0) break;
+      } else if(got_sigalrm)
+	break;
     }
+
+    sigaction(SIGUSR1, &sa_orig, NULL);
+    sigaction(SIGALRM, &sa_orig_alarm, NULL);
   }
 
  finish_connect:
