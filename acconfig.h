@@ -18,6 +18,8 @@
 #undef ESDBG 
 
 #undef INADDR_LOOPBACK
+#undef ENABLE_IPV6
+#undef HAVE_INET_NTOP
 #undef HAVE_SUN_LEN
 
 /* Define this for AF_UNIX sockets support on OS/2 */

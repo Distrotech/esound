@@ -56,6 +56,9 @@ typedef struct esd_client {
   
     esd_proto_t request;	/* current request for this client */
     int fd;			/* the clients protocol stream */
+#if defined(ENABLE_IPV6)
+    struct sockaddr_in6 source6;
+#endif
     struct sockaddr_in source;	/* data maintained about source */
 
     int swap_byte_order;	/* for big/little endian compatibility */

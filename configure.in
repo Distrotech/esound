@@ -72,6 +72,48 @@ AC_TRY_COMPILE([
     [AC_DEFINE(INADDR_LOOPBACK, (u_int32_t)0x7f000001)])
     
 
+dnl ========================================================================
+dnl Begin IPv6 checks
+dnl ========================================================================
+AC_MSG_CHECKING([whether to enable ipv6])
+AC_ARG_ENABLE(ipv6, [  --enable-ipv6 enable IPv6 extensions], ,enable_ipv6=yes)
+
+if test $enable_ipv6 = yes; then
+  AC_TRY_COMPILE([
+    #include <sys/types.h>
+    #include <sys/socket.h>], [
+    socket(AF_INET6, SOCK_STREAM, 0)
+    ],
+    have_ipv6=yes,
+    have_ipv6=no
+  )
+  AC_MSG_RESULT($have_ipv6)
+
+  if test $have_ipv6=yes; then
+    have_getaddrinfo=no
+    AC_CHECK_FUNC(getaddrinfo, have_getaddrinfo=yes)
+    if test $have_getaddrinfo = no; then
+      for lib in bsd socket inet; do
+        AC_CHECK_LIB($lib,getaddrinfo,[LIBS="$LIBS -l$lib";have_getaddrinfo=yes;break])
+      done
+    fi
+
+    if test $have_getaddrinfo = yes; then
+      AC_DEFINE(ENABLE_IPV6)
+    fi
+
+
+    dnl Check for inet_ntop. We need it only for debugging
+    AC_CHECK_FUNC(inet_ntop, AC_DEFINE(HAVE_INET_NTOP))
+  fi
+else
+  AC_MSG_RESULT(no)
+fi
+
+dnl ========================================================================
+dnl End of IPv6 checks
+dnl ========================================================================
+
 dnl Check if SUN_LEN exists
 
 AC_TRY_LINK([

@@ -1,4 +1,5 @@
 #include "esd-server.h"
+#include <arpa/inet.h>
 #include <time.h>
 
 #ifdef HAVE_SYS_IOCTL_H
@@ -19,6 +20,9 @@ int deny_severity = LOG_WARNING;
 /*******************************************************************/
 /* globals */
 extern int esd_use_tcpip; 
+#if defined (ENABLE_IPV6)
+extern int esd_use_ipv6;
+#endif
 
 /* the list of the currently connected clients */
 esd_client_t *esd_clients_list;
@@ -42,6 +46,19 @@ void dump_clients()
     if ( !esdbg_trace ) return;
 
     while ( clients != NULL ) {
+#if defined (ENABLE_IPV6)
+     if ( esd_use_ipv6 ) {
+       char addrbuf[INET6_ADDRSTRLEN];
+       port = ntohs( clients->source6.sin6_port );
+#ifdef HAVE_INET_NTOP
+       addrbuf[0] = '\0';
+       if ( inet_ntop( AF_INET6, &(clients->source6.sin6_addr), addrbuf, sizeof(addrbuf) ))
+         printf( "Client from: %s/%d [%p]\n", addrbuf, port, clients );
+#endif
+     }
+     else
+#endif
+     {
 	port = ntohs( clients->source.sin_port );
 	addr = ntohl( clients->source.sin_addr.s_addr );
 
@@ -52,6 +69,7 @@ void dump_clients()
 		(unsigned int) addr % 256, port, clients );
 
 	clients = clients->next;
+     }
     }
     return;
 }
@@ -121,6 +139,10 @@ int get_new_clients( int listen )
 {
     int fd, nbl;
     struct sockaddr_in incoming;
+#if defined (ENABLE_IPV6)
+    struct sockaddr_in6 incoming6;
+    size_t size_in6 = sizeof(struct sockaddr_in6);
+#endif
     size_t size_in = sizeof(struct sockaddr_in);
     esd_client_t *new_client = NULL;
     
@@ -129,8 +151,26 @@ int get_new_clients( int listen )
 
     /* see who awakened us */
     do {
+#if defined (ENABLE_IPV6)
+      if ( esd_use_ipv6 ) {
+	char addrbuf[INET6_ADDRSTRLEN];
+
+	fd = accept( listen,(struct sockaddr *)&incoming6, &size_in6 );
+	if ( fd < 0 )
+                goto again;
+	port = ntohs( incoming6.sin6_port );
+#ifdef HAVE_INET_NTOP
+	addrbuf[0] = '\0';
+	if ( inet_ntop( AF_INET6, &(incoming6.sin6_addr), addrbuf, sizeof(addrbuf) ))
+	  ESDBG_TRACE( printf( "client from :%s/%d\n", addrbuf, port ); );
+#endif
+      }
+      else
+#endif
+      {
 	fd = accept( listen, (struct sockaddr*) &incoming, &size_in );
-	if ( fd > 0 ) {
+	if ( fd < 0 )
+		goto again;
 	    port = ntohs( incoming.sin_port );
 	    addr = ntohl( incoming.sin_addr.s_addr );
 
@@ -140,6 +180,7 @@ int get_new_clients( int listen )
 			(unsigned int) (addr >> 16) % 256, 
 			(unsigned int) (addr >> 8) % 256, 
 			(unsigned int) addr % 256, port ); );
+      }     
 
 #ifdef USE_LIBWRAP
 	    if (esd_use_tcpip)
@@ -191,11 +232,18 @@ int get_new_clients( int listen )
 	    new_client->state = ESD_NEEDS_REQDATA;
 	    new_client->request = ESD_PROTO_CONNECT;
 	    new_client->fd = fd;
-	    new_client->source = incoming; 
+#if defined (ENABLE_IPV6)
+	    if ( esd_use_ipv6 )
+		new_client->source6 = incoming6;
+	    else
+#endif
+		new_client->source = incoming; 
 	    new_client->proto_data_length = 0;
 	    
 	    add_new_client( new_client );
-	}
+again:
+           if( fd < 0 )
+               ESDBG_TRACE ( printf("Error encountered while accepting connection\n"));
     } while ( fd > 0 );
 
     return 0;

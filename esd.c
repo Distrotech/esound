@@ -60,6 +60,10 @@ int esd_public = 0;             /* allow connects from hosts other than localhos
 int esd_spawnpid = 0;           /* The PID of the process that spawned us (for use by esdlib only) */
 int esd_spawnfd = 0;           /* The PID of the process that spawned us (for use by esdlib only) */
 
+#if defined ENABLE_IPV6        
+int esd_use_ipv6 = 0;          /* We need it in accept () to know if we use 
+                                       AF_NET or AF_INET6*/   
+#endif
 static char *programname = NULL;
 
 /*******************************************************************/
@@ -319,17 +323,96 @@ int open_listen_socket(const char *hostname, int port )
 {
     /*********************/
     /* socket test setup */
+#if defined (ENABLE_IPV6)
+    struct addrinfo hints, *res, *result = NULL;
+#endif
     struct sockaddr_in socket_addr;
     struct sockaddr_un socket_unix;
     int socket_listen = -1;
     struct linger lin;
+    size_t socket_len;
+    struct sockaddr *saddr;
 
 	struct hostent *resolved;
 
 
     /* create the socket, and set for non-blocking */
-    if (esd_use_tcpip)
-      socket_listen=socket(AF_INET, SOCK_STREAM, 0);
+    if (esd_use_tcpip) {
+#if defined(ENABLE_IPV6)
+      if(have_ipv6()) {
+	memset(&hints, 0, sizeof(hints));
+	hints.ai_socktype = SOCK_STREAM;
+   
+	/* If host name is set then bind to its first address */
+	if (hostname) {
+		if (getaddrinfo(hostname, NULL, &hints, &result) != 0) {
+			fprintf (stderr,"Unable to resolve the host\n");
+			return (-1);
+		}
+
+		for (res = result; res; res = res->ai_next) 
+			if(res->ai_family != AF_INET || res->ai_family != AF_INET6)
+				break;
+
+		if(res->ai_family == AF_INET) {
+			((struct sockaddr_in *)res->ai_addr)->sin_port = htons(port);	
+			esd_use_ipv6 = 0;
+		}
+
+		if(res->ai_family == AF_INET6) {
+			((struct sockaddr_in6 *)res->ai_addr)->sin6_port = htons(port);
+			esd_use_ipv6 = 1;	
+		}
+
+		socket_listen = socket(res->ai_family, SOCK_STREAM, 0);
+		saddr = res->ai_addr;
+		socket_len = res->ai_addrlen;
+	}
+	else {
+		struct sockaddr_in6 socket6_addr;
+
+		memset(&socket6_addr, 0, sizeof(struct sockaddr_in6));
+		socket6_addr.sin6_family = AF_INET6;
+		socket6_addr.sin6_port = htons(port);
+
+		if (esd_public)
+			socket6_addr.sin6_addr = in6addr_any;
+		else
+			socket6_addr.sin6_addr = in6addr_loopback;
+
+		socket_listen = socket(AF_INET6, SOCK_STREAM, 0);
+		saddr = (struct sockaddr *)&socket6_addr;
+		socket_len = sizeof(socket6_addr);
+		esd_use_ipv6 = 1;
+	}
+      }
+      else
+#endif
+      {
+	  /* set the listening information */
+	memset(&socket_addr, 0, sizeof(struct sockaddr_in));
+	socket_addr.sin_family = AF_INET;
+	socket_addr.sin_port = htons( port );
+
+	/* if hostname is set, bind to its first address */
+	if (hostname)
+        {
+		if (!(resolved=gethostbyname2(hostname, AF_INET)))
+                {
+			herror(programname);
+			return -1;
+                }
+                memcpy(&(socket_addr.sin_addr), resolved->h_addr_list[0], resolved->h_length);
+	} else if (esd_public)
+		socket_addr.sin_addr.s_addr = htonl( INADDR_ANY );
+	else
+		socket_addr.sin_addr.s_addr = htonl( INADDR_LOOPBACK );
+
+	socket_listen = socket(AF_INET, SOCK_STREAM, 0);
+	saddr = (struct sockaddr *)&socket_addr;
+	socket_len = sizeof(socket_addr);
+      }
+    }
     else
     {
       if (safe_mksocketdir())
@@ -384,34 +467,14 @@ int open_listen_socket(const char *hostname, int port )
       /* if it fails, so what */
     }
 
-    if (esd_use_tcpip)
-    {
-      /* set the listening information */
-      memset(&socket_addr, 0, sizeof(struct sockaddr_in));
-      socket_addr.sin_family = AF_INET;
-      socket_addr.sin_port = htons( port );
-
-	/* if hostname is set, bind to its first address */
-	if (hostname)
-	{
-		if (!(resolved=gethostbyname2(hostname, AF_INET)))
-		{
-			herror(programname);
-			return -1;
-		}
-		memcpy(&(socket_addr.sin_addr), resolved->h_addr_list[0], resolved->h_length);
-	} else if (esd_public)
-		socket_addr.sin_addr.s_addr = htonl( INADDR_ANY );
-	else
-		socket_addr.sin_addr.s_addr = htonl( INADDR_LOOPBACK );
-
-      if ( bind( socket_listen,
-		(struct sockaddr *) &socket_addr,
-		sizeof(struct sockaddr_in) ) < 0 )
+    if ( esd_use_tcpip ) {
+      if ( bind( socket_listen, saddr, socket_len ) != 0 )
 	{
 	  fprintf(stderr,"Unable to bind port %d\n", port );
 	  exit(1);
 	}
+      if ( result )
+	  freeaddrinfo ( result );
     }
     else
     {

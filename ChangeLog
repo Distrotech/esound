@@ -1,3 +1,34 @@
+2003-07-05  Frederic Crozat <fcrozat@mandrakesoft.com>
+
+	IPv6 support (bug #109324), 
+	patch from Archana Shah  <archana.shah@wipro.com>
+
+	* configure.in: Added option for IPv6 support, and only
+	enabling IPv6 support if getaddrinfo() is available on
+	the system. Also checked for the existence of inet_ntop()
+	function.
+
+	* esd.h: Added prototype for function have_ipv6().
+
+	* esd-server.h: Changed the definition of structure
+	esd_client to include sockaddr_in6 variable.
+
+	* util.c: Included config.h for having definition of 
+	ENABLE_IPV6. Added definition of have_ipv6().
+
+	* esd.c: (open_listen_socket) Changed the code to create
+	and bind IPv6 socket if IPv6 support is there.
+
+	* esdlib.c: (esd_connect_tcpip) Changed the code so that it
+	can understand and parse "hostname:port" parameter
+	for IPv6 addresses as well.
+
+	* clients.c: Included header file <arpa/inet.h> for having
+	prototype of inet_ntop().
+	(get_new_clients) Modified to accept connections from IPv6 	
+	enabled clients also.
+	(dump_clients) Modified to handle IPv6 addresses too.
+
 2003-06-25  Thomas Vander Stichele <thomas at apestaart dot org>
 
         * autogen.sh: exit with error if any of the autotools fail so

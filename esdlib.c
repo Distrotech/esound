@@ -423,44 +423,131 @@ esd_connect_tcpip(const char *host)
     char default_host[] = "127.0.0.1";
     char connect_host[64];
     int port = ESD_DEFAULT_PORT;
-    unsigned int host_div = 0;
-    memset (&socket_addr, 0, sizeof (socket_addr));
-    memset (&he, 0, sizeof (he));
-    /* see if we have a remote speaker to play to */
-    espeaker = host;
-    if ( espeaker && *espeaker ) {
-	strncpy(connect_host, espeaker, sizeof(connect_host));
 
-	/* split the espeaker host into host:port */
-	host_div = strcspn( connect_host, ":" );
-	if(host_div > 0 && host_div < strlen(espeaker)) {
-	    connect_host[ host_div ] = '\0';
-	}
-	else if ( host_div == 0)
-		strcpy( connect_host, default_host );
+#if defined (ENABLE_IPV6)
+    if ( have_ipv6() ) {
+       int cnt, i; 
+       char *loc;
+       struct addrinfo hints, *result = NULL, *res;
 
-	connect_host[sizeof(connect_host) - 1] = '\0';
+       memset (&hints, 0, sizeof (hints));
+       hints.ai_socktype = SOCK_STREAM;
+       connect_host[0] = '\0';   
+
+       if ( host ) {
+         cnt = 0;
+         for ( i = 0; i < strlen (host); i++ )
+           if ( host[i] == ':' )
+             cnt++;
+
+         if ( cnt == 1 ) {
+           loc = strchr (host, ':');
+           *loc = '\0';
+           strcpy (connect_host, host);
+           port = atoi (loc + 1);
+         }
+         else {
+           if (( cnt != 0 ) && ((loc = strchr (host, ']')) != NULL )) {
+             *loc = '\0';
+             strcpy ( connect_host, ++host );
+             port = atoi ( loc + 2 );
+           }
+           else 
+             strcpy ( connect_host, host );
+         }
+       }
+       if( port == 0 )
+         port = ESD_DEFAULT_PORT;
+
+       if ( !strlen ( connect_host ) ) 
+         strcpy ( connect_host, "localhost" );
+
+       if ( getaddrinfo ( connect_host, NULL, &hints, &result ) != 0 ) {
+         printf ("Usage:program_name [address][:port]");
+         return (-1);
+       }
+
+       for ( res = result; res ;res = res->ai_next ) {
+         if ( res->ai_family != AF_INET && res->ai_family != AF_INET6 )
+           continue;
+
+         if ( res->ai_family == AF_INET ) 
+           ((struct sockaddr_in *)res->ai_addr)->sin_port = htons(port);
+
+         if ( res->ai_family == AF_INET6 ) 
+           ((struct sockaddr_in6 *)res->ai_addr)->sin6_port = htons(port);
+
+         socket_out = socket ( res->ai_family, SOCK_STREAM, 0 );
+
+         if ( socket_out < 0 ) {
+           fprintf (stderr,"Unable to create TCP socket\n");
+           goto error_out;
+         }
+
+         /* this was borrowed blindly from the Tcl socket stuff */
+         if ( fcntl( socket_out, F_SETFD, FD_CLOEXEC ) < 0 ) {
+           fprintf(stderr,"Unable to set socket to non-blocking\n");
+           goto error_out;
+         }
+
+         if ( setsockopt( socket_out, SOL_SOCKET, SO_REUSEADDR,
+                     &curstate, sizeof(curstate) ) < 0 ) {
+           fprintf(stderr,"Unable to set for a fresh socket\n");
+           goto error_out;
+         }
+
+         if ( connect( socket_out, res->ai_addr, res->ai_addrlen ) != -1 ) 
+           break;
+
+         close ( socket_out );
+       }
+
+       freeaddrinfo ( result );
+
+       if (!res) /* Couldn't connect to any address */
+         return -1;
+    }
+    else
+#endif 
+    {
+       unsigned int host_div = 0;
+       memset (&socket_addr, 0, sizeof (socket_addr));
+       memset (&he, 0, sizeof (he));
+       /* see if we have a remote speaker to play to */
+       espeaker = host;
+       if ( espeaker && *espeaker ) {
+  	 strncpy(connect_host, espeaker, sizeof(connect_host));
+
+	 /* split the espeaker host into host:port */
+	 host_div = strcspn( connect_host, ":" );
+	 if(host_div > 0 && host_div < strlen(espeaker)) {
+	   connect_host[ host_div ] = '\0';
+	 }
+	 else if ( host_div == 0)
+	   strcpy( connect_host, default_host );
+
+   	 connect_host[sizeof(connect_host) - 1] = '\0';
     
-	/* Resolving the host name */
-	if ( ( he = gethostbyname( connect_host ) ) == NULL ) {
-	    fprintf( stderr, "Can\'t resolve host name \"%s\"!\n", 
+	 /* Resolving the host name */
+	 if ( ( he = gethostbyname( connect_host ) ) == NULL ) {
+	   fprintf( stderr, "Can\'t resolve host name \"%s\"!\n", 
 		     connect_host);
-	    return(-1);
-	}
-	memcpy( (struct in_addr *) &socket_addr.sin_addr, he->h_addr,
+	   return(-1);
+	 }
+	 memcpy( (struct in_addr *) &socket_addr.sin_addr, he->h_addr,
 		sizeof( struct in_addr ) );
     
-	/* get port */
-	if ( host_div < strlen( espeaker ) )
-	    port = atoi( espeaker + host_div + 1 );
-	if ( !port ) 
-	    port = ESD_DEFAULT_PORT;
-	/* printf( "(remote) host is %s : %d\n", connect_host, port ); */
-    } else if( !inet_aton( default_host, &socket_addr.sin_addr ) ) {
-	fprintf( stderr, "couldn't convert %s to inet address\n", 
+	 /* get port */
+	 if ( host_div < strlen( espeaker ) )
+	   port = atoi( espeaker + host_div + 1 );
+	 if ( !port ) 
+	   port = ESD_DEFAULT_PORT;
+	 /* printf( "(remote) host is %s : %d\n", connect_host, port ); */
+       } else if( !inet_aton( default_host, &socket_addr.sin_addr ) ) {
+       	   fprintf( stderr, "couldn't convert %s to inet address\n", 
 		 default_host );
-	return -1;
-    }
+	   return -1;
+         }
   
     /* create the socket, and set for non-blocking */
     socket_out = socket( AF_INET, SOCK_STREAM, 0 );
@@ -493,6 +580,7 @@ esd_connect_tcpip(const char *host)
 		  sizeof(struct sockaddr_in) ) < 0 )
 	goto error_out;
 
+    }
     return socket_out;
 
  error_out:

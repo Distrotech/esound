@@ -330,6 +330,7 @@ void esd_audio_flush( void );
 const char *esd_get_socket_dirname();
 const char *esd_get_socket_name();
 
+int have_ipv6();
 
 #ifdef __cplusplus
 }
