@@ -1,3 +1,10 @@
+1998-10-14  Yo Ric Dude  <ricdude@ix.netcom.com>
+
+	* esdctl.c: beef up esdctl for industrial grade use.  added an
+ 	exit_usage function, and getopt style option parsing.  It was
+ 	destined to become esdsh, but this in combination with a real
+	scripting language should be suffient.
+
 1998-10-13  Yo Ric Dude  <ricdude@ix.netcom.com>
 
 	* esdlib.c, proto.c: trap for NULL name sent to sample_getid(),
