@@ -197,7 +197,14 @@ int esd_send_auth( int sock )
 
 	/* spew random garbage for a key */
 	for ( i = 0 ; i < ESD_KEY_LEN ; i++ ) {
-	    srand( time(NULL) * (getpid() * getuid() * getgid()) * &retval);
+	    char *envpath; long envrand;
+
+	    envpath = getenv("PATH");
+	    if(envpath)
+		envrand = (long)envpath; 
+	    else
+		envrand = 1;
+	    srand( time(NULL) * (getpid() * getuid() * getgid()) * ((long)&retval) * envrand);
 	    tumbler = rand() % 256;
 	    write( auth_fd, &tumbler, 1 );
 	}
