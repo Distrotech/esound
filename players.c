@@ -404,6 +404,7 @@ esd_player_t *new_sample_player( int sample_id, int loop )
     /* everything's ok, return the allocated player */
     player->last_pos = 0;
     sample->ref_count++;
+    sample->erase_when_done = 0;
 
     printf( "new player : (%d, #%d) [0x%p]\n", 
 	    player->source_id, sample->ref_count, player );

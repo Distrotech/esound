@@ -1,3 +1,8 @@
+1998-06-13  Yo Ric Dude  <ericmit@ix.netcom.com>
+
+	* players.c: one-liner uninitialized data fix for the occasional
+ 	random sample killing itself.  Thanks to Chutt for the fix.
+
 1998-06-10  Yo Ric Dude  <ericmit@ix.netcom.com>
 
 	* samples.c, players.c, clients.c: fixed the perpetual looping
