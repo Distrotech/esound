@@ -1,5 +1,8 @@
 2000-03-03  Yo Ric Dude  <ricdude@toad.net>
 
+	* audio_solaris.c (esd_audio_open): Solaris audio recording
+	patches, courtesy of Steve Murphy <murf@e-tools.com>
+
 	* docs/Makefile.am, docs/Makefile.in, Makefile.am, configure.in:
  	updated configure and automake setup to generate html and
  	postscript docs on make dist.  Now if the documentation were
