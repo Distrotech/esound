@@ -1,3 +1,7 @@
+2002-04-24  Iain <iain@ximian.com>
+
+	* configure.in: Make the if's in the alsa detection elif's
+
 2002-04-23  Frederic Crozat  <fcrozat@mandrakesoft.com>
 
 	* configure.in: release 0.2.25

@@ -182,14 +182,12 @@ if test "x$enable_local_sound" = "xyes"; then
       if test "${ac_cv_header_sys_soundlib_h}" = "yes"; then
          found_sound=yes
          AC_DEFINE(DRIVER_ALSA)
-      fi
 
-      if test "${ac_cv_header_alsa_asoundlib_h}" = "yes"; then
+      elif test "${ac_cv_header_alsa_asoundlib_h}" = "yes"; then
          found_sound=yes
          AC_DEFINE(DRIVER_ALSA_09)
-      fi
 
-      if test "${ac_cv_header_sys_asoundlib_h}" = "yes"; then
+      elif test "${ac_cv_header_sys_asoundlib_h}" = "yes"; then
          found_sound=yes
          AC_DEFINE(DRIVER_NEWALSA)
       fi
