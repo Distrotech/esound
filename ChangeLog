@@ -1,3 +1,8 @@
+2003-06-18 2003-04-06  Arvind Samptur <arvind.samptur@wipro.com>
+
+        * esdlib.c: (esd_open_sound) : waitpid() could fail due to
+        a interrupted system call, loop till you succeed (bug #110099).
+
 2003-06-18  Frederic Crozat  <fcrozat@mandrakesoft.com>
 
 	* acconfig.h:

@@ -672,7 +672,7 @@ int esd_open_sound( const char *host )
 	} else {
 	    int estat;
 
-	    waitpid(childpid, &estat, 0);
+	    while ((waitpid (childpid, &estat, 0)== -1) && (errno == EINTR));
 	}
 
 	/* Wait for for spawning to happen.  Time taken is system and load
