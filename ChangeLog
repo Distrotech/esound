@@ -1,3 +1,12 @@
+Tue Jun  8 17:00:54 1999 Timur Bakeyev <mc@bat.ru>
+
+	* audio_oss.c: #ifdef'ed SNDCTL_DSP_SETDUPLEX, as it doesn't exist in OSS
+	3.0.9 under BSDI3...
+	
+	* configure.in, acconfig.h: Due to lack of INADDR_LOOPBACK in my OS (BSDI3)
+	here is the check against it's presence in netinet/in.h, and if not, defining
+	it ourselves.
+	
 Wed Apr 21 15:10:19 EDT 1999 The Rasterman <raster@rasterman.com>
 	* esdlib.c, esd.h, proto.c: added "latency" request protocol to request
           number of smaples of latency you have with a stream to esd.

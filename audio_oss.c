@@ -43,9 +43,11 @@ int esd_audio_open()
 
     /* TODO: check that this is allowable */
     /* set for full duplex operation, if recording */
+#if defined(SNDCTL_DSP_SETDUPLEX)
     if ( (esd_audio_format & ESD_MASK_FUNC) == ESD_RECORD ) {
         ioctl( afd, SNDCTL_DSP_SETDUPLEX, 0 );
     }
+#endif
 
     /* set the sound driver fragment size and number */
 #if !defined(__powerpc__) /* does not exist on powerpc */

@@ -14,3 +14,5 @@
 #undef USE_LIBWRAP
 #undef WITH_SYMBOL_UNDERSCORE
 #undef ESDBG 
+
+#undef INADDR_LOOPBACK

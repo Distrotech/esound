@@ -58,6 +58,11 @@ else
   AC_DEFINE(HAVE_INET_ATON)
 fi
 
+dnl Check for INADDR_LOOPBACK exists
+
+AC_EGREP_HEADER(INADDR_LOOPBACK, netinet/in.h,,
+    [AC_DEFINE(INADDR_LOOPBACK, (u_long)0x7f000001)])
+  
 dnl check for getopt_long, substitute the distributed versions if not
 
 AC_CHECK_FUNC(getopt_long,,[LIBOBJS="$LIBOBJS getopt.o getopt1.o"])
