@@ -27,3 +27,4 @@ libesd.la
 _libs
 .deps
 esd-config
+*.da
