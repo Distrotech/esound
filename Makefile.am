@@ -34,41 +34,42 @@ mix.c		\
 players.c	\
 samples.c	
 
-esd_LDADD = libesd.la
+#esd_LDADD = libesd.la
 
 esdcat_SOURCES = \
 esdcat.c
 
-esdcat_LDADD = libesd.la
+#esdcat_LDADD = libesd.la
 
 esdlock_SOURCES = \
 esdlock.c
 
-esdlock_LDADD = libesd.la
+#esdlock_LDADD = libesd.la
 
 esdunlock_SOURCES = \
 esdunlock.c
 
-esdunlock_LDADD = libesd.la
+#esdunlock_LDADD = libesd.la
 
 esdmon_SOURCES = \
 esdmon.c
 
-esdmon_LDADD = libesd.la
+#esdmon_LDADD = libesd.la
 
 esdrec_SOURCES = \
 esdrec.c
 
-esdrec_LDADD = libesd.la
+#esdrec_LDADD = libesd.la
 
 esdsample_SOURCES = \
 esdsample.c
 
-esdsample_LDADD = libesd.la
+#esdsample_LDADD = libesd.la
 
 esdloop_SOURCES = \
 esdloop.c
 
-esdloop_LDADD = libesd.la
+#esdloop_LDADD = libesd.la
 
-LDADD = -lm -lesd
+LDADD = -lm -lesd .libs/libesd.so
+
