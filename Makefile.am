@@ -6,11 +6,11 @@ SPEC_FILE = esound.spec
 INCLUDES = $(AUDIOFILE_CFLAGS) -DSYSCONFDIR=\"$(sysconfdir)\"
 
 if BUILD_ESDDSP
-esddsp = esddsp
+ESDDSP = esddsp
 libesddsp_la = libesddsp.la
 endif
 if BUILD_ESDPLAY
-esdplay = esdplay
+ESDPLAY = esdplay
 endif
 
 getopt_extra = getopt.c getopt1.c
@@ -20,7 +20,7 @@ getopt_src = $(getopt_extra)
 endif
 
 bin_SCRIPTS = \
-	$(esddsp)	\
+	$(ESDDSP)	\
 	esd-config
 
 lib_LTLIBRARIES = libesd.la $(libesddsp_la)
@@ -68,7 +68,7 @@ bin_PROGRAMS = \
 	esdrec		\
 	esdsample	\
 	esdloop		\
-	$(esdplay)
+	$(ESDPLAY)
 
 esd_SOURCES = 	\
 	esd.c 		\

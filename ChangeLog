@@ -1,3 +1,8 @@
+2002-05-10  Shivaram U  <shivaram.upadhyayula@wipro.com>
+
+	* Makefile.am: Fix for build failure on Solaris. Changed variable names
+	to differ from the program names.
+
 2002-05-06  Frederic Crozat  <fcrozat@mandrakesoft.com>
 
 	* configure.in: Release 0.2.26
