@@ -9,7 +9,7 @@ EXTRA_SCRIPTS = esddsp
 
 EXTRA_DIST = \
 	esd.m4 		\
-	EsounD.html 	\
+	EsounD.ps 	\
 	TIPS 		\
 	test-script 	\
 	test.wav 	\
@@ -36,6 +36,7 @@ libesddsp_la_SOURCES = \
 
 EXTRA_libesd_la_SOURCES = \
 	audio_aix.c	\
+	audio_alsa.c	\
 	audio_hpux.c	\
 	audio_irix.c	\
 	audio_none.c	\

@@ -1,3 +1,9 @@
+1998-10-31  Yo Ric Dude  <ricdude@ix.netcom.com>
+
+	* EsounD.html, EsounD.ps, Makefile.am: replaced EsounD.html with
+ 	EsounD.ps until the doc subdirectory is functional with docbook.
+	* configure.in: call it 0.2.6.
+
 Fri Oct 30 20:39:16 PST 1998 Manish Singh <yosh@gimp.org>
 
 	* esddsp.c: provide implementation for close() to expire sndfd
