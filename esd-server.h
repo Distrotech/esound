@@ -42,7 +42,10 @@ typedef int esd_client_state_t;
 
 /* mix functions control how the player data is combined */
 typedef int mix_func_t( void *player, int length );
-typedef int translate_func_t( void *player, int length );
+typedef int translate_func_t( void *dest_buf, int dest_len, 
+			      int dest_rate, esd_format_t dest_format, 
+			      void *source_data, int src_len, 
+			      int src_rate, esd_format_t src_format );
 /* NOTE: in heavy flux! */
 
 /* a client is what contacts the server, and makes requests of daemon */
@@ -116,6 +119,7 @@ extern char esd_owner_key[ESD_KEY_LEN];
 extern int esd_on_standby;
 extern int esdbg_trace;
 extern int esdbg_comms;
+extern int esdbg_mixer;
 
 extern int esd_buf_size_octets;
 extern int esd_buf_size_samples;
@@ -147,6 +151,8 @@ extern esd_player_t *esd_monitor_list;
 
 /* filter.c - things with which to handle filters */
 extern esd_player_t *esd_filter_list;
+extern translate_func_t *esd_first_filter_func;
+
 void erase_filter( esd_player_t *filter );
 
 void dump_players(void);
@@ -178,24 +184,10 @@ int stop_sample( int sample_id );
 
 /* mix.c - deal with mixing signals, and format conversion */
 mix_func_t *get_mix_func( esd_player_t *player );
-translate_func_t *get_translate_func( esd_player_t *player );
+translate_func_t *get_translate_func( esd_format_t src_fmt, int src_rate,
+				      esd_format_t dst_fmt, int dst_rate );
 
-int mix_and_copy( void *dest_buf, int dest_len, 
-	int dest_rate, esd_format_t dest_format, 
-	void *source_data, int src_len, 
-	int src_rate, esd_format_t src_format );
-int mix_from_stereo_16s( void *dest_buf, unsigned int dest_len, 
-	int dest_rate, esd_format_t dest_format, 
-	signed short *source_data_ss, int src_len, int src_rate );
-int mix_from_stereo_8u( void *dest_buf, unsigned int dest_len, 
-	int dest_rate, esd_format_t dest_format, 
-	unsigned char *source_data_uc, int src_len, int src_rate );
-int mix_from_mono_16s( void *dest_buf, unsigned int dest_len, 
-	int dest_rate, esd_format_t dest_format, 
-	signed short *source_data_ss, int src_len, int src_rate );
-int mix_from_mono_8u( void *dest_buf, unsigned int dest_len, 
-	int dest_rate, esd_format_t dest_format, 
-	unsigned char *source_data_uc, int src_len, int src_rate );
+int refresh_mix_funcs();
 int mix_players( void *mixed, int length );
 
 /*******************************************************************/
@@ -236,6 +228,14 @@ int filter_write( void *buffer, int size, esd_format_t format, int rate );
 	do { \
 	    if ( esdbg_comms ) { \
 		printf( ":comms: [%12s,%5d] \t", __FILE__, __LINE__ ); \
+    		x; \
+	    } \
+	} while( 0 );
+
+#define ESDBG_MIXER(x) \
+	do { \
+	    if ( esdbg_mixer ) { \
+		printf( "+mixer+ [%12s,%5d] \t", __FILE__, __LINE__ ); \
     		x; \
 	    } \
 	} while( 0 );
@@ -296,6 +296,7 @@ int filter_write( void *buffer, int size, esd_format_t format, int rate );
 
 #define ESDBG_TRACE(x)
 #define ESDBG_COMMS(x)
+#define ESDBG_MIXER(x)
 
 #define ESD_READ_INT(s,a,l,r,d)	 r = read( s, a, l );
 #define ESD_READ_BIN(s,a,l,r,d)  r = read( s, a, l );

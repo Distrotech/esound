@@ -7,7 +7,23 @@
 signed int mixed_buffer[ ESD_BUF_SIZE ];
 
 /* prototype for compiler */;
-int mix_to_stereo_32s( esd_player_t *player, int length );
+int mix_and_copy( void *dest_buf, int dest_len, 
+		  int dest_rate, esd_format_t dest_format, 
+		  void *source_data, int src_len, 
+		  int src_rate, esd_format_t src_format );
+
+int mix_from_stereo_16s( void *dest_buf, unsigned int dest_len, 
+			 int dest_rate, esd_format_t dest_format, 
+			 signed short *source_data_ss, int src_len, int src_rate );
+int mix_from_stereo_8u( void *dest_buf, unsigned int dest_len, 
+			int dest_rate, esd_format_t dest_format, 
+			unsigned char *source_data_uc, int src_len, int src_rate );
+int mix_from_mono_16s( void *dest_buf, unsigned int dest_len, 
+		       int dest_rate, esd_format_t dest_format, 
+		       signed short *source_data_ss, int src_len, int src_rate );
+int mix_from_mono_8u( void *dest_buf, unsigned int dest_len, 
+		      int dest_rate, esd_format_t dest_format, 
+		      unsigned char *source_data_uc, int src_len, int src_rate );
 
 int mix_mono_8u_to_stereo_32s( esd_player_t *player, int length );
 int mix_stereo_8u_to_stereo_32s( esd_player_t *player, int length );
@@ -43,49 +59,70 @@ mix_func_t *get_mix_func( esd_player_t *player )
     }
 }
 
-translate_func_t *get_translate_func( esd_player_t *player )
+translate_func_t *get_translate_func( esd_format_t src_fmt, int src_rate, 
+				      esd_format_t dst_fmt, int dst_rate )
 {
-    return mix_to_stereo_32s;
+    if ( ( src_fmt & ESD_MASK_CHAN ) == ESD_MONO ) {
+	if ( (src_fmt & ESD_MASK_BITS) == ESD_BITS16 ) 
+	    return mix_from_mono_16s;
+	else
+	    return mix_from_mono_8u;
+    } else {
+	if ( (src_fmt & ESD_MASK_BITS) == ESD_BITS16 ) 
+	    return mix_from_stereo_16s;
+	else
+	    return mix_from_stereo_8u;
+    }
+    
+    return 0;
 }
 
 /* decides which of the mix_from_* functions to use, and calls it */
 int mix_and_copy( void *dest_buf, int dest_len, 
-	int dest_rate, esd_format_t dest_format, 
-	void *source_data, int src_len, 
-	int src_rate, esd_format_t src_format )
+		  int dest_rate, esd_format_t dest_format, 
+		  void *source_data, int src_len, 
+		  int src_rate, esd_format_t src_format )
 {
-	if ( ( src_format & ESD_MASK_CHAN ) == ESD_MONO ) {
-	    if ( (src_format & ESD_MASK_BITS) == ESD_BITS16 ) 
-		return mix_from_mono_16s( dest_buf, dest_len, 
-			dest_rate, dest_format, source_data, src_len,
-			src_rate );
-	    else
-		return mix_from_mono_8u( dest_buf, dest_len, 
-			dest_rate, dest_format, source_data, src_len,
-			src_rate );
-	} else {
-	    if ( (src_format & ESD_MASK_BITS) == ESD_BITS16 ) 
-		return mix_from_stereo_16s( dest_buf, dest_len, 
-			dest_rate, dest_format, source_data, src_len,
-			src_rate );
-	    else
-		return mix_from_stereo_8u( dest_buf, dest_len, 
-			dest_rate, dest_format, source_data, src_len,
-			src_rate );
-	}
-	return 0;
+    if ( ( src_format & ESD_MASK_CHAN ) == ESD_MONO ) {
+	if ( (src_format & ESD_MASK_BITS) == ESD_BITS16 ) 
+	    return mix_from_mono_16s( dest_buf, dest_len, 
+				      dest_rate, dest_format, 
+				      source_data, src_len,
+				      src_rate );
+	else
+	    return mix_from_mono_8u( dest_buf, dest_len, 
+				     dest_rate, dest_format, 
+				     source_data, src_len,
+				     src_rate );
+    } else {
+	if ( (src_format & ESD_MASK_BITS) == ESD_BITS16 ) 
+	    return mix_from_stereo_16s( dest_buf, dest_len, 
+					dest_rate, dest_format, 
+					source_data, src_len,
+					src_rate );
+	else
+	    return mix_from_stereo_8u( dest_buf, dest_len, 
+				       dest_rate, dest_format, 
+				       source_data, src_len,
+				       src_rate );
+    }
+
+    return 0;
 }
 
 /*******************************************************************/
 /* takes the 16 bit signed source waveform, and mixes to player */
-int mix_from_stereo_16s( void *dest_buf, unsigned int dest_len, int dest_rate, esd_format_t dest_format, 
-			signed short *source_data_ss, int src_len, int src_rate )
+int mix_from_stereo_16s( void *dest_buf, unsigned int dest_len, 
+			 int dest_rate, esd_format_t dest_format, 
+			 signed short *source_data_ss, int src_len, int src_rate )
 {
     int rd_dat = 0, bytes_written = 0;
     unsigned int wr_dat = 0;
     register unsigned char *target_data_uc = NULL;
     register signed short *target_data_ss = NULL;
     signed short lsample, rsample;
+
+    ESDBG_MIXER( printf( "mixing from stereo 16s\n" ); );
 
     /* if nothing to mix, just bail */
     if ( !src_len ) {
@@ -192,7 +229,8 @@ int mix_from_stereo_16s( void *dest_buf, unsigned int dest_len, int dest_rate, e
 
 /*******************************************************************/
 /* takes the 8 bit unsigned source waveform, and mixes to player */
-int mix_from_stereo_8u( void *dest_buf, unsigned int dest_len, int dest_rate, esd_format_t dest_format, 
+int mix_from_stereo_8u( void *dest_buf, unsigned int dest_len, 
+			int dest_rate, esd_format_t dest_format, 
 			unsigned char *source_data_uc, int src_len, int src_rate )
 {
     int rd_dat = 0, bytes_written = 0;
@@ -200,6 +238,8 @@ int mix_from_stereo_8u( void *dest_buf, unsigned int dest_len, int dest_rate, es
     register unsigned char *target_data_uc = NULL;
     register signed short *target_data_ss = NULL;
     signed short lsample, rsample;
+
+    ESDBG_MIXER( printf( "mixing from stereo 8u\n" ); );
 
     /* if nothing to mix, just bail */
     if ( !src_len ) {
@@ -299,14 +339,17 @@ int mix_from_stereo_8u( void *dest_buf, unsigned int dest_len, int dest_rate, es
 
 /*******************************************************************/
 /* takes the 16 bit mono signed source waveform, and mixes to player */
-int mix_from_mono_16s( void *dest_buf, unsigned int dest_len, int dest_rate, esd_format_t dest_format, 
-			signed short *source_data_ss, int src_len, int src_rate )
+int mix_from_mono_16s( void *dest_buf, unsigned int dest_len, 
+		       int dest_rate, esd_format_t dest_format, 
+		       signed short *source_data_ss, int src_len, int src_rate )
 {
     int rd_dat = 0, bytes_written = 0;
     unsigned int wr_dat = 0;
     register unsigned char *target_data_uc = NULL;
     register signed short *target_data_ss = NULL;
     signed short lsample;
+
+    ESDBG_MIXER( printf( "mixing from mono 16s\n" ); );
 
     /* if nothing to mix, just bail */
     if ( !src_len ) {
@@ -404,14 +447,17 @@ int mix_from_mono_16s( void *dest_buf, unsigned int dest_len, int dest_rate, esd
 
 /*******************************************************************/
 /* takes the 8 bit mono unsigned source waveform, and mixes to player */
-int mix_from_mono_8u( void *dest_buf, unsigned int dest_len, int dest_rate, esd_format_t dest_format, 
-			unsigned char *source_data_uc, int src_len, int src_rate )
+int mix_from_mono_8u( void *dest_buf, unsigned int dest_len, 
+		      int dest_rate, esd_format_t dest_format, 
+		      unsigned char *source_data_uc, int src_len, int src_rate )
 {
     int rd_dat = 0, bytes_written = 0;
     unsigned int wr_dat = 0;
     register unsigned char *target_data_uc = NULL;
     register signed short *target_data_ss = NULL;
     signed short lsample;
+
+    ESDBG_MIXER( printf( "mixing from mono 8u\n" ); );
 
     /* if nothing to mix, just bail */
     if ( !src_len ) {
@@ -508,10 +554,6 @@ int mix_from_mono_8u( void *dest_buf, unsigned int dest_len, int dest_rate, esd_
 
 /*******************************************************************/
 /* takes the input player, and mixes to 16 bit signed waveform */
-int mix_to_stereo_32s( esd_player_t *player, int length )
-{
-    return 0;
-}
 
 int mix_mono_8u_to_stereo_32s( esd_player_t *player, int length )
 {
@@ -520,6 +562,8 @@ int mix_mono_8u_to_stereo_32s( esd_player_t *player, int length )
     signed short sample;
     register unsigned char *source_data_uc 
 	= (unsigned char *) player->data_buffer;
+
+    ESDBG_MIXER( printf( "mixing mono 8u to stereo 32s\n" ); );
 
     while ( wr_dat < length/sizeof(signed short) )
     {
@@ -543,6 +587,8 @@ int mix_stereo_8u_to_stereo_32s( esd_player_t *player, int length )
     signed short sample;
     register unsigned char *source_data_uc 
 	= (unsigned char *) player->data_buffer;
+
+    ESDBG_MIXER( printf( "mixing stereo 8u to stereo 32s\n" ); );
 
     if ( player->rate == esd_audio_rate ) {
 	while ( wr_dat < length/sizeof(signed short) )
@@ -574,6 +620,8 @@ int mix_mono_16s_to_stereo_32s( esd_player_t *player, int length )
     register signed short *source_data_ss
 	= (signed short *) player->data_buffer;
 
+    ESDBG_MIXER( printf( "mixing mono 16s to stereo 32s\n" ); );
+
     /* mix mono, 16 bit sound source to stereo, 16 bit */
     while ( wr_dat < length/sizeof(signed short) )
     {
@@ -595,6 +643,8 @@ int mix_stereo_16s_to_stereo_32s( esd_player_t *player, int length )
     signed short sample;
     register signed short *source_data_ss
 	= (signed short *) player->data_buffer;
+
+    ESDBG_MIXER( printf( "mixing stereo 16s to stereo 32s\n" ); );
 
     if ( player->rate == esd_audio_rate ) {
 	/* optimize for simple increment by one and add loop */
@@ -623,6 +673,9 @@ void clip_mix_to_output_16s( signed short *output, int length )
     signed int *mixed = mixed_buffer;
     signed int *end = mixed_buffer + length/sizeof(signed short);
 
+    ESDBG_MIXER( printf( "clipping mix to output 16 bit (%d bytes)\n",
+			 length ); );
+
     while ( mixed != end ) {
 	if (*mixed < SHRT_MIN) {
 	    *output++ = SHRT_MIN; mixed++;
@@ -640,6 +693,9 @@ void clip_mix_to_output_8u( signed char *output, int length )
 {
     signed int *mixed = mixed_buffer;
     signed int *end = mixed_buffer + length/sizeof(signed short);
+
+    ESDBG_MIXER( printf( "clipping mix to output 8 bit (%d bytes)\n", 
+			 length ); );
 
     while ( mixed != end ) {
 	if (*mixed < SHRT_MIN) {
@@ -659,6 +715,8 @@ int mix_players( void *output, int length )
     int actual = 0, max = 0;
     esd_player_t *player = NULL;
     esd_player_t *erase = NULL;
+
+    ESDBG_MIXER( printf( "++++++++++++++++++++++++++++++++++++++++++\n" ); );
 
     /* zero the sum buffer */
     memset( mixed_buffer, 0, esd_buf_size_samples * sizeof(int) );
@@ -706,4 +764,43 @@ int mix_players( void *output, int length )
     }
 
     return max;
+}
+
+int refresh_mix_funcs()
+{
+    esd_player_t *filter = esd_filter_list;
+    int translations = 0;
+
+    /* walk the filters lists, and refresh the translate functions */
+    ESDBG_MIXER( printf( "refreshing mix functions\n" ); );
+    
+    /* see if we need any translate functions */
+    if ( !esd_filter_list ) 
+	return 0;
+
+    /* set the translation into the first filter */
+    esd_first_filter_func = get_translate_func( esd_audio_format, 
+						esd_audio_rate, 
+						esd_filter_list->format, 
+						esd_filter_list->rate );
+    translations++;
+
+    while ( filter ) {
+	if ( filter->next ) {
+	    filter->translate_func
+		= get_translate_func( filter->format, filter->rate, 
+				      filter->next->format, 
+				      filter->next->rate );
+	} else {
+	    filter->translate_func 
+		= get_translate_func( filter->format, filter->rate, 
+				      esd_audio_format, 
+				      esd_audio_rate );
+	}
+
+	filter = filter->next;
+	translations++;
+    }
+    
+    return translations;
 }

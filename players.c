@@ -304,7 +304,16 @@ void monitor_write( void *output_buffer, int length ) {
 	    break;
 
 	/* mix down the monitor's buffer */
-	if ( (esd_audio_format & ESD_MASK_BITS) == ESD_BITS16 ) {
+	length = monitor->translate_func( monitor->data_buffer, 
+					  monitor->buffer_length,
+					  monitor->rate, 
+					  monitor->format, 
+					  output_buffer, 
+					  length, 
+					  esd_audio_rate,
+					  esd_audio_format );
+/*
+	if ( (esd_audio_format & ESD_MASK_BITS) == ESD_BIT1S16 ) {
 	    length = mix_from_stereo_16s( monitor->data_buffer, 
 					  monitor->buffer_length,
 					  monitor->rate, 
@@ -322,7 +331,7 @@ void monitor_write( void *output_buffer, int length ) {
 					 length, 
 					 esd_audio_rate );
 	}
-
+*/
 	/* write the data buffer to the socket */
 	ESD_WRITE_BIN( monitor->source_id, monitor->data_buffer, 
 		       monitor->buffer_length, length, "mon wr" );
@@ -463,7 +472,7 @@ esd_player_t *new_stream_player( esd_client_t *client )
     /* everything's ok, set the easy stuff */
     player->left_vol_scale = player->right_vol_scale = ESD_VOLUME_BASE;
     player->mix_func = get_mix_func( player );
-    player->translate_func = get_translate_func( player );
+    player->translate_func = NULL; /* no translating, just mixing */
 
     ESDBG_TRACE( printf( "(%02d) player: [%p]\n", player->source_id, player ); );
 
@@ -537,7 +546,7 @@ esd_player_t *new_sample_player( int sample_id, int loop )
     player->last_pos = 0;
     sample->ref_count++;
     player->mix_func = get_mix_func( player );
-    player->translate_func = get_translate_func( player );
+    player->translate_func = NULL; /* no translating, just mixing */
 
     ESDBG_TRACE( printf( "<%02d> new player: refs=%d samps=%d [%p]\n", 
 			 player->source_id, sample->ref_count, 

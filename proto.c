@@ -266,7 +266,7 @@ int esd_proto_stream_recorder( esd_client_t *client )
 {
     /* wake up if we're asleep */
     if ( esd_on_autostandby ) {
-	ESDBG_TRACE( printf( "stuff to recored, waking up.\n" ); );
+	ESDBG_TRACE( printf( "stuff to record, waking up.\n" ); );
 	esd_server_resume();
     }
 
@@ -280,12 +280,19 @@ int esd_proto_stream_recorder( esd_client_t *client )
     if ( esd_recorder != NULL ) {
 
 	/* let the device know we want to record */
+	ESDBG_TRACE( printf( "closing audio for a sec...\n" ); );
 	esd_audio_close();
+	sleep(1);
 	esd_audio_format |= ESD_RECORD;
+	ESDBG_TRACE( printf( "reopening audio to record...\n" ); );
 	esd_audio_open();
+	ESDBG_TRACE( printf( "reopened?\n" ); );
 
 	/* flesh out the recorder */
 	esd_recorder->parent = client;
+	esd_recorder->translate_func 
+	    = get_translate_func( esd_audio_format, esd_audio_rate,
+				  esd_recorder->format, esd_recorder->rate );
 
 	ESDBG_TRACE( printf ( "(%02d) recording on client\n", client->fd ); );
 
@@ -312,6 +319,10 @@ int esd_proto_stream_monitor( esd_client_t *client )
 	monitor->next = esd_monitor_list;
 	esd_monitor_list = monitor;
 
+	monitor->translate_func 
+	    = get_translate_func( esd_audio_format, esd_audio_rate,
+				  monitor->format, monitor->rate );
+
 	ESDBG_TRACE( printf ( "(%02d) monitoring on client\n", client->fd ); );
     } else {
 	/* failed to initialize the recorder, kill its client */
@@ -331,7 +342,7 @@ int esd_proto_stream_filter( esd_client_t *client )
     /* sign up the new filter client */
     filter = new_stream_player( client );
     if ( filter != NULL ) {
-	/* flesh out the filtermonitor */
+	/* flesh out the filter */
 	filter->parent = client;
 	filter->next = esd_filter_list;
 	esd_filter_list = filter;

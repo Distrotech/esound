@@ -26,6 +26,7 @@ char esd_owner_key[ESD_KEY_LEN]; /* the key that locks the daemon */
 int esd_on_standby = 0;		/* set to route ignore incoming audio data */
 int esdbg_trace = 0;		/* show warm fuzzy debug messages */
 int esdbg_comms = 0;		/* show protocol level debug messages */
+int esdbg_mixer = 0;		/* show mixer engine debug messages */
 
 int esd_buf_size_octets = 0; 	/* size of audio buffer in bytes */
 int esd_buf_size_samples = 0; 	/* size of audio buffer in samples */
@@ -337,6 +338,9 @@ int main ( int argc, char *argv[] )
 	} else if ( !strcmp( argv[ arg ], "-vc" ) ) {
 	    esdbg_comms = 1;
 	    fprintf( stderr, "- enabling comms diagnostic info\n" );
+	} else if ( !strcmp( argv[ arg ], "-vm" ) ) {
+	    esdbg_mixer = 1;
+	    fprintf( stderr, "- enabling mixer diagnostic info\n" );
 #endif
 	} else if ( !strcmp( argv[ arg ], "-nobeeps" ) ) {
 	    esd_beeps = 0;
@@ -350,6 +354,7 @@ int main ( int argc, char *argv[] )
 #ifdef ESDBG
 	    fprintf( stderr, "  -vt         enable trace diagnostic info\n" );
 	    fprintf( stderr, "  -vc         enable comms diagnostic info\n" );
+	    fprintf( stderr, "  -vm         enable mixer diagnostic info\n" );
 #endif
 	    fprintf( stderr, "  -port PORT  listen for connections at PORT\n" );
 	    fprintf( stderr, "\nPossible devices are:  %s\n", esd_audio_devices() );
@@ -429,6 +434,7 @@ int main ( int argc, char *argv[] )
 	poll_client_requests();
 
 	/* mix new requests, and output to device */
+	refresh_mix_funcs(); /* TODO: set a flag to cue when to do this */
 	length = mix_players( output_buffer, esd_buf_size_octets );
 	
 	/* awaken if on autostandby and doing anything */
@@ -479,6 +485,16 @@ int main ( int argc, char *argv[] )
 	if ( esd_recorder && !esd_on_standby ) { 
 	    length = esd_audio_read( output_buffer, esd_buf_size_octets );
 	    if ( length ) {
+		length 
+		    = esd_recorder->translate_func( esd_recorder->data_buffer, 
+						    esd_recorder->buffer_length, 
+						    esd_recorder->rate, 
+						    esd_recorder->format, 
+						    output_buffer, 
+						    esd_buf_size_octets, 
+						    esd_audio_rate,
+						    esd_audio_format );
+/*
 		if ( (esd_audio_format & ESD_MASK_BITS) == ESD_BITS16 ) {
 		    length = mix_from_stereo_16s( esd_recorder->data_buffer, 
 						  esd_recorder->buffer_length, 
@@ -497,7 +513,7 @@ int main ( int argc, char *argv[] )
 						 esd_buf_size_octets, 
 						 esd_audio_rate );
 		}
-		
+*/
 		recorder_write(); 
 		esd_last_activity = time( NULL );
 	    }

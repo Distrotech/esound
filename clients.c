@@ -245,7 +245,7 @@ int wait_for_clients_and_data( int listen )
     }
 
     /* if we're doing something useful, make sure we return immediately */
-    if ( esd_recorder ) {
+    if ( esd_recorder || esd_playing_samples ) {
 	timeout.tv_sec = 0;
 	timeout.tv_usec = 0;
 	timeout_ptr = &timeout;
@@ -257,12 +257,21 @@ int wait_for_clients_and_data( int listen )
 	        || (esd_autostandby_secs < 0 && !esd_playing_samples ) )
 	       timeout_ptr = NULL; else { ... } */
 
-	timeout.tv_sec = 0;
-	/* funky math to make sure a long can hold it all, calulate in ms */
-	timeout.tv_usec = (long) esd_buf_size_samples * 1000L
-	    / (long) esd_audio_rate / 4L; 	/* divide by two for stereo */
-	timeout.tv_usec *= 1000L; 		/* convert to microseconds */
-	timeout_ptr = &timeout;
+	if ( is_paused_here ) {
+
+	    ESDBG_TRACE( printf( "paused, awaiting instructions.\n" ); );
+	    timeout_ptr = NULL;
+
+	} else {
+
+	    timeout.tv_sec = 0;
+	    /* funky math to make sure a long can hold it all, calulate in ms */
+	    timeout.tv_usec = (long) esd_buf_size_samples * 1000L
+		/ (long) esd_audio_rate / 4L; 	/* divide by two for stereo */
+	    timeout.tv_usec *= 1000L; 		/* convert to microseconds */
+	    timeout_ptr = &timeout;
+
+	}
 
 	/* we might not be doing something useful, kill audio echos */
 #if 0
@@ -293,16 +302,22 @@ int wait_for_clients_and_data( int listen )
 	    is_paused_here = 1;
 	}
 
-	if ( !esd_on_standby && !esd_playing_samples && !esd_recorder ) {
+	if ( is_paused_here && !esd_on_standby 
+	     && !esd_playing_samples && !esd_recorder ) {
+
 	    if ( esd_autostandby_secs >= 0
 		 && ( time(NULL) > esd_last_activity + esd_autostandby_secs ) ) {
 		ESDBG_TRACE( printf( "bored, going to standby mode.\n" ); );
 		esd_server_standby();
 		esd_on_autostandby = 1;
 	    }
+
 	}
+
     } else {
+
 	is_paused_here = 0;
+
     }
 
     return ready;

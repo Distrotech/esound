@@ -1,3 +1,18 @@
+1999-01-14  Yo Ric Dude  <ericmit@ix.netcom.com>
+
+	* players.c: fix the recorder_write and monitor_write function to
+ 	use translate function.
+ 	
+	* clients.c: fixes to the pause vs. sleep issue. select()s forever
+ 	if nothing to do, i.e. not recording and no samples playing.
+  	
+	* esd-server.h, mix.c, esd.c, filter.c, proto.c: translate
+ 	function pointers sketched out.  added a mixer engine debug
+ 	switch. filters, recorders and monitors are most likely horribly
+ 	broken for now.
+ 	
+	* README, TODO: cleanups, updates, typos
+
 Thu Jan 14 22:52:02 PST 1999 Manish Singh <yosh@gimp.org>
 
 	* esd.c: corrected -d help text

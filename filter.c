@@ -2,6 +2,8 @@
 
 esd_player_t *esd_filter_list = NULL;
 
+translate_func_t *esd_first_filter_func;
+
 /*******************************************************************/
 /* send the filter's buffer to it's associated socket, erase if EOF */
 int filter_write( void *buffer, int size, esd_format_t format, int rate )
@@ -35,10 +37,19 @@ int filter_write( void *buffer, int size, esd_format_t format, int rate )
 	 * Maybe by using fread and fwrite, to buffer the stuff, but in the 
 	 * end, all the data still has to be written from here to the buffer.
 	 */
-	data_size = mix_and_copy( filter->data_buffer, 
+/*	data_size = mix_and_copy( filter->data_buffer, 
 				filter->buffer_length, filter->rate, 
 				filter->format, data_buffer, data_size, 
 				data_rate, data_format );
+*/
+	data_size = filter->translate_func( filter->data_buffer, 
+					    filter->buffer_length, 
+					    filter->rate, 
+					    filter->format, 
+					    data_buffer, 
+					    data_size, 
+					    data_rate, 
+					    data_format );
 
 	while( total_data < data_size )
 	{
@@ -89,8 +100,16 @@ int filter_write( void *buffer, int size, esd_format_t format, int rate )
     }
     
     /* mix it down */
-    return mix_and_copy( buffer, size, rate, format, 
+/*    return mix_and_copy( buffer, size, rate, format, 
 			 data_buffer, data_size, data_rate, data_format );
+*/
+    if ( esd_filter_list ) 
+	return esd_filter_list->translate_func( buffer, size, 
+						rate, format, 
+						data_buffer, data_size, 
+						data_rate, data_format );
+    else
+	return 0;
 }
 
 /*******************************************************************/
