@@ -33,3 +33,4 @@ esound.spec
 esound.pc
 esddsp
 libesddsp.la
+obj
