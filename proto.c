@@ -69,7 +69,7 @@ esd_proto_handler_info_t esd_proto_map[ ESD_PROTO_MAX ] =
     { ESD_KEY_LEN + sizeof(int), &esd_proto_resume, "resume" },
 
     { ESD_NAME_MAX, &esd_proto_sample_getid, "sample getid" },
-    { ESD_KEY_LEN + 2 * sizeof(int), &esd_proto_stream_filter, "stream filter" },
+    { ESD_NAME_MAX + 2 * sizeof(int), &esd_proto_stream_filter, "stream filter" },
 
     { sizeof(int), &esd_proto_server_info, "server info" },
     { sizeof(int), &esd_proto_all_info, "all info" },

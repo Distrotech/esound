@@ -570,7 +570,7 @@ esd_connect_unix(const char *host)
  *
  * Attempts to make a connection to ESD on specified host, or the
  * host specified by the $ESPEAKER environment variable if @host is NULL,
- * or localhost if ESPEAKER not set.
+ * or localhost if $ESPEAKER not set.
  *
  * Will attempt to connect by UNIX sockets if the host is localhost, and by
  * TCPIP otherwise, or if UNIX sockets fail.
@@ -676,8 +676,8 @@ int esd_open_sound( const char *host )
  * @format: data format for this stream
  * @rate: sample rate for this stream
  * @host: host to connect to, as for esd_open_sound().
- * @name: name to identify this stream to ESD using.  (Use NULL if you don't
- * care what name you're given - but its generally more useful to give
+ * @name: name by which to identify this stream to ESD.  (Use NULL if you
+ * don't care what name you're given - but its generally more useful to give
  * something helpful, such as your process name and id.)
  *
  * Creates a new connection to ESD, using esd_open_sound(), and sets it up
@@ -743,8 +743,20 @@ int esd_play_stream( esd_format_t format, int rate,
   return sock;
 }
 
-/*******************************************************************/
-/* open a socket for playing as a stream, fallback to /dev/dsp */
+/**
+ * esd_play_stream_fallback: as esd_play_stream() but connect directly if no ESD
+ * @format: data format for this stream
+ * @rate: sample rate for this stream
+ * @host: host to connect to, as for esd_open_sound().
+ * @name: name by which to identify this stream to ESD.
+ *
+ * Attempts to create a connection to an ESD, using esd_play_stream(), and if
+ * this fails falls back to trying to contact the soundcard directly.
+ * (This will not work unless the soundcard is local.)
+ *
+ * Return Value: -1 on error, else a socket number set up so that
+ * any data sent to the socket will be played, either by an ESD or by an.
+ */
 int esd_play_stream_fallback( esd_format_t format, int rate, 
 			      const char *host, const char *name )
 {
@@ -775,8 +787,19 @@ int esd_play_stream_fallback( esd_format_t format, int rate,
     return socket_out;
 }
 
-/*******************************************************************/
-/* open a socket for monitoring as a stream */
+/**
+ * esd_monitor_stream: get socket for monitoring an ESD
+ * @format: data format for this stream
+ * @rate: sample rate for this stream
+ * @host: host to connect to, as for esd_open_sound().
+ * @name: name by which identify this stream to ESD.
+ *
+ * Creates a new connection to ESD, using esd_open_sound(), and sets it up
+ * for monitoring the output from the ESD.
+ *
+ * Return Value: -1 on error, else an ESD socket number set up so that
+ * any data played by the ESD will be sent to the socket.
+ */
 int esd_monitor_stream( esd_format_t format, int rate, 
 			const char *host, const char *name )
 {
@@ -834,8 +857,30 @@ int esd_monitor_stream( esd_format_t format, int rate,
     return sock;
 }
 
-/*******************************************************************/
-/* open a socket for filtering as a stream */
+/**
+ * esd_filter_stream: get socket for filtering sound produced by an ESD
+ * @format: data format for this stream
+ * @rate: sample rate for this stream
+ * @host: host to connect to, as for esd_open_sound().
+ * @name: name by which identify this stream to ESD.
+ *
+ * Creates a new connection to ESD, using esd_open_sound(), and sets it up
+ * for filtering the output from the ESD.
+ * 
+ * Reading from the stream will give a block of audio data, which is the
+ * mixed output of the ESD formatted as specified by the function parameters.
+ * The filter is free to process this data as it likes, but must then write
+ * an indentically sized block of data back to the stream.  The data so
+ * returned is played by the ESD (possibly after applying more filters to
+ * it.)
+ *
+ * The new filter will be placed at the head of the list of filters  ie, it
+ * will receive data for processing first, and the next filter will receive
+ * the resultant processed data.
+ *
+ * Return Value: -1 on error, else an ESD socket number set up so that
+ * any data played by the ESD will be sent to the socket.
+ */
 int esd_filter_stream( esd_format_t format, int rate, 
 		       const char *host, const char *name )
 {
@@ -893,8 +938,19 @@ int esd_filter_stream( esd_format_t format, int rate,
     return sock;
 }
 
-/*******************************************************************/
-/* open a socket for recording as a stream */
+/**
+ * esd_record_stream: get socket for recording via an ESD
+ * @format: data format for this stream
+ * @rate: sample rate for this stream
+ * @host: host to connect to, as for esd_open_sound().
+ * @name: name by which identify this stream to ESD.
+ *
+ * Creates a new connection to ESD, using esd_open_sound(), and sets it up
+ * for recording data from the soundcard via the ESD.
+ *
+ * Return Value: -1 on error, else a socket number to which the external
+ * audio data arriving at the appropriate soundcard will be sent.
+ */
 int esd_record_stream( esd_format_t format, int rate, 
 		       const char *host, const char *name )
 {
@@ -952,8 +1008,20 @@ int esd_record_stream( esd_format_t format, int rate,
     return sock;
 }
 
-/*******************************************************************/
-/* open a socket for recording as a stream, fallback to /dev/dsp */
+/**
+ * esd_record_stream_fallback: esd_record_stream() but connect direct if no ESD
+ * @format: data format for this stream
+ * @rate: sample rate for this stream
+ * @host: host to connect to, as for esd_open_sound().
+ * @name: name by which to identify this stream to ESD.
+ *
+ * Attempts to create a connection to an ESD, using esd_record_stream(), and if
+ * this fails falls back to trying to contact the soundcard directly.
+ * (This will not work unless the soundcard is local.)
+ *
+ * Return Value: -1 on error, else a socket number to which the external
+ * audio data arriving at the appropriate soundcard will be sent.
+ */
 int esd_record_stream_fallback( esd_format_t format, int rate, 
 				const char *host, const char *name )
 {

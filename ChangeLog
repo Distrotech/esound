@@ -1,3 +1,12 @@
+1999-06-22  Richard Boulton <rjb37@cam.ac.uk>
+
+	* esdlib.c: More self documenting code comments.  Nearly done this
+	file now...
+
+	* proto.c: Fix proto_data required size for esd_proto_stream_filter,
+	so that we don't get annoying click whenever a filter is added.  (Was
+	sending 112 junk bytes to the audio stream each time.)
+
 1999-06-19  Richard Boulton <rjb37@cam.ac.uk>
 
 	* esdlib.c, esd_config.c, esd.conf: Put time to wait for an
