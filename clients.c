@@ -163,11 +163,14 @@ int wait_for_clients_and_data( int listen )
 	client = client->next;
     }
 
-    
+    /* if we're doing something useful, make sure we return immediately */
     if ( esd_players_list || esd_recorder ) {
 	timeout.tv_sec = 0;
 	timeout.tv_usec = 0;
 	timeout_ptr = &timeout;
+    } else {
+	/* we might not be doing something useful, kill audio echos */
+	esd_audio_pause();
     }
 
     select( max_fd+1, &rd_fds, NULL, NULL, timeout_ptr );

@@ -233,6 +233,9 @@ int main ( int argc, char *argv[] )
 	    }
 	} else {
 	    /* be very quiet, and wait for a wabbit to come along */
+	    /* this won't always be triggered when necessary, as */
+	    /* wait_for_clients_and_data() may block without passing */
+	    /* through here first, causing repeating loops */
 	    esd_audio_pause();
 	}
 
