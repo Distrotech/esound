@@ -302,6 +302,9 @@ int open_listen_socket( int port )
     }
     else
     {
+      mode_t old_umask;
+
+      old_umask = umask(0);
       socket_unix.sun_family=AF_UNIX;
       strncpy(socket_unix.sun_path, ESD_UNIX_SOCKET_NAME, sizeof(socket_unix.sun_path));
       if ( bind( socket_listen,
@@ -315,12 +318,7 @@ int open_listen_socket( int port )
 	    }
 	  exit(1);
 	}
-      /* let anyone access esd's socket - but we have authentication so they */
-      /* wont get far if they dont have the auth key */
-      chmod(ESD_UNIX_SOCKET_NAME, 
-	    S_IRUSR|S_IWUSR|S_IXUSR|
-	    S_IRGRP|S_IWGRP|S_IXGRP|
-	    S_IROTH|S_IWOTH|S_IXOTH);
+      umask(old_umask);
     }
     if (listen(socket_listen,16)<0)
     {
