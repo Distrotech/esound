@@ -49,11 +49,13 @@ int main(int argc, char **argv)
     if ( sock <= 0 ) 
 	return 1;
     
-    while ( ( length = read( sock, buf, ESD_BUF_SIZE ) ) > 0 )
+    while ( ( length = read( sock, buf, ESD_BUF_SIZE ) ) >= 0 )
     {
 	/* fprintf( stderr, "read %d\n", length ); */
-	if( fwrite( buf, 1, length, target ) <= 0 )
-	    return 1;
+	if ( length > 0 ) {
+	    if( fwrite( buf, 1, length, target ) <= 0 )
+		return 1;
+	}
     }
     close( sock );
     return 0;
