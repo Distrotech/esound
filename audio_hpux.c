@@ -18,7 +18,7 @@ int esd_audio_open()
     int bsize;
     int port = AUDIO_OUT_SPEAKER;
     int flags, test;
-    struct audio_gains agains;
+    struct audio_gain again;
     struct audio_describe adescribe;
     struct audio_limits alimit;
 
@@ -99,32 +99,35 @@ int esd_audio_open()
         return -1;
     }
 
-    if (ioctl(afd, AUDIO_GET_GAINS, &agains) == -1) {
+    if (ioctl(afd, AUDIO_GET_GAINS, &again) == -1) {
 	perror("AUDIO_GET_GAINS");
 	close(afd);
 	esd_audio_fd = -1;
 	return -1;
     }
     
-    agains.transmit_gain = adescribe.min_transmit_gain +
-	(adescribe.max_transmit_gain - adescribe.min_transmit_gain) *
-	gain / 256;
+    /* Don't modify transmit_gain unless it's out of bounds. */
+    if (again.cgain[0].transmit_gain < adescribe.min_transmit_gain ||
+	again.cgain[1].transmit_gain < adescribe.min_transmit_gain ||
+	again.cgain[0].transmit_gain > adescribe.max_transmit_gain ||
+	again.cgain[1].transmit_gain > adescribe.max_transmit_gain) {
+        fprintf(stderr, "one or more of your gain values was out of range - fixed.\n");
+        if (again.cgain[0].transmit_gain < adescribe.min_transmit_gain)
+            again.cgain[0].transmit_gain = adescribe.min_transmit_gain;
+        if (again.cgain[1].transmit_gain < adescribe.min_transmit_gain)
+            again.cgain[1].transmit_gain = adescribe.min_transmit_gain;
+        if (again.cgain[0].transmit_gain > adescribe.max_transmit_gain)
+            again.cgain[0].transmit_gain = adescribe.max_transmit_gain;
+        if (again.cgain[1].transmit_gain > adescribe.max_transmit_gain)
+            again.cgain[1].transmit_gain = adescribe.max_transmit_gain;
+    }
 
-#if 0    
-    if (ioctl(afd, AUDIO_SET_GAINS, &agains) == -1) {
+    if (ioctl(afd, AUDIO_SET_GAINS, &again) == -1) {
 	perror("AUDIO_SET_GAINS");
 	close(afd);
 	esd_audio_fd = -1;
 	return -1;
     }
-#else
-    if (ioctl(afd, AUDIO_SET_GAINS, AUDIO_MAX_GAIN)) {
-	perror("AUDIO_SET_GAINS");
-	close(afd);
-	esd_audio_fd = -1;
-	return -1;
-    }
-#endif
 
     if (!ioctl(afd, AUDIO_GET_LIMITS, &alimit)) {
 	bsize = (0x0100 << 16);

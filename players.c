@@ -265,7 +265,7 @@ void monitor_write( void *output_buffer ) {
     fd_set wr_fds;
     int length, can_write;
     struct timeval timeout;
-    esd_player_t *monitor, *remove;
+    esd_player_t *monitor, *remove = NULL;
 
     /* make sure we have a monitor connected */
     if ( !esd_monitor_list ) 

@@ -1,5 +1,3 @@
-/* -*- C++ -*- */
-
 #include "esd-server.h"
 
 #include <limits.h>
@@ -62,7 +60,7 @@ int mix_from_stereo_16s( void *dest_buf, int dest_len, int dest_rate, esd_format
 
 	if ( ( dest_format & ESD_MASK_CHAN ) == ESD_MONO ) {
 
-	    /* mix mono, 8 bit sound source to stereo, 16 bit */
+	    /* mix mono, 8 bit sound source from stereo, 16 bit */
 	    while ( wr_dat < dest_len )
 	    {
 		rd_dat = wr_dat * src_rate / dest_rate;
@@ -80,7 +78,7 @@ int mix_from_stereo_16s( void *dest_buf, int dest_len, int dest_rate, esd_format
 
 	} else {
 
-	    /* mix stereo, 8 bit sound source to stereo, 16 bit */
+	    /* mix stereo, 8 bit sound source from stereo, 16 bit */
 	    while ( wr_dat < dest_len )
 	    {
 		rd_dat = wr_dat * src_rate / dest_rate;
@@ -108,7 +106,6 @@ int mix_from_stereo_16s( void *dest_buf, int dest_len, int dest_rate, esd_format
 	    {
 		rd_dat = wr_dat * src_rate / dest_rate;
 		rd_dat *= 2;		/* adjust for stereo */
-		/* rd_dat += rd_dat % 2; */	/* force to left sample */
 
 		lsample = source_data_ss[ rd_dat++ ];
 		rsample = source_data_ss[ rd_dat++ ];
@@ -119,10 +116,18 @@ int mix_from_stereo_16s( void *dest_buf, int dest_len, int dest_rate, esd_format
 	} else {
 
 	    /* mix stereo, 16 bit sound source from stereo, 16 bit */
+
+	    /* optimize for the case where all settings are the same */
+	    if ( dest_rate == src_rate ) {
+		memcpy( target_data_ss, source_data_ss, dest_len );
+		bytes_written = dest_len;
+		break;
+	    }
+
+	    /* scale the pointer, and copy the data */
 	    while ( wr_dat < dest_len / sizeof(signed short) )
 	    {
 		rd_dat = wr_dat * src_rate / dest_rate;
-		/* rd_dat += (rd_dat % 2); */ /* force to left sample */
 
 		lsample = source_data_ss[ rd_dat++ ];
 		rsample = source_data_ss[ rd_dat++ ];
@@ -167,33 +172,36 @@ int mix_from_stereo_8u( void *dest_buf, int dest_len, int dest_rate, esd_format_
 
 	if ( ( dest_format & ESD_MASK_CHAN ) == ESD_MONO ) {
 
-	    /* mix mono, 8 bit sound source to stereo, 16 bit */
+	    /* mix mono, 8 bit sound source from stereo, 16 bit */
 	    while ( wr_dat < dest_len )
 	    {
 		rd_dat = wr_dat * src_rate / dest_rate;
 		rd_dat *= 2;		/* adjust for mono */
-		rd_dat += rd_dat % 2;	/* force to left sample */
 
 		lsample = source_data_uc[ rd_dat++ ];
 		rsample = source_data_uc[ rd_dat++ ];
-/*
-		lsample /= 256; lsample += 127;
-		rsample /= 256; rsample += 127;
-*/
+
 		target_data_uc[ wr_dat++ ] = (lsample + rsample) / 2;
 	    }
 
 	} else {
 
-	    /* mix stereo, 8 bit sound source to stereo, 16 bit */
+	    /* mix stereo, 8 bit sound source from stereo, 16 bit */
+
+	    /* optimize for the case where all settings are the same */
+	    if ( dest_rate == src_rate ) {
+		memcpy( target_data_uc, source_data_uc, dest_len );
+		bytes_written = dest_len;
+		break;
+	    }
+
+	    /* scale the pointer, and copy the data */
 	    while ( wr_dat < dest_len )
 	    {
 		rd_dat = wr_dat * src_rate / dest_rate;
 
 		lsample = source_data_uc[ rd_dat++ ];
-/*		lsample /= 256; lsample += 127; */
 		rsample = source_data_uc[ rd_dat++ ];
-/*		rsample /= 256; rsample += 127; */
 
 		target_data_uc[ wr_dat++ ] = lsample;
 		target_data_uc[ wr_dat++ ] = rsample;
@@ -208,12 +216,11 @@ int mix_from_stereo_8u( void *dest_buf, int dest_len, int dest_rate, esd_format_
 
 	if ( ( dest_format & ESD_MASK_CHAN ) == ESD_MONO ) {
 
-	    /* mix mono, 16 bit sound source from stereo, 16 bit */
+	    /* mix mono, 16 bit sound source from stereo, 8 bit */
 	    while ( wr_dat < dest_len / sizeof(signed short) )
 	    {
 		rd_dat = wr_dat * src_rate / dest_rate;
 		rd_dat *= 2;		/* adjust for stereo */
-		rd_dat += rd_dat % 2;	/* force to left sample */
 
 		lsample = source_data_uc[ rd_dat++ ] - 127;
 		rsample = source_data_uc[ rd_dat++ ] - 127;
@@ -223,11 +230,10 @@ int mix_from_stereo_8u( void *dest_buf, int dest_len, int dest_rate, esd_format_
 
 	} else {
 
-	    /* mix stereo, 16 bit sound source from stereo, 16 bit */
+	    /* mix stereo, 16 bit sound source from stereo, 8 bit */
 	    while ( wr_dat < dest_len / sizeof(signed short) )
 	    {
 		rd_dat = wr_dat * src_rate / dest_rate;
-		/* rd_dat += (rd_dat % 2); */ /* force to left sample */
 
 		lsample = source_data_uc[ rd_dat++ ] - 127;
 		rsample = source_data_uc[ rd_dat++ ] - 127;
@@ -277,11 +283,10 @@ int mix_from_mono_16s( void *dest_buf, int dest_len, int dest_rate, esd_format_t
 	    {
 		rd_dat = wr_dat * src_rate / dest_rate;
 
-		lsample = source_data_ss[ rd_dat++ ];
-
+		lsample = source_data_ss[ rd_dat ];
 		lsample /= 256; lsample += 127;
 
-		target_data_uc[ wr_dat++ ] = lsample / 2;
+		target_data_uc[ wr_dat++ ] = lsample;
 	    }
 
 	} else {
@@ -309,13 +314,22 @@ int mix_from_mono_16s( void *dest_buf, int dest_len, int dest_rate, esd_format_t
 	if ( ( dest_format & ESD_MASK_CHAN ) == ESD_MONO ) {
 
 	    /* mix mono, 16 bit sound source from mono, 16 bit */
+
+	    /* optimize for the case where all settings are the same */
+	    if ( dest_rate == src_rate ) {
+		memcpy( target_data_ss, source_data_ss, dest_len );
+		bytes_written = dest_len;
+		break;
+	    }
+
+	    /* scale the pointer, and copy the data */
 	    while ( wr_dat < dest_len / sizeof(signed short) )
 	    {
 		rd_dat = wr_dat * src_rate / dest_rate;
 
-		lsample = source_data_ss[ rd_dat++ ];
+		lsample = source_data_ss[ rd_dat ];
 
-		target_data_ss[ wr_dat++ ] = lsample / 2;
+		target_data_ss[ wr_dat++ ] = lsample;
 	    }
 
 	} else {
@@ -369,12 +383,21 @@ int mix_from_mono_8u( void *dest_buf, int dest_len, int dest_rate, esd_format_t 
 	if ( ( dest_format & ESD_MASK_CHAN ) == ESD_MONO ) {
 
 	    /* mix mono, 8 bit sound source from mono, 8 bit */
+
+	    /* optimize for the case where all settings are the same */
+	    if ( dest_rate == src_rate ) {
+		memcpy( target_data_uc, source_data_uc, dest_len );
+		bytes_written = dest_len;
+		break;
+	    }
+
+	    /* scale the pointer, and copy the data */
 	    while ( wr_dat < dest_len )
 	    {
 		rd_dat = wr_dat * src_rate / dest_rate;
 
-		lsample = source_data_uc[ rd_dat++ ];
-		target_data_uc[ wr_dat++ ] = lsample / 2;
+		lsample = source_data_uc[ rd_dat ];
+		target_data_uc[ wr_dat++ ] = lsample;
 	    }
 
 	} else {
@@ -385,7 +408,7 @@ int mix_from_mono_8u( void *dest_buf, int dest_len, int dest_rate, esd_format_t 
 		rd_dat = wr_dat * src_rate / dest_rate;
 		rd_dat /= 2;
 
-		lsample = source_data_uc[ rd_dat++ ];
+		lsample = source_data_uc[ rd_dat ];
 
 		target_data_uc[ wr_dat++ ] = lsample;
 		target_data_uc[ wr_dat++ ] = lsample;
@@ -405,7 +428,7 @@ int mix_from_mono_8u( void *dest_buf, int dest_len, int dest_rate, esd_format_t 
 	    {
 		rd_dat = wr_dat * src_rate / dest_rate;
 
-		lsample = source_data_uc[ rd_dat++ ] - 127;
+		lsample = source_data_uc[ rd_dat ] - 127;
 		lsample *= 256;
 
 		target_data_ss[ wr_dat++ ] = lsample;

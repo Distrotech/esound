@@ -1,5 +1,10 @@
 1998-10-16  Yo Ric Dude  <ricdude@ix.netcom.com>
 
+	* filter.c, mix.c, players.c: misc optimizations courtesy of Bibek.
+
+	* audio_hpux.c: HP-UX patches courtest of Jimmy Olsen <jo@hrp.no>.
+	It is claimed that esd now runs on HP-Ux
+
 	* esd-server.h, esd.c, filter.c, players.c, proto.c: added support 
 	for multiple simultaneous monitor streams.
 

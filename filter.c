@@ -15,7 +15,12 @@ int filter_write( void *buffer, int size, esd_format_t format, int rate )
     data_buffer = buffer;
     data_format = format;
     data_rate = rate;
-    
+
+    /* if no filters, skip it */
+    if( !esd_filter_list ) {
+	return size;
+    }
+
     /* hop through the list of filters */
     while( filter ) {
 	/* fprintf( stderr, "filter_write: writing to new filter...\n" ); */
@@ -84,14 +89,9 @@ int filter_write( void *buffer, int size, esd_format_t format, int rate )
 	}
     }
     
-    if( data_buffer != buffer )
-    {
-	/* memcpy( buffer, data_buffer, data_size ); */
-	data_size = mix_and_copy( buffer, size, rate, format, 
-			data_buffer, data_size, data_rate, data_format );
-    }
-    
-    return data_size;
+    /* mix it down */
+    return mix_and_copy( buffer, size, rate, format, 
+			 data_buffer, data_size, data_rate, data_format );
 }
 
 /*******************************************************************/
