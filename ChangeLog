@@ -1,3 +1,11 @@
+
+1998-07-01  Yo Ric Dude  <ericmit@ix.netcom.com>
+
+	* audio_irix.c, configure.in: fixed audio_irix driver. works on an
+	Octane.  Autoconf tools are a little weird on irix.  had to manually
+	tweak the generated makefile to remove .deps references. added
+	lib check routines to find -laudio. look into improving autoconf-irix
+
 1998-06-28  Raja R Harinath  <harinath@cs.umn.edu>
 
 	* clients.c (wait_for_clients_and_data): Return 0.

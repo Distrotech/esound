@@ -44,6 +44,7 @@ AC_CHECK_FUNC(connect,,[AC_CHECK_LIB(socket,connect)])
 AC_CHECK_FUNC(gethostbyname,,[AC_CHECK_LIB(nsl,gethostbyname)])
 AC_CHECK_FUNC(inet_aton,,[AC_CHECK_LIB(resolv,inet_aton)])
 AC_CHECK_FUNC(_oss_ioctl,,[AC_CHECK_LIB(ossaudio,_oss_ioctl)])
+AC_CHECK_FUNC(ALnewconfig,,[AC_CHECK_LIB(audio,ALnewconfig)])
 
 AC_PROG_MAKE_SET
 
