@@ -54,7 +54,7 @@ int esd_audio_open()
     handle = NULL;
     for( card=0; (card < SND_CARDS) && (handle == NULL); card++ ) {
 	if( mask & (1 << card) ) {
-	    err = snd_pcm_open( &handle, i, device, mode );
+	    err = snd_pcm_open( &handle, card, device, mode );
 	    if( ret < 0 ) {
 		if( driver_trace ) {
 		    perror( "snd_pcm_open" );
