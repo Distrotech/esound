@@ -60,6 +60,7 @@ const char * esd_audio_devices()
 void esd_audio_close()
 {
     close( esd_audio_fd );
+    esd_audio_fd = -1;
     return;
 }
 #endif

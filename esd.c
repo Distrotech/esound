@@ -484,6 +484,7 @@ int esd_server_resume(void)
 	    /* turn ourselves back on */
 	    esd_on_standby = 0;
 	    esd_on_autostandby = 0;
+	    esd_forced_standby = 0;
 	}
     }
 

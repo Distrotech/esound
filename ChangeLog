@@ -1,3 +1,8 @@
+2002-08-21  Elliot Lee  <sopwith@redhat.com>
+
+	* audio.c: set esd_audio_fd = -1 when we esd_audio_close()
+	* esd.c: Set esd_forced_standby = 0 when we resume.
+
 2002-08-18  Havoc Pennington  <hp@pobox.com>
 
 	* autogen.sh: hardcode aclocal-1.4/automake-1.4 so that users with
