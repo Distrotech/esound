@@ -12,6 +12,7 @@
 /* globals */
 esd_format_t esd_audio_format = ESD_BITS16 | ESD_STEREO;
 int esd_audio_rate = ESD_DEFAULT_RATE;
+char *esd_audio_device = NULL; /* aux device spec: /dev/dsp2, lineout, etc. */
 
 /* the audio device, /dev/dsp, file descriptor */
 static int esd_audio_fd = -1;
@@ -42,6 +43,15 @@ static int driver_trace = 0;
 #endif
 
 /*******************************************************************/
+/* display available devices */
+#ifndef ARCH_esd_audio_devices
+const char * esd_audio_devices()
+{
+    return "(default audio device)";
+}
+#endif
+
+/*******************************************************************/
 /* close the audio device */
 #ifndef ARCH_esd_audio_close
 void esd_audio_close()
@@ -50,6 +60,7 @@ void esd_audio_close()
     return;
 }
 #endif
+
 /*******************************************************************/
 /* make the sound device quiet for a while */
 #ifndef ARCH_esd_audio_pause

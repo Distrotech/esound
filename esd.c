@@ -264,7 +264,7 @@ int main ( int argc, char *argv[] )
 
     void *output_buffer = NULL;
 
-    int do_sleep = 0;
+    char *device = NULL;
 
     /* begin test scaffolding parameters */
     /* int format = AFMT_U8; AFMT_S16_LE; */
@@ -276,12 +276,20 @@ int main ( int argc, char *argv[] )
     int default_format = ESD_BITS16 | ESD_STEREO;
     /* end test scaffolding parameters */
 
-    /* start the initializatin process */
-    printf( "initializing...\n" );
-
     /* parse the command line args */
     for ( arg = 1 ; arg < argc ; arg++ ) {
-	if ( !strcmp( argv[ arg ], "-port" ) ) {
+	if ( !strcmp( argv[ arg ], "-d" ) ) {
+	    if ( ++arg != argc ) {
+		esd_audio_device = argv[ arg ];
+		if ( !esd_audio_device ) {
+		    esd_port = ESD_DEFAULT_PORT;
+		    fprintf( stderr, "- could not read device: %s\n", 
+			     argv[ arg ] );
+		}
+		fprintf( stderr, "- using device %s\n", 
+			 esd_audio_device );
+	    }
+	} else if ( !strcmp( argv[ arg ], "-port" ) ) {
 	    if ( ++arg != argc ) {
 		esd_port = atoi( argv[ arg ] );
 		if ( !esd_port ) {
@@ -330,6 +338,7 @@ int main ( int argc, char *argv[] )
 	    fprintf( stderr, "- disabling startup beeps\n" );
 	} else if ( !strcmp( argv[ arg ], "-h" ) ) {
 	    fprintf( stderr, "Usage: esd [options]\n\n" );
+	    fprintf( stderr, "  -d DEVICE   run server in 8 bit sound mode\n" );
 	    fprintf( stderr, "  -b          run server in 8 bit sound mode\n" );
 	    fprintf( stderr, "  -r RATE     run server at sample rate of RATE\n" );
 	    fprintf( stderr, "  -as SECS    free audio device after SECS of inactivity\n" );
@@ -338,11 +347,15 @@ int main ( int argc, char *argv[] )
 	    fprintf( stderr, "  -vc         enable comms diagnostic info\n" );
 #endif
 	    fprintf( stderr, "  -port PORT  listen for connections at PORT\n" );
+	    fprintf( stderr, "\nPossible devices are:  %s\n", esd_audio_devices() );
 	    exit( 0 );
 	} else {
 	    fprintf( stderr, "unrecognized option: %s\n", argv[ arg ] );
 	}
     }
+
+    /* start the initializatin process */
+    printf( "initializing...\n" );
 
     /* set the data size parameters */
     esd_audio_format = default_format;
@@ -427,7 +440,7 @@ int main ( int argc, char *argv[] )
 	}
 	
 	if ( length > 0 /* || esd_monitor */ ) {
-	    do_sleep = 0;
+	    /* do_sleep = 0; */ 
 	    if ( !esd_on_standby ) {
 		/* standby check goes in here, so esd will eat sound data */
 		/* TODO: eat a round of data with a better algorithm */

@@ -14,10 +14,17 @@
 #define SNDCTL_DSP_SETDUPLEX DSP_CAP_DUPLEX
 #endif
 
+#define ARCH_esd_audio_devices
+const char *esd_audio_devices()
+{
+    return "/dev/dsp, /dev/dsp2, etc.";
+}
+
+
 #define ARCH_esd_audio_open
 int esd_audio_open()
 {
-    const char *device = "/dev/dsp";
+    const char *device;
 
     int afd = -1, value = 0, test = 0;
     int mode = O_WRONLY;
@@ -27,6 +34,7 @@ int esd_audio_open()
         mode = O_RDWR;
 
     /* open the sound device */
+    device = esd_audio_device ? esd_audio_device : "/dev/dsp";
     if ((afd = open(device, mode, 0)) == -1)
     {   /* Opening device failed */
         perror(device);

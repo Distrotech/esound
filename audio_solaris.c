@@ -12,6 +12,14 @@
 #include <sun/audioio.h>
 #endif
 
+
+#define ARCH_esd_audio_devices
+const char *esd_audio_devices()
+{
+    return "speaker, lineout, headphone";
+}
+
+
 #define ARCH_esd_audio_open
 int esd_audio_open()
 {
@@ -53,13 +61,28 @@ int esd_audio_open()
       return -1;
     }
 
-    /* SUNW,CS4231 */
+    /* SUNW,CS4231 and compatible drivers */
     {
       int gain = 64;	/* Range: 0 - 255 */
-      int port = AUDIO_SPEAKER;
+      int port;
       int bsize = 8180;
       audio_info_t ainfo;
       
+      if ( esd_audio_device == NULL )
+	  port = AUDIO_SPEAKER;
+      else if ( !strcmp( esd_audio_device, "lineout" ) )
+	  port = AUDIO_LINE_OUT;
+      else if ( !strcmp( esd_audio_device, "speaker" ) )
+	  port = AUDIO_SPEAKER;
+      else if ( !strcmp( esd_audio_device, "headphone" ) )
+	  port = AUDIO_HEADPHONE;
+      else {
+	  fprintf(stderr, "Unknown output device `%s'\n", esd_audio_device);
+	  close(afd);
+	  esd_audio_fd = -1;
+	  return -1;
+      }
+
       AUDIO_INITINFO(&ainfo);
       
       ainfo.play.sample_rate = esd_audio_rate;

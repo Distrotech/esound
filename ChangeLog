@@ -1,5 +1,11 @@
 1998-12-30  Yo Ric Dude  <ricdude@ix.netcom.com>
 
+	* audio.c, audio_alsa.c, audio_oss.c, audio_solaris.c, esd.c,
+ 	esd.h: added -d DEVICE option - use an alternate audio device.
+  	This sets esd_audio_device (const char *) which can be used by the
+ 	platform specific esd_audio_open() functions.  audio_oss updated,
+ 	audio_solaris updated but not tested.  other updates requested.
+
 	* esd-server.h, esd.c, samples.c: actually reset *everything* in
 	the daemon on a SIGHUP
 

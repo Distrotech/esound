@@ -286,13 +286,15 @@ int esd_file_cache( int esd, const char *name_prefix, const char *filename );
 /* audio.c - abstract the sound hardware for cross platform usage */
 extern esd_format_t esd_audio_format;
 extern int esd_audio_rate;
+extern char *esd_audio_device;
 
-int esd_audio_open(void);
-void esd_audio_close(void);
-void esd_audio_pause(void);
+const char *esd_audio_devices( void );
+int esd_audio_open( void );
+void esd_audio_close( void );
+void esd_audio_pause( void );
 int esd_audio_write( void *buffer, int buf_size );
 int esd_audio_read( void *buffer, int buf_size );
-void esd_audio_flush(void);
+void esd_audio_flush( void );
 
 #ifdef __cplusplus
 }
