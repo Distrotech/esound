@@ -48,7 +48,7 @@ int main(int argc, char **argv)
 	    format, rate );
    
     /* sock = esd_play_stream( format, rate ); */
-    sock = esd_play_stream_fallback( format, rate, host, argv[0] );
+    sock = esd_play_stream_fallback( format, rate, host, name );
     if ( sock <= 0 ) 
 	return 1;
     

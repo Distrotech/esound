@@ -400,12 +400,12 @@ int poll_client_requests()
 	    continue;
 	}
 
- 	if ( client->need_validation ) {
+ 	if ( client->state == ESD_NEEDS_VALIDATION ) {
  	    /* validate client */
  	    is_ok = validate_source( client->fd, client->source, 0 );
  
  	    if ( is_ok ) {
- 	        client->need_validation = 0;
+ 	        client->state = ESD_NEXT_REQUEST;
  		is_ok = do_validated_action( client );
  	    }
  	    else if ( client->request != ESD_PROTO_INVALID ) {
@@ -437,7 +437,7 @@ int poll_client_requests()
  		case ESD_PROTO_RESUME:
  		    /* these requests need validation -- the validation */
  		    /* key will appear in the next read */
- 		    client->need_validation = 1;
+ 		    client->state = ESD_NEEDS_VALIDATION;
  		    is_ok = 1;
  		    break;
 

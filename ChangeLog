@@ -1,3 +1,15 @@
+1998-07-04  Yo Ric Dude  <ericmit@ix.netcom.com>
+
+	* clients.c, esd-server.h, proto.c: following the lead of 
+	the need_validation flag, it's possible that the same problem
+	could occur while caching a sample, changed need_validation to
+ 	client->state, so it can track incomplete protocol requests.
+	Still need to add the intelligence for the sample caching.
+
+	* esdlib.c: esdlib now does proper arg checking (NULL for names)
+
+	* esdcat.c: reverted to previous form, name is file (or nothing)
+
 1998-07-03  Manish Singh  <yosh@gimp.org>
 
 	* esdcat.c: pass a valid pointer for name in esd_play_stream_callback

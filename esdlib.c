@@ -245,7 +245,10 @@ int esd_play_stream( esd_format_t format, int rate, char *host, char *name )
 	return sock;
 
     /* prepare the name buffer */
-    strncpy( name_buf, name, ESD_NAME_MAX );
+    if ( name )
+	strncpy( name_buf, name, ESD_NAME_MAX );
+    else
+	name_buf[ 0 ] = '\0';
 
     /* send the audio format information */
     if ( write( sock, &proto, sizeof(proto) ) != sizeof(proto) )
@@ -300,7 +303,10 @@ int esd_monitor_stream( esd_format_t format, int rate, char *host, char *name )
 	return sock;
     
     /* prepare the name buffer */
-    strncpy( name_buf, name, ESD_NAME_MAX );
+    if ( name )
+	strncpy( name_buf, name, ESD_NAME_MAX );
+    else
+	name_buf[ 0 ] = '\0';
 
     /* send the audio format information */
     if ( write( sock, &proto, sizeof(proto) ) != sizeof(proto) )
@@ -332,7 +338,10 @@ int esd_record_stream( esd_format_t format, int rate, char *host, char *name )
 	return sock;
     
     /* prepare the name buffer */
-    strncpy( name_buf, name, ESD_NAME_MAX );
+    if ( name )
+	strncpy( name_buf, name, ESD_NAME_MAX );
+    else
+	name_buf[ 0 ] = '\0';
 
     /* send the audio format information */
     if ( write( sock, &proto, sizeof(proto) ) != sizeof(proto) )
@@ -383,7 +392,10 @@ int esd_sample_cache( int esd, esd_format_t format, int rate, long size, char *n
 
     /* prepare the name buffer */
     char name_buf[ ESD_NAME_MAX ];
-    strncpy( name_buf, name, ESD_NAME_MAX );
+    if ( name )
+	strncpy( name_buf, name, ESD_NAME_MAX );
+    else
+	name_buf[ 0 ] = '\0';
     printf( "caching sample: %s (%d) - %ld bytes\n", name_buf, esd, size );
 
     /* send the necessary information */

@@ -123,7 +123,7 @@ int get_new_clients( int listen )
 	    /* fill in the new_client structure - sockaddr = works!? */
 	    /* request = ..._INVALID forces polling client next time */
 	    new_client->next = NULL;
-	    new_client->need_validation = 1;
+	    new_client->state = ESD_NEEDS_VALIDATION;
 	    new_client->request = ESD_PROTO_INVALID;
 	    new_client->fd = fd;
 	    new_client->source = incoming; 

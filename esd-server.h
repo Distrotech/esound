@@ -15,12 +15,22 @@
 #define ESD_ENDSAME	( 0x0000000 )
 #define ESD_ENDDIFF	( 0x1000000 )
 
+/* a client may be in one of several states */
+enum esd_client_state {
+    ESD_NEEDS_VALIDATION,	/* need to validate this client/request */
+    ESD_STREAMING_DATA,		/* data from here on is streamed data */
+    ESD_CACHING_SAMPLE,		/* midway through caching a sample */
+    ESD_NEXT_REQUEST,		/* proceed to next request */
+
+    ESD_CLIENT_STATE_MAX	/* place holder */
+};
+typedef int esd_client_state_t;
+
 /* a client is what contacts the server, and makes requests of daemon */
 typedef struct esd_client {
     struct esd_client *next; 	/* it's a list, eh? link 'em */
 
-    int need_validation;	/* does the client need validation before */
-				/* `request' can be processed */
+    esd_client_state_t state;	/* which of above states are we in? */
   
     esd_proto_t request;	/* current request for this client */
     int fd;			/* the clients protocol stream */
