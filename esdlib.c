@@ -389,7 +389,7 @@ esd_connect_tcpip(const char *host)
   socket_out = socket( AF_INET, SOCK_STREAM, 0 );
   if ( socket_out < 0 ) 
     {
-      fprintf(stderr,"Unable to create socket\n");
+      fprintf(stderr,"Unable to create tcp socket\n");
       return( -1 );
     }
   
@@ -447,12 +447,11 @@ esd_connect_unix(const char *host)
   
   /* set the connect information */
   socket_unix.sun_family = AF_UNIX;
-  strncpy(socket_unix.sun_path, "/tmp/.esd/socket", sizeof(socket_unix.sun_path));
+  strncpy(socket_unix.sun_path, ESD_UNIX_SOCKET_NAME, sizeof(socket_unix.sun_path));
   
   if ( connect( socket_out,
 	       (struct sockaddr *) &socket_unix,
-	       sizeof(socket_unix.sun_family) + 
-	       strlen(socket_unix.sun_path) ) < 0 )
+	       sizeof(struct sockaddr_un) ) < 0 )
     return -1;
   
   return socket_out;
@@ -466,7 +465,7 @@ int esd_open_sound( const char *host )
   int socket_out = -1;
   char use_unix = 0;
   
-  if (access("/tmp/.esd/socket", R_OK | W_OK) == -1)
+  if (access(ESD_UNIX_SOCKET_NAME, R_OK | W_OK) == -1)
     {
       if (errno == EACCES) 
 	{

@@ -1,3 +1,15 @@
+Wed Jun 16 12:52:02 1999 Timur Bakeyev <mc@bat.ru>
+
+	* esd.h, esd.c, esdlib.c: All occurances of "/tmp/.esd/socket" string
+	changed to macro ESD_UNIX_SOCKET_NAME - this is a bit cleaner, and
+	allows to change name in one place only.
+
+	* esd.c, esdlib.c: Fix a bug with domain sockets, when passing plain 
+	strlen() of the socket name to bind() caused it's trancation to "socke" :(
+	Changed to sizeof(struct sockaddr_un).
+	
+	* esdsample.c: Fix a coredump, when no parameters specified.
+
 1999-06-14  Elliot Lee  <sopwith@redhat.com>
 
 	* esdlib.c: Fix bug #1276 - don't try to auto-spawn if $ESPEAKER is set.

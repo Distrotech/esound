@@ -152,8 +152,8 @@ void clean_exit(int signum) {
     }
    if (!esd_use_tcpip)
     {
-      unlink("/tmp/.esd/socket");
-      unlink("/tmp/.esd");
+      unlink(ESD_UNIX_SOCKET_NAME);
+      unlink(ESD_UNIX_SOCKET_DIR);
     }
   
 
@@ -187,11 +187,10 @@ esd_connect_unix(void)
     return -1;  
   /* set the connect information */
   socket_unix.sun_family = AF_UNIX;
-  strncpy(socket_unix.sun_path, "/tmp/.esd/socket", sizeof(socket_unix.sun_path));  
+  strncpy(socket_unix.sun_path, ESD_UNIX_SOCKET_NAME, sizeof(socket_unix.sun_path));  
   if ( connect( socket_out,
 	       (struct sockaddr *) &socket_unix,
-	       sizeof(socket_unix.sun_family) +
-	       strlen(socket_unix.sun_path) ) < 0 )
+	       sizeof(struct sockaddr_un) ) < 0 )
     return -1;  
   return socket_out;
 }
@@ -214,27 +213,27 @@ int open_listen_socket( int port )
       socket_listen=socket(AF_INET,SOCK_STREAM,0);
     else
     {
-      if (access("/tmp/.esd", R_OK | W_OK) == -1)
+      if (access(ESD_UNIX_SOCKET_DIR, R_OK | W_OK) == -1)
 	{	
-	  mkdir("/tmp/.esd",
+	  mkdir(ESD_UNIX_SOCKET_DIR,
 		S_IRUSR|S_IWUSR|S_IXUSR|
 		S_IRGRP|S_IWGRP|S_IXGRP|
 		S_IROTH|S_IWOTH|S_IXOTH);
-	  chmod("/tmp/.esd",
+	  chmod(ESD_UNIX_SOCKET_DIR,
 		S_IRUSR|S_IWUSR|S_IXUSR|
 		S_IRGRP|S_IWGRP|S_IXGRP|
 		S_IROTH|S_IWOTH|S_IXOTH);
 	}
-      if (access("/tmp/.esd/socket", R_OK | W_OK) == -1)
+      if (access(ESD_UNIX_SOCKET_NAME, R_OK | W_OK) == -1)
 	{
 	  if (errno == EACCES)
 	    {
 	      /* not allowed access */
 	      fprintf(stderr, 
 		      "esd: Esound sound daemon unable to create unix domain socket:\n"
-		      "/tmp/.esd/socket\n"
+		      "%s\n"
 		      "This socket already exists and is not accessible by esd.\n"
-		      "Exiting...\n");
+		      "Exiting...\n", ESD_UNIX_SOCKET_NAME);
 	      exit(1);
 	    }
 	}
@@ -245,13 +244,13 @@ int open_listen_socket( int port )
 	      /* not allowed access */
 	      fprintf(stderr, 
 		      "esd: Esound sound daemon already running or stale UNIX socket\n"
-		      "/tmp/.esd/socket\n"
+		      "%s\n"
 		      "This socket already exists indicating esd is already running.\n"
-		      "Exiting...\n");
+		      "Exiting...\n", ESD_UNIX_SOCKET_NAME);
 	      exit(1);
 	    }
 	}
-      unlink("/tmp/.esd/socket");
+      unlink(ESD_UNIX_SOCKET_NAME);
       socket_listen=socket(AF_UNIX,SOCK_STREAM,0);
     }
     if (socket_listen<0) 
@@ -301,23 +300,22 @@ int open_listen_socket( int port )
     else
     {
       socket_unix.sun_family=AF_UNIX;
-      strncpy(socket_unix.sun_path,"/tmp/.esd/socket",sizeof(socket_unix.sun_path));
+      strncpy(socket_unix.sun_path, ESD_UNIX_SOCKET_NAME, sizeof(socket_unix.sun_path));
       if ( bind( socket_listen,
 		(struct sockaddr *) &socket_unix,
-		sizeof(socket_unix.sun_family) + 
-		strlen(socket_unix.sun_path) ) < 0 )
+		sizeof(struct sockaddr_un)) < 0 )
 	{
-	  fprintf(stderr,"Unable to connect to UNIX socket /tmp/.esd/socket\n");
+	  fprintf(stderr,"Unable to connect to UNIX socket %s\n", ESD_UNIX_SOCKET_NAME);
 	  if (!esd_use_tcpip)
 	    {
-	      unlink("/tmp/.esd/socket");
-	      unlink("/tmp/.esd");
+	      unlink(ESD_UNIX_SOCKET_NAME);
+	      unlink(ESD_UNIX_SOCKET_DIR);
 	    }
 	  exit(1);
 	}
       /* let anyone access esd's socket - but we have authentication so they */
       /* wont get far if they dont have the auth key */
-      chmod("/tmp/.esd/socket", 
+      chmod(ESD_UNIX_SOCKET_NAME, 
 	    S_IRUSR|S_IWUSR|S_IXUSR|
 	    S_IRGRP|S_IWGRP|S_IXGRP|
 	    S_IROTH|S_IWOTH|S_IXOTH);
@@ -327,8 +325,8 @@ int open_listen_socket( int port )
       fprintf(stderr,"Unable to set socket listen buffer length\n");
       if (!esd_use_tcpip)
 	{
-	  unlink("/tmp/.esd/socket");
-	  unlink("/tmp/.esd");
+	  unlink(ESD_UNIX_SOCKET_NAME);
+	  unlink(ESD_UNIX_SOCKET_DIR);
 	}
       exit(1);
     }
@@ -503,8 +501,8 @@ int main ( int argc, char *argv[] )
     fprintf( stderr, "fatal error opening socket\n" );
     if (!esd_use_tcpip)
       {
-	unlink("/tmp/.esd/socket");
-	unlink("/tmp/.esd");
+	unlink(ESD_UNIX_SOCKET_NAME);
+	unlink(ESD_UNIX_SOCKET_DIR);
       }
     exit( 1 );	    
   }
@@ -584,8 +582,8 @@ int main ( int argc, char *argv[] )
 		    fprintf(stderr, "Sound device inadequate for Esound. Fatal.\n");
 		    if (!esd_use_tcpip)
 		      {
-			unlink("/tmp/.esd/socket");
-			unlink("/tmp/.esd");
+			unlink(ESD_UNIX_SOCKET_NAME);
+			unlink(ESD_UNIX_SOCKET_DIR);
 		      }
 		    exit( 1 );
 		  }

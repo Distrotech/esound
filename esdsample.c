@@ -19,6 +19,12 @@ void clean_exit(int signum) {
     return;
 }
 
+void usage(char *name) {
+    printf("usage:\n\t%s [-s server] [-d [-b] [-m] [-r freq]] < file\n",
+	   name);
+    exit(0);
+}
+
 int main(int argc, char **argv)
 {
     char buf[ESD_BUF_SIZE];
@@ -37,14 +43,13 @@ int main(int argc, char **argv)
     char filename[ ESD_NAME_MAX ] = "";
     int cache_mode = 0; /* cache mode, 1 = data, 0 = file, 2 = existing */
     
+    if (argc == 1)
+	usage(argv[0]);
+
     for ( arg = 1 ; arg < argc ; arg++)
     {
 	if (!strcmp("-h",argv[arg]))
-	{
-	    printf("usage:\n\t%s [-s server] [-d [-b] [-m] [-r freq]] < file\n",
-		   argv[0]);
-	    exit(0);
-	}
+	    usage(argv[0]);
 	else if ( !strcmp( "-s", argv[ arg ] ) )
 	    host = argv[ ++arg ];
 	else if ( !strcmp( "-b", argv[ arg ] ) )

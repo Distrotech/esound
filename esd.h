@@ -6,6 +6,10 @@
 extern "C" {
 #endif
 
+/* path and name of the default EsounD domain socket */
+#define ESD_UNIX_SOCKET_DIR	"/tmp/.esd/"
+#define ESD_UNIX_SOCKET_NAME	ESD_UNIX_SOCKET_DIR ## "socket"
+
 /* length of the audio buffer size */
 #define ESD_BUF_SIZE (4 * 1024)
 
