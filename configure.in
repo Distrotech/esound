@@ -273,4 +273,5 @@ Makefile
 esd-config
 esound.spec
 esddsp
-], [case "$CONFIG_FILES" in *esd-config*) chmod +x esd-config;; esac])
+])
+dnl , [case "$CONFIG_FILES" in *esd-config*) chmod +x esd-config;; esac])

@@ -1,3 +1,18 @@
+1998-12-21  Yo Ric Dude  <ricdude@ix.netcom.com>
+
+	* clients.c, esd-server.h, esd.h, players.c, proto.c, samples.c:
+ 	Cleaned out the protocol handling.  Basically, there's now a table
+ 	of protocol handlers and how much data they each require.  Each
+ 	client has a buffer to hold the extra data for the current
+ 	protocol handler.  poll_client_requests() reads data one chunk at
+ 	a time, until it gets everything it needs for that request.  The
+ 	handler then gets its data directly from the buffer, instead of
+ 	messing around with all this state transition stuff.
+	* configure.in: setting bin_SCRIPTS to include esd-config should
+ 	set the execute flag on the script when installed.
+	* esdlib.c: this needs esd.h, not esd-server.h.
+	* mix.c, esd-server.h: debugging info update.
+
 Sat Dec 19 21:19:51 EST 1998 Mandrake <mandrake@mandrake.net>
 	* down to just 7 warnings compiling on my system now -- everything
 	works pretty well now, I think, too.  still a few 8bit sound problems

@@ -393,21 +393,15 @@ esd_player_t *new_stream_player( esd_client_t *client )
     player->next = NULL;
     player->parent = NULL;
 
-    ESD_READ_INT( client->fd, &player->format, sizeof(player->format), 
-		  actual, "newstr fmt" );
-    if ( client->swap_byte_order )
-	player->format = swap_endian_32( player->format );
+    player->format = *(int*)(client->proto_data);
+    player->rate = *(int*)(client->proto_data + sizeof(int));
 
+    player->format = maybe_swap_32( client->swap_byte_order, player->format );
     player->format &= ~ESD_MASK_MODE; /* force to ESD_STREAM */
-    ESD_READ_INT( client->fd, &player->rate, sizeof(player->rate), 
-		  actual, "newstr rat" );
-    if ( client->swap_byte_order )
-	player->rate = swap_endian_32( player->rate );
+    player->rate = maybe_swap_32( client->swap_byte_order, player->rate );
 
     player->source_id = client->fd;
-    ESD_READ_BIN( client->fd, player->name, ESD_NAME_MAX, 
-		  actual, "newstr nam" );
-
+    strncpy( player->name, client->proto_data + 2 * sizeof(int), ESD_NAME_MAX );
     player->name[ ESD_NAME_MAX - 1 ] = '\0';
 
     ESDBG_TRACE( printf( "(%02d) stream %s: 0x%08x at %d Hz\n", client ->fd, 
@@ -457,7 +451,6 @@ esd_player_t *new_stream_player( esd_client_t *client )
     }
 
     /* everything's ok, return the allocated player */
-    /* player->last_read = time(NULL); */
     player->left_vol_scale = player->right_vol_scale = ESD_VOLUME_BASE;
 
     ESDBG_TRACE( printf( "(%02d) player: [%p]\n", player->source_id, player ); );

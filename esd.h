@@ -30,7 +30,7 @@ extern "C" {
 /*************************************/
 /* what can we do to/with the EsounD */
 enum esd_proto { 
-    ESD_PROTO_INVALID,      /* hold the zero value */
+    ESD_PROTO_CONNECT,      /* implied on inital client connection */
 
     /* pseudo "security" functionality */
     ESD_PROTO_LOCK,	    /* disable "foreign" client connections */

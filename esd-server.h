@@ -32,13 +32,10 @@
 
 /* a client may be in one of several states */
 enum esd_client_state {
-    ESD_NEEDS_VALIDATION,	/* need to validate this client/request */
-    ESD_NEEDS_ENDCHECK, 	/* need to validate this client/request */
     ESD_STREAMING_DATA,		/* data from here on is streamed data */
     ESD_CACHING_SAMPLE,		/* midway through caching a sample */
     ESD_NEEDS_REQDATA,		/* more data needed to complere request */
     ESD_NEXT_REQUEST,		/* proceed to next request */
-
     ESD_CLIENT_STATE_MAX	/* place holder */
 };
 typedef int esd_client_state_t;
@@ -54,8 +51,8 @@ typedef struct esd_client {
     struct sockaddr_in source;	/* data maintained about source */
 
     int swap_byte_order;	/* for big/little endian compatibility */
-    /* TODO: read_data() should then swap all the bytes */
-    /* before the mixing subsystem gets a hold of it. */
+    octet proto_data[ 1024 ];	/* space to hold the protocol request data */
+    int proto_data_length;	/* how much protocol request data we have */
 } esd_client_t;
 
 /* a player is what produces data for a sound */
@@ -202,12 +199,14 @@ int mix_players_8s( void *mixed, int length );
 #define ESDBG_TRACE(x) \
 	do { \
 	    if ( esdbg_trace ) \
+		printf( ":trace: [%s,%d] \t", __FILE__, __LINE__ ); \
     		x; \
 	} while( 0 );
 
 #define ESDBG_COMMS(x) \
 	do { \
 	    if ( esdbg_comms ) \
+		printf( ":comms: [%s,%d] \t", __FILE__, __LINE__ ); \
     		x; \
 	} while( 0 );
 

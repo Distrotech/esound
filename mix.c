@@ -654,7 +654,7 @@ int mix_players_16s( void *output, int length )
     }
 
     /* if ( esdbg_comms ) printf( "maximum stream length = %d bytes\n", max ); */
-    ESDBG_COMMS( printf( "maximum stream length = %d bytes\n", max ); );
+    /* ESDBG_COMMS( printf( "maximum stream length = %d bytes\n", max ); ); */ 
 
     if ( (esd_audio_format & ESD_MASK_BITS) == ESD_BITS16 ) 
 	clip_mix_to_output_16s( output, max );

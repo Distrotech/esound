@@ -202,12 +202,12 @@ int get_new_clients( int listen )
 			 &fd_bufsize, sizeof(fd_bufsize));
 	    }
 	    /* fill in the new_client structure - sockaddr = works!? */
-	    /* request = ..._INVALID forces polling client next time */
 	    new_client->next = NULL;
-	    new_client->state = ESD_NEEDS_VALIDATION;
-	    new_client->request = ESD_PROTO_INVALID;
+	    new_client->state = ESD_NEEDS_REQDATA;
+	    new_client->request = ESD_PROTO_CONNECT;
 	    new_client->fd = fd;
 	    new_client->source = incoming; 
+	    new_client->proto_data_length = 0;
 	    
 	    add_new_client( new_client );
 	}

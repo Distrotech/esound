@@ -162,22 +162,17 @@ esd_sample_t *new_sample( esd_client_t *client )
     /* and initialize the sample */
     sample->next = NULL;
     sample->parent = NULL;
-    ESD_READ_INT( client->fd, &sample->format, sizeof(sample->format),
-		  actual, "ns fmt" );
-    if ( client->swap_byte_order )
-	sample->format = swap_endian_32( sample->format );
 
-    ESD_READ_INT( client->fd, &sample->rate, sizeof(sample->rate),
-		  actual, "ns rate" );
-    if ( client->swap_byte_order )
-	sample->rate = swap_endian_32( sample->rate );
+    sample->format = *(int*)(client->proto_data);
+    sample->rate = *(int*)(client->proto_data + sizeof(int));
+    sample->sample_length = *(int*)(client->proto_data + 2 * sizeof(int));
 
-    ESD_READ_INT( client->fd, &sample->sample_length, sizeof(sample->sample_length),
-		  actual, "ns len" );
-    if ( client->swap_byte_order )
-	sample->sample_length = swap_endian_32( sample->sample_length );
+    sample->format = maybe_swap_32( client->swap_byte_order, sample->format );
+    sample->rate = maybe_swap_32( client->swap_byte_order, sample->rate );
+    sample->sample_length = maybe_swap_32( client->swap_byte_order, 
+					   sample->sample_length );
 
-    ESD_READ_BIN( client->fd, sample->name, ESD_NAME_MAX, actual, "ns name" );
+    strncpy( sample->name, client->proto_data + 3 * sizeof(int), ESD_NAME_MAX );
     sample->name[ ESD_NAME_MAX - 1 ] = '\0';
 
     sample->sample_id = esd_next_sample_id++;
