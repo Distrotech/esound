@@ -1,5 +1,9 @@
 2002-08-26  Frederic Crozat  <fcrozat@mandrakesoft.com>
 
+	* configure.in: Release 0.2.29
+
+2002-08-26  Frederic Crozat  <fcrozat@mandrakesoft.com>
+
 	* audio_alsa09.c: (initAlsa): Ensure device is closed if initialisation
 	failed (was preventing future initialisations)
 	(esd_audio_devices):list avaible ALSA cards when using -help (bug
