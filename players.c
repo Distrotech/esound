@@ -406,7 +406,7 @@ esd_player_t *new_stream_player( esd_client_t *client )
 	player->buffer_length /= 2;
 
     /* force to an even multiple of 4 */
-    player->buffer_length += player->buffer_length % 4;
+    player->buffer_length += ( 4 - (player->buffer_length % 4) ) % 4;
 
     player->data_buffer
 	= (void *) malloc( player->buffer_length );
@@ -475,7 +475,7 @@ esd_player_t *new_sample_player( int sample_id, int loop )
 	player->buffer_length /= 2;
 
     /* force to an even multiple of 4 */
-    player->buffer_length += player->buffer_length % 4;
+    player->buffer_length += ( 4 - (player->buffer_length % 4) ) % 4;
 
     player->data_buffer
 	= (void *) malloc( player->buffer_length );

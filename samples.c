@@ -181,7 +181,7 @@ esd_sample_t *new_sample( esd_client_t *client )
     client_id = maybe_swap_32( client->swap_byte_order, 
 			       sample->sample_id );
     ESD_WRITE_INT( client->fd, &client_id, sizeof(client_id), actual, "ns ack" );
-    fsync( client->fd );
+    /* fsync( client->fd ); */
 
     return sample;
 }

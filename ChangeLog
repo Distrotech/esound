@@ -1,3 +1,9 @@
+1998-11-06  Yo Ric Dude  <ricdude@ix.netcom.com>
+
+	* samples.c, players.c, proto.c: fixed rounding to multiple of 4
+	algorithm, and removed fsync's as they don't do anything for a
+	socket.  patches suggested by Miodrag Vallat.
+
 1998-11-05  Yo Ric Dude  <ricdude@ix.netcom.com>
 
 	* audio_aix.c: typo fixes courtest of Philippe Defert

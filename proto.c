@@ -136,7 +136,7 @@ int esd_proto_lock( esd_client_t *client )
     esd_is_locked = 1;
 
     ESD_WRITE_INT( client->fd, &client_ok, sizeof(client_ok), actual, "lock ok" );
-    fsync( client->fd );
+    /* fsync( client->fd ); */
 
     client->state = ESD_NEXT_REQUEST;
     return ok;
@@ -154,7 +154,7 @@ int esd_proto_unlock( esd_client_t *client )
     esd_is_locked = 0;
 
     ESD_WRITE_INT( client->fd, &client_ok, sizeof(client_ok), actual, "unlck ok" );
-    fsync( client->fd );
+    /* fsync( client->fd ); */
 
     client->state = ESD_NEXT_REQUEST;
     return ok;
@@ -179,7 +179,7 @@ int esd_proto_standby( esd_client_t *client )
     }	
 
     ESD_WRITE_INT( client->fd, &client_ok, sizeof(client_ok), actual, "stdby ok" );
-    fsync( client->fd );
+    /* fsync( client->fd ); */
 
     client->state = ESD_NEXT_REQUEST;
     return ok;
@@ -209,7 +209,7 @@ int esd_proto_resume( esd_client_t *client )
     }
 
     ESD_WRITE_INT( client->fd, &client_ok, sizeof(client_ok), actual, "resum ok" );
-    fsync( client->fd );
+    /* fsync( client->fd ); */
 
     client->state = ESD_NEXT_REQUEST;
     return ok;
@@ -359,7 +359,7 @@ int esd_proto_sample_cache( esd_client_t *client )
     client_id = maybe_swap_32( client->swap_byte_order, 
 			       sample->sample_id );
     ESD_WRITE_INT( client->fd, &client_id, sizeof(client_id), length, "smp cach" );
-    fsync( client->fd );
+    /* fsync( client->fd ); */
     return 1;
 }
 
@@ -390,7 +390,7 @@ int esd_proto_sample_getid(esd_client_t *client)
 	client_id = maybe_swap_32(client->swap_byte_order, -1);
 
     ESD_WRITE_INT( client->fd, &client_id, sizeof(client_id), length, "smp getid" );
-    fsync( client->fd );
+    /* fsync( client->fd ); */
     return 1;
 }
 
@@ -699,7 +699,7 @@ int poll_client_requests()
 			 "(%02d) poll: only owner may control sound daemon\n",
 			 client->fd );
 		ESD_WRITE_INT( client->fd, &is_ok, sizeof(is_ok), length, "poll val" );
-		fsync( client->fd );
+		/* fsync( client->fd ); */
  	    }
  	}
 	else if ( client->state == ESD_NEEDS_ENDCHECK ) {
