@@ -30,6 +30,7 @@ void exit_usage( const char *who, int errcode, const char *why, const char *what
 	     "\n"
 	     "options:\n"
 	     "-s, --server=host:port        contact esd server on host at port\n"
+	     "-p, --prefix=string	    prefix for cached samples\n"
 	     "\n"
 	     "commands:\n"
 	     "lock                          foreign clients may not use the server\n"
@@ -58,13 +59,14 @@ int main(int argc, char **argv)
 {
     int esd = -1, arg = 0, option_index = 0;
     int id = 0, left = 256, right = 256, ok;
-    char *server = NULL;
+    char *server = NULL, *prefix = "esound";
     esd_server_info_t *server_info = NULL;
     esd_info_t *all_info = NULL;
     int mode = 0;
   
     struct option opts[] = {
 	{ "server", required_argument, NULL, 's' },
+	{ "prefix", required_argument, NULL, 'p' },
 	{ "file", required_argument, NULL, 'f' },
 	{ "help", no_argument, NULL, 'h' },
 	{ "version", no_argument, NULL, 'v' },
@@ -78,12 +80,16 @@ int main(int argc, char **argv)
     /* check the command line areguments */
     do
     {
-	arg = getopt_long(argc, argv, "s:hv", opts, &option_index);
+	arg = getopt_long(argc, argv, "sp:hv", opts, &option_index);
 
 	switch (arg)
 	{
 	case 's':
 	    server = strdup( optarg );
+	    break;
+
+	case 'p':
+	    prefix = strdup(optarg);
 	    break;
 
 	case 'h':
@@ -153,6 +159,14 @@ int main(int argc, char **argv)
 	    ok = esd_sample_play( esd, esd_sample_getid(esd, argv[ ++optind ]) );
 	    printf( "%d\n", ok );
 	}
+        else if ( !strcmp( "loop", argv[ optind ] ) ) {
+           ok = esd_sample_loop( esd, esd_sample_getid(esd, argv[ ++optind ]) );
+           printf( "%d\n", ok );
+        }
+        else if ( !strcmp( "stop", argv[ optind ] ) ) {
+           ok = esd_sample_stop( esd, esd_sample_getid(esd, argv[ ++optind ]) );
+           printf( "%d\n", ok );
+        }
 	else if ( !strcmp( "serverinfo", argv[ optind ] ) ) {
 	    server_info = esd_get_server_info( esd );
 
