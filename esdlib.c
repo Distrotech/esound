@@ -156,7 +156,8 @@ int esd_send_auth( int sock )
     int auth_fd = -1;
     int endian = ESD_ENDIAN_KEY;
     int reply;
-    char *auth_filename = 0, auth_key[ESD_KEY_LEN];
+    char *auth_filename = 0;
+    unsigned char auth_key[ESD_KEY_LEN];
     char *home = NULL;
     int namelen, retval;
     void (*phandler)(int);
@@ -187,7 +188,6 @@ int esd_send_auth( int sock )
     retval = 0;
     /* open the authorization file */
     if ( -1 == (auth_fd = open( auth_filename, O_RDONLY ) ) ) {
-        unsigned char randbuf[ESD_KEY_LEN];
 
 	/* it doesn't exist? create one */
 	auth_fd = open( auth_filename, O_RDWR | O_CREAT | O_EXCL,
@@ -200,7 +200,7 @@ int esd_send_auth( int sock )
 	}
 
 	esound_genrand(auth_key, ESD_KEY_LEN);
-	write( auth_fd, randbuf, ESD_KEY_LEN);
+	write( auth_fd, auth_key, ESD_KEY_LEN);
     } else
       /* read the key from the authorization file */
       if ( ESD_KEY_LEN != read( auth_fd, auth_key, ESD_KEY_LEN ) )
