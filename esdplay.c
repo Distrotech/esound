@@ -17,6 +17,7 @@
 #include <getopt.h>
 #include <audiofile.h>
 #include <esd.h>
+#include "config.h"
 
 static char *program_name = NULL;
 
