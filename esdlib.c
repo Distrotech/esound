@@ -253,6 +253,7 @@ int esd_open_sound( const char *host )
     {
 	fprintf(stderr,"Unable to connect to server port %d\n", 
 		socket_addr.sin_port );
+	fprintf(stderr,"This generally mean that the program could not talk to the esound server\n");
 	return -1;
     }
 
