@@ -1,3 +1,6 @@
+
+SUBDIRS = docs
+
 SPEC_FILE = esound.spec
 
 AUDIOFILE_LIBS = @AUDIOFILE_LIBS@
@@ -126,9 +129,17 @@ rpm: $(PACKAGE)-$(VERSION).tar.gz
 	cp $(PACKAGE)-$(VERSION).tar.gz /usr/src/redhat/SOURCES
 	rpm -ba $(SPEC_FILE)
 
-dist-hook: esound.spec
+doc:
+	list='$(SUBDIRS)'; for subdir in $$list; do \
+	  test "$$subdir" = . || (cd $$subdir && $(MAKE) doc); \
+	done
+
+
+dist-hook: doc esound.spec
 	cp $(SPEC_FILE) $(distdir)
-	mkdir $(distdir)/docs
+	test -d $(distdir)/docs || mkdir $(distdir)/docs 
 	cp $(srcdir)/docs/esound.sgml $(distdir)/docs
+	cp -r $(srcdir)/docs/esound $(distdir)/docs/html
+	cp $(srcdir)/docs/esound.ps $(distdir)/docs
 
 CLEANFILES=esound.spec

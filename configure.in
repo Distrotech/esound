@@ -197,7 +197,7 @@ AC_ARG_WITH(audiofile,
 if test xno != x$with_audiofile ; then
 echo "---------------------------------------------------------------------"
 echo "--- Checking for the audiofile library.  NOTE: This library is now"
-echo "REQUIRED from proper compilation of the esound package."
+echo "--- REQUIRED from proper compilation of the esound package."
 
 AM_PATH_AUDIOFILE(0.1.5, [
 
@@ -224,6 +224,25 @@ else
    echo "--- http://www.68k.org/~michael/audiofile/"
    echo "--- NOTE: The audiofile library is now REQUIRED for esound."
 
+fi
+
+echo "---------------------------------------------------------------------"
+echo "--- Checking for the documentation generation tools.  NOTE: These "
+echo "--- are NOT required for proper compilation of the esound package."
+
+DOCS=""
+DB2HTML=true
+AC_CHECK_PROG(have_db2html, db2html, yes, no)
+if test "x$have_db2html" = "xyes"; then
+   DOCS=esound/index.html
+   DB2HTML=db2html
+fi
+
+DB2PS=true
+AC_CHECK_PROG(have_db2ps, db2ps, yes, no)
+if test "x$have_db2ps" = "xyes"; then
+   DOCS="$DOCS esound.ps"
+   DB2PS=db2ps
 fi
 
 echo "---------------------------------------------------------------------"
@@ -291,11 +310,15 @@ AC_SUBST(ESDPLAY)
 AC_SUBST(LIBESDDSP)
 AC_SUBST(ESDDSP)
 AC_SUBST(DL_LIB)
+AC_SUBST(DOCS)
+AC_SUBST(DB2HTML)
+AC_SUBST(DB2PS)
 
 AC_OUTPUT([
 Makefile
 esd-config
 esound.spec
 esddsp
+docs/Makefile
 ])
 dnl , [case "$CONFIG_FILES" in *esd-config*) chmod +x esd-config;; esac])
