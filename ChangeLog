@@ -1,5 +1,10 @@
 1998-10-18  Yo Ric Dude  <ricdude@ix.netcom.com>
 
+	* esddsp.c, proto.c: fixed inconsistency in esd_on_standby
+ 	handling withing esd_proto_resume and esd_proto_standby. 
+
+	* esd.c: removed unused variable, audio
+
 	* esd-server.h, esd.c, esddsp.c, players.c: how did monitoring
 	ever work like that? corrected the header, actually passed in the
 	length of the monitor buffer.

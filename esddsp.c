@@ -21,7 +21,8 @@
    gcc -O2 -pipe -c -fPIC esddsp.c 
    gcc -shared -Wl,-soname -Wl,libesddsp.so.0 -o libesddsp.so.0.0.0 esddsp.o -lesd -lm -lc
 
-   then set LD_PRELOAD=/path/to/libesddsp.so.0.0.0 before launching x11amp, etc.
+   set LD_PRELOAD=/path/to/libesddsp.so.0.0.0
+   launch x11amp, etc.
  */
 
 #include <string.h>
@@ -42,7 +43,7 @@ static int sndfd;
 int open (const char *pathname, int flags, mode_t mode)
 {
     if (!strcmp (pathname, "/dev/dsp")) {
-	/* printf( "hijacking /dev/dsp, and taking it to esd...\n" ); */
+	/* printf( "hijacking /dev/dsp open, and taking it to esd...\n" ); */
 	return (sndfd = esd_open_sound (NULL));
     }
     else
@@ -87,7 +88,7 @@ int ioctl (int fd, int request, ...)
 	case SNDCTL_DSP_GETBLKSIZE:
 	  *arg = ESD_BUF_SIZE;
 
-	  strncpy (buf, "amp", ESD_NAME_MAX);
+	  strncpy (buf, "dsp", ESD_NAME_MAX);
 
           if (write (sndfd, &proto, sizeof (proto)) != sizeof (proto))
 	    return -1;
@@ -102,6 +103,8 @@ int ioctl (int fd, int request, ...)
 	  return 0;
 
 	default:
+	  /* printf( "unhandled /dev/dsp ioctl (%d - %p)\n", 
+	     request, argp ); */
 	  return 0;
 	}
     }

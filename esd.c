@@ -158,7 +158,6 @@ int main ( int argc, char *argv[] )
     /***************************/
     /* Enlightened sound Daemon */
 
-    int audio = -1;
     int esd_port = ESD_DEFAULT_PORT;
     int length = 0;
     int arg = 0;
@@ -231,8 +230,7 @@ int main ( int argc, char *argv[] )
     esd_buf_size_octets = esd_buf_size_samples * esd_sample_size;
 
     /* open and initialize the audio device, /dev/dsp */
-    audio = esd_audio_open();
-    if ( audio < 0 ) {
+    if ( esd_audio_open() < 0 ) {
 	fprintf( stderr, "fatal error configuring sound, %s\n", 
 		 "/dev/dsp" );
 	exit( 1 );	    

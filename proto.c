@@ -164,21 +164,16 @@ int esd_proto_standby( esd_client_t *client )
     int ok = 1, actual;		/* already validated, can't fail */
     int client_ok = maybe_swap_32( client->swap_byte_order, ok );
 
-    /* we're already on standby, no problem */
-    if ( esd_on_standby ) {
-	ESD_WRITE_INT( client->fd, &client_ok, sizeof(client_ok), actual, "stdby ok" );
-	fsync( client->fd );
+    /* only bother if we're not on standby */
+    if ( !esd_on_standby ) {
 
-	client->state = ESD_NEXT_REQUEST;
-	return ok;
+	if ( esdbg_trace )
+	    printf( "(%02d) setting sound daemon to standby\n", client->fd );
+	
+	/* TODO: close down any recorders, too */
+	esd_on_standby = 1;
+	esd_audio_close();
     }	
-
-    if ( esdbg_trace )
-	printf( "(%02d) setting sound daemon to standby\n", client->fd );
-
-    esd_on_standby = 1;
-    /* TODO: close down any recorders, too */
-    esd_audio_close();
 
     ESD_WRITE_INT( client->fd, &client_ok, sizeof(client_ok), actual, "stdby ok" );
     fsync( client->fd );
@@ -194,20 +189,21 @@ int esd_proto_resume( esd_client_t *client )
     int ok = 1, actual;		/* already validated, can't fail */
     int client_ok = maybe_swap_32( client->swap_byte_order, ok );
 
-    /* we're already not on standby, no problem */
-    if ( !esd_on_standby ) {
-	ESD_WRITE_INT( client->fd, &client_ok, sizeof(client_ok), actual, "resum ok" );
-	fsync( client->fd );
-
-	client->state = ESD_NEXT_REQUEST;
-	return ok;
-    }	
-
-    if ( esdbg_trace ) 
-	printf( "(%02d) resuming sound daemon\n", client->fd );
-
-    esd_audio_open();
-    esd_on_standby = 0;
+    /* only bother if we're on standby */
+    if ( esd_on_standby ) {
+	
+	if ( esdbg_trace ) 
+	    printf( "(%02d) resuming sound daemon\n", client->fd );
+	
+	/* reclaim the audio device */
+	if ( esd_audio_open() < 0 ) {
+	    /* device was busy or something, return the error, try again later */
+	    client_ok = ok = 0;
+	} else {
+	    /* turn ourselves back on */
+	    esd_on_standby = 0;
+	}
+    }
 
     ESD_WRITE_INT( client->fd, &client_ok, sizeof(client_ok), actual, "resum ok" );
     fsync( client->fd );

@@ -1,5 +1,72 @@
-make the reading/mixing process a separate thread from the 
-client protocol parsing thread.
+
+BUGS!
+=====
+
+monitoring with stalled data streams still eats cpu like the cookie monster
+tweak the sleep value for the select
+
+
+Planned for 0.2.5:
+==================
+
+clean up esddsp.c for release with 0.2.5.
+
+some semblance of documentation upgrade
+
+
+
+Planned for 0.2.6:
+==================
+
+free samples when client closes
+
+client request information on streams and samples currently in server
+
+also beng able to request info on all connected clients (numebr,
+sampling rate etc. etc.) and modify that clients volume or mute that
+client..kill it.. etc.. so in effect a window manager for sound could
+be written.. :)
+
+oh.. volume control on samples and streams would be nice.. :)
+
+just allow setting of left/right volume. 
+
+probably need function pointers in mix.c to do this well:
+  mix_funcs[MAX] = { mix_to_format, mix_from_format, clip_format, ... };
+and update according to specs.
+
+Volume and left/right volume would be on a per-play basis, then?
+play_sample_pan( int sample_id, int left_volume, int right_volume );
+
+esdfile.c - wrappers for caching and playing files via libaudiofile
+factor out the file handling routines of esdplay into 
+esd_play_steam_file(), and esd_cache_sample_file();
+
+esd_rename_stream( int stream_id, char *name );
+
+esd_player_t: add fields
+	int left_vol_scale, right_vol_scale;
+
+	vol = sample * vol_scale / 256;
+same for samples
+
+for Solaris: AUDIO_LINE_OUT, AUDIO_SPEAKER, AUDIO_HEADPHONE
+for Linux: pick /dev/dsp2 if more than one card.  
+Pass the device spec to esd_audio_open (?)
+
+change audio device with esdctl? on the fly?
+
+
+Planned for later:
+================== 
+
+allow a "volume envelope"
+sample to be paired witht the sample optionally - perhaps at a lower
+sampling rate and maybe 8 or 4 bits.. this sould in addition to "set lr
+volume for smapl/stream now" functions... :)
+
+make the reading/mixing
+process a separate thread from the client protocol parsing thread.
 
 command line parameter for the server's fragment value
 
@@ -26,24 +93,6 @@ blocking select() call.
 
 it's also rather fiddly wiht cpu usage spikes.. 
 
-oh.. one last thing i thought of.. it'd be great to be able to add a
-"final filter" client that gets all sound like the monitor.. but can
-send it back "filtered" (andy way it pleases) and the filtered sound
-gets played.. so this filter can add echo, reverb, vibrato, filter
-frequencies, do phase shifts etc...
-
-also beng able to request info on all connected clients (numebr,
-sampling rate etc. etc.) and modify that clients volume or mute that
-client..kill it.. etc.. so in effect a window manager for sound could
-be written.. :)
-
-oh.. volume control on samples and streams would be nice.. :)
-
-just allow setting of left/right volume. allow a "volume envelope"
-sample to be paired witht the sample optionally - perhaps at a lower
-sampling rate and maybe 8 or 4 bits.. this sould in addition to "set lr
-volume for smapl/stream now" functions... :)
-
 play sample, loop sample, end sample:
 int play_tri_sample( start, loop, end ) { 
         play(start); loop(loop); return end;
@@ -51,16 +100,10 @@ int play_tri_sample( start, loop, end ) {
 later: 
 int finish_tri_sample( end ) { play(end); return ?;}
 
-Volume and left/right volume would be on a per-play basis, then?
-play_sample_pan( int sample_id, int left_volume, int right_volume );
-
 so that would be something like (format determined by sample uploaded):
 modulate_sample( int play_sample, int modulation_sample );
 
 allow server to run mono.
-probably need function pointers in mix.c to do this well:
-  mix_funcs[MAX] = { mix_to_format, mix_from_format, clip_format, ... };
-and update according to specs.
 
 kill_sample( int sample_id );
 
@@ -70,41 +113,4 @@ pitch adjust on samples?
 
 playback samples at different rates?
 
-esdfile.c - wrappers for caching and playing files via libaudiofile
-factor out the file handling routines of esdplay into 
-esd_play_steam_file(), and esd_cache_sample_file();
-
-esd_rename_stream( int stream_id, char *name );
-
-esd_player_t: add fields
-	int left_vol_scale, right_vol_scale;
-
-	vol = sample * vol_scale / 256;
-same for samples
-
-
-esd_filter_open( format, rate, name );
-
-free samples when client closes
-
 endian swapping cleanup
-
-for Solaris: AUDIO_LINE_OUT, AUDIO_SPEAKER, AUDIO_HEADPHONE
-for Linux: pick /dev/dsp2 if more than one card.  
-Pass the device spec to esd_audio_open (?)
-
-change audio device with esdctl? on the fly?
-
-alter esdctl to an interactive shell for issuing commands.
-should consolidate esdctl, esdsample, esdloop. 
-
-esdctl on, with another device on /dev/dsp will actually kill esd. or not?
-
-monitoring with stalled data streams still eats cpu like the cookie monster
-
-sample_size is a long, and is not 64 bit clean (reads an int), but longs on 
-64 bit arch's are bigger than 32 bit arch's. make it an int, 
-"32 bits should be enough for everyone"  this will change the protocol
-signature, save it for a little while.
-
-why does getid hang the server??? when the name doesn't exist? wtf???
