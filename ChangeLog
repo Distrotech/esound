@@ -1,4 +1,4 @@
-1998-12-30  Yo Ric Dude  <ricdude@ix.netcom.com>
+1998-12-30  Yo Ric Dude  <ericmit@ix.netcom.com>
 
 	* audio.c, audio_alsa.c, audio_oss.c, audio_solaris.c, esd.c,
  	esd.h: added -d DEVICE option - use an alternate audio device.
@@ -9,7 +9,7 @@
 	* esd-server.h, esd.c, samples.c: actually reset *everything* in
 	the daemon on a SIGHUP
 
-1998-12-29  Yo Ric Dude  <ricdude@ix.netcom.com>
+1998-12-29  Yo Ric Dude  <ericmit@ix.netcom.com>
 
 	* clients.c, esd-server.h, esd.c, proto.c, samples.c: option to
 	autosuspend after a number of seconds of audio inactivity.
@@ -20,7 +20,7 @@
 	* players.c: add a variable so we know if we're playing samples
 	* all other server files: editorial changes, prettier for printing 
 	
-1998-12-27  Yo Ric Dude  <ricdude@ix.netcom.com>
+1998-12-27  Yo Ric Dude  <ericmit@ix.netcom.com>
 
 	* proto.c: missed one code path for setting is_ok...
 	* clients.c, esd-server.h, esd.c, esd.h, esdloop.c, esdsample.c, 
@@ -28,7 +28,7 @@
 	more logical locations, and general -ansi -Wall -pedantic stuff.
 	* esd.c: added -h option for usage.
 
-1998-12-22  Yo Ric Dude  <ricdude@ix.netcom.com>
+1998-12-22  Yo Ric Dude  <ericmit@ix.netcom.com>
 
 	* audio_alsa.c, clients.c: from bibek, more alsa patches and a
  	slightly more sane "can i pause" algorithm.
@@ -37,7 +37,7 @@ Mon Dec 21 21:44:44 EST 1998 Mandrake <mandrake@mandrake.net>
 
 	* esdlib.c - fixed some warnings.
 
-1998-12-21  Yo Ric Dude  <ricdude@ix.netcom.com>
+1998-12-21  Yo Ric Dude  <ericmit@ix.netcom.com>
 
 	* clients.c, esd-server.h, esd.h, players.c, proto.c, samples.c:
  	Cleaned out the protocol handling.  Basically, there's now a table
@@ -79,7 +79,7 @@ Tue Dec  8 23:32:52 PST 1998 Manish Singh <yosh@gimp.org>
 	* esddsp.c: use dlsym instead of __func. Now works with glibc 2.1
 	and FreeBSD (maybe others? testers wanted)
 
-1998-12-08  Yo Ric Dude  <ricdude@ix.netcom.com>
+1998-12-08  Yo Ric Dude  <ericmit@ix.netcom.com>
 
 	* acconfig.h, configure.in, esd-server.h: use autoconf to turn
  	on/off insanely verbose diagnostic information
@@ -105,7 +105,7 @@ Wed Dec  2 11:27:20 EST 1998 The Rasterman  <raster@rasterman.com>
 	Don't dump environment to stdout.  Every user doesn't need to
 	see this data, just a few hackers.
 
-1998-11-28  Yo Ric Dude  <ricdude@ix.netcom.com>
+1998-11-28  Yo Ric Dude  <ericmit@ix.netcom.com>
 
 	* players.c, samples.c: swap 16 bit audio data if the server and
 	client are on differring endian machines. - not tested! =)
@@ -137,7 +137,7 @@ Mon Nov 23 06:34:43 PST 1998 Manish Singh <yosh@gimp.org>
 
         * use the audiofile.m4 macro to detect libaudiofile
 
-1998-11-09  Yo Ric Dude  <ricdude@ix.netcom.com>
+1998-11-09  Yo Ric Dude  <ericmit@ix.netcom.com>
 
 	* clients.c, esdlib.c, filter.c, mix.c, players.c, proto.c
 	samples.c: use the freshly updated debugging macros
@@ -155,17 +155,17 @@ Sat Nov  7 05:28:03 PST 1998 Manish Singh <yosh@gimp.org>
 
 	* esdlib.c: removed fsync's here too
 
-1998-11-06  Yo Ric Dude  <ricdude@ix.netcom.com>
+1998-11-06  Yo Ric Dude  <ericmit@ix.netcom.com>
 
 	* samples.c, players.c, proto.c: fixed rounding to multiple of 4
 	algorithm, and removed fsync's as they don't do anything for a
 	socket.  patches suggested by Miodrag Vallat.
 
-1998-11-05  Yo Ric Dude  <ricdude@ix.netcom.com>
+1998-11-05  Yo Ric Dude  <ericmit@ix.netcom.com>
 
 	* audio_aix.c: typo fixes courtest of Philippe Defert
 
-1998-11-04  Yo Ric Dude  <ricdude@ix.netcom.com>
+1998-11-04  Yo Ric Dude  <ericmit@ix.netcom.com>
 
 	* TODO, esd.h, esdctl.c, esdmgr.c, proto.c: It really should have
  	been esd_free_all_info(), and while we're at it, make it do
@@ -179,7 +179,7 @@ Sat Nov  7 05:28:03 PST 1998 Manish Singh <yosh@gimp.org>
 	* esdctl.c (main): Change call from esd_free_all_info() to
  	esd_free_esd_info() so that this will build.
 
-1998-11-03  Yo Ric Dude  <ricdude@ix.netcom.com>
+1998-11-03  Yo Ric Dude  <ericmit@ix.netcom.com>
 
 	* TODO, configure.in: update version number
 	* Makefile.am, esd-server.h, esd.h, esdctl.c, proto.c, esdmgr.c: 
@@ -191,7 +191,7 @@ Sat Oct 31 21:36:07 PST 1998 Manish Singh <yosh@gimp.org>
 
 	* esddsp.c: don't try to open local sound device if ESPEAKER is set
 
-1998-10-31  Yo Ric Dude  <ricdude@ix.netcom.com>
+1998-10-31  Yo Ric Dude  <ericmit@ix.netcom.com>
 
 	* EsounD.html, EsounD.ps, Makefile.am: replaced EsounD.html with
  	EsounD.ps until the doc subdirectory is functional with docbook.
@@ -201,12 +201,12 @@ Fri Oct 30 20:39:16 PST 1998 Manish Singh <yosh@gimp.org>
 
 	* esddsp.c: provide implementation for close() to expire sndfd
 
-1998-10-28  Yo Ric Dude  <ricdude@ix.netcom.com>
+1998-10-28  Yo Ric Dude  <ericmit@ix.netcom.com>
 
 	* esound.spec.in: reordered the changelog entries, as rpm likes to 
 	complain about it if the order is backwards...
 
-1998-10-24  Yo Ric Dude  <ricdude@ix.netcom.com>
+1998-10-24  Yo Ric Dude  <ericmit@ix.netcom.com>
 
 	* audio_alsa.c: reworked alsa card detection per patch from 
 	Andrew Clausen <clausen@alphalink.com.au>
@@ -216,7 +216,7 @@ Wed Oct 21 23:57:11 1998  Raph Levien  <raph@gimp.org>
 	* esdplay.c (play_file): The computation of bytes_per_frame was
 	not taking the number of channels into account. It does now.
 
-1998-10-21  Yo Ric Dude  <ricdude@ix.netcom.com>
+1998-10-21  Yo Ric Dude  <ericmit@ix.netcom.com>
 
 	* esddsp.c, esddsp.in: give esddsp some class, allow for passing
 	of identifying name to esd via environment variable
@@ -235,7 +235,7 @@ Tue Oct 20 20:43:48 PDT 1998 Manish Singh <yosh@gimp.org>
 
 	* esddsp.in: exec instead of just run
 
-1998-10-19  Yo Ric Dude  <ricdude@ix.netcom.com>
+1998-10-19  Yo Ric Dude  <ericmit@ix.netcom.com>
 
 	* Makefile.am, esddsp.in, configure.in: automatically build the
 	esddsp wrapper script for Linux only
@@ -259,7 +259,7 @@ Sun Oct 18 21:33:26 PDT 1998 Manish Singh <yosh@gimp.org>
 	esound itself. ;) (a side effect is that rvplayer works on
 	Linux 2.1.120+ kernels as well)
 
-1998-10-18  Yo Ric Dude  <ricdude@ix.netcom.com>
+1998-10-18  Yo Ric Dude  <ericmit@ix.netcom.com>
 
 	* esddsp.c, proto.c: fixed inconsistency in esd_on_standby
  	handling withing esd_proto_resume and esd_proto_standby. 
@@ -275,7 +275,7 @@ Sun Oct 18 21:33:26 PDT 1998 Manish Singh <yosh@gimp.org>
 	* configure.in (nanosleep): Make this work on Solaris.
 	From Brandon S. Allbery.
 
-1998-10-17  Yo Ric Dude  <ricdude@ix.netcom.com>
+1998-10-17  Yo Ric Dude  <ericmit@ix.netcom.com>
 
 	* esddsp.c: added Yosh's slick trick for transparently
 	rerouting /dev/dsp to esd.  Only tested with Linux and
@@ -288,7 +288,7 @@ Sat Oct 17 02:20:42 PDT 1998 Manish Singh <yosh@gimp.org>
 
 	* audio_oss.c: FreeBSD uses __FreeBSD__, not FREEBSD
 
-1998-10-16  Yo Ric Dude  <ricdude@ix.netcom.com>
+1998-10-16  Yo Ric Dude  <ericmit@ix.netcom.com>
 
 	* filter.c, mix.c, players.c: misc optimizations courtesy of Bibek.
 
@@ -306,7 +306,7 @@ Fri Oct 16 02:48:26 PDT 1998 Manish Singh <yosh@gimp.org>
 	esdloop.c, esdmon.c, esdplay.c, esdrec.c, esdsample.c: added
 	in specifc #includes so it compiles again
 
-1998-10-14  Yo Ric Dude  <ricdude@ix.netcom.com>
+1998-10-14  Yo Ric Dude  <ericmit@ix.netcom.com>
 
 	* Makefile.am: esdctl now uses getopt_long, and therefore needs
 	the LIBOBJS in it's LDADD.
@@ -316,7 +316,7 @@ Fri Oct 16 02:48:26 PDT 1998 Manish Singh <yosh@gimp.org>
  	destined to become esdsh, but this in combination with a real
  	scripting language should be suffient.
 
-1998-10-13  Yo Ric Dude  <ricdude@ix.netcom.com>
+1998-10-13  Yo Ric Dude  <ericmit@ix.netcom.com>
 
 	* esdlib.c, proto.c: trap for NULL name sent to sample_getid(),
  	and check for sample names beyond the head of the list.
@@ -330,7 +330,7 @@ Mon Oct 12 23:12:03 CDT 1998 Frank Belew <frb@umr.edu>
 	* esdlib.c: removed superfluous headers that are already included from
 	esd-server.h
 
-1998-10-10  Yo Ric Dude  <ricdude@ix.netcom.com>
+1998-10-10  Yo Ric Dude  <ericmit@ix.netcom.com>
 
 	* esd-server.h, esd.c, esd.h, esdlib.c, mix.c, proto.c, filter.c,
  	esdfilt.c Makefile.am, .cvsignore: filter patch courtesy of Bibek
@@ -354,13 +354,13 @@ Thu Oct  1 19:27:22 PDT 1998 Manish Singh <yosh@gimp.org>
 
 	* esd.m4: make it work right
 
-1998-10-01  Yo Ric Dude  <ricdude@piranha>
+1998-10-01  Yo Ric Dude  <ericmit@ix.netcom.com>
 
 	* esound.spec[.in]: make autoconf do the version updating for us.
 
 	* Makefile.am, configure.in: move version updating to same place.
 
-1998-10-01  Yo Ric Dude  <ricdude@ix.netcom.com>
+1998-10-01  Yo Ric Dude  <ericmit@ix.netcom.com>
 
 	* audio_alsa.c: multiple audio card detection patches from Bibek.
   	This should open and use the first available card under ALSA.  It
@@ -718,7 +718,7 @@ Wed Sep 23 13:05:11 CDT 1998  mej <mej@mw.3com.com>
 	* esdlib.c (esd_send_auth): POSIX allows some systems not to
 	define NAME_MAX.
 
-Mon Apr 27 23:58:52 1998  Yo 'Ric Dude  <ricdude@piranha>
+Mon Apr 27 23:58:52 1998  Yo 'Ric Dude  <ericmit@ix.netcom.com>
 
 	* esd.c, esd.h, mix.c: moved clipping into mix.c
 
@@ -727,12 +727,12 @@ Mon Apr 27 23:58:52 1998  Yo 'Ric Dude  <ricdude@piranha>
 
 	* LICENSE: updates
 
-Sat Apr 25 03:03:11 1998  Yo 'Ric Dude  <ricdude@piranha>
+Sat Apr 25 03:03:11 1998  Yo 'Ric Dude  <ericmit@ix.netcom.com>
 
 	* TODO, audio.c, clients.c, esd.h, esdcat.c, esdlib.c, esdrec.c:
 	added the /dev/dsp fallback feature to client lib
 
-Sat Apr 18 23:57:15 1998  Yo 'Ric Dude  <ricdude@piranha>
+Sat Apr 18 23:57:15 1998  Yo 'Ric Dude  <ericmit@ix.netcom.com>
 
 	* esdlib.c:
 	client lib returns -1 if esd not available, instead of exiting(1)
@@ -741,19 +741,19 @@ Sat Apr 18 23:57:15 1998  Yo 'Ric Dude  <ricdude@piranha>
 
 	* LICENSE: more credits
 
-Fri Apr 17 23:54:04 1998  Yo 'Ric Dude  <ricdude@piranha>
+Fri Apr 17 23:54:04 1998  Yo 'Ric Dude  <ericmit@ix.netcom.com>
 
 	* LICENSE, clients.c, esd.c, esd.h, esdlib.c, esdlock.c, esdloop.c, esdunlock.c, mix.c, players.c, samples.c:
 	-Wall -pedantic cleanup
 
-Thu Apr 16 04:11:25 1998  Yo 'Ric Dude  <ricdude@piranha>
+Thu Apr 16 04:11:25 1998  Yo 'Ric Dude  <ericmit@ix.netcom.com>
 
 	* esdloop.c: Initial revision
 
 	* EsounD.html, EsounD.lsm, LICENSE, TODO, clients.c, esd.c, esd.h,
 	esdlib.c, srcfiles: preparation for v0.2
 
-Wed Apr 15 03:28:19 1998  Yo 'Ric Dude  <ricdude@piranha>
+Wed Apr 15 03:28:19 1998  Yo 'Ric Dude  <ericmit@ix.netcom.com>
 
 	* clients.c, esd.c, esd.h, esdlib.c, players.c, samples.c:
 	added support for sample loops
@@ -762,7 +762,7 @@ Wed Apr 15 03:28:19 1998  Yo 'Ric Dude  <ricdude@piranha>
 
 	* TODO: updated, esdloop, clean up
 
-Sat Apr 11 16:03:53 1998  Yo 'Ric Dude  <ricdude@piranha>
+Sat Apr 11 16:03:53 1998  Yo 'Ric Dude  <ericmit@ix.netcom.com>
 
 	* clients.c, esd.c:
 	fixed cpu usage problem in monitoring only condition
@@ -780,7 +780,7 @@ Sat Apr 11 16:03:53 1998  Yo 'Ric Dude  <ricdude@piranha>
 	* clients.c, esd.h, mix.c, players.c, samples.c:
 	corrected conflict with remove_sample in newer kernels
 
-Sat Apr  4 19:57:07 1998  Yo 'Ric Dude  <ricdude@piranha>
+Sat Apr  4 19:57:07 1998  Yo 'Ric Dude  <ericmit@ix.netcom.com>
 
 	* COPYING, EsounD.html, EsounD.lsm, LICENSE, TIPS, srcfiles:
 	Initial revision
