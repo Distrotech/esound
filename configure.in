@@ -42,10 +42,13 @@ else
   AC_DEFINE(HAVE_INET_ATON)
 fi
 
+dnl check for getopt_long, substitute the distributed versions if not
+
 AC_CHECK_FUNC(getopt_long,,[LIBOBJS="$LIBOBJS getopt.o getopt1.o"])
 AC_SUBST(LIBOBJS)
 
 dnl Needed for FIONBIO on Solaris at least
+
 AC_CHECK_HEADERS(sys/filio.h sys/ioctl.h)
 
 dnl Check for audio header files needed
@@ -57,9 +60,11 @@ AC_CHECK_HEADERS(soundcard.h sys/soundcard.h machine/soundcard.h sys/audio.h)
 AC_CHECK_HEADERS(sys/audioio.h sys/audio.io.h sun/audioio.h)
 AC_CHECK_HEADERS(dmedia/audio.h sys/soundlib.h sys/asoundlib.h)
 
-dnl Define the driver needed based on the first header file found
+dnl see if we intentionally want to disable local sound
 
 AC_ARG_ENABLE(local_sound,[  --enable-local-sound    turn on local sound playing [default=yes]], , enable_local_sound=yes)
+
+dnl Define the driver needed based on the first header file found
 
 if test "x$enable_local_sound" = "xyes"; then
    found_sound=no
@@ -125,7 +130,7 @@ else
    AC_DEFINE(DRIVER_NONE)
 fi
 
-dnl Check for audio libs needed
+dnl Check for additional audio libs needed
 
 echo "---------------------------------------------------------------------"
 echo "--- Checking to see which audio libraries are required for linking.";
@@ -136,6 +141,7 @@ AC_CHECK_FUNC(snd_cards,,[AC_CHECK_LIB(sound,snd_cards)])
 AC_CHECK_FUNC(snd_cards,,[AC_CHECK_LIB(asound,snd_cards)])
 
 dnl Only build the esdplay utility if we find the library, -lauduiofile
+
 AF_LIB=
 ESDPLAY=
 
@@ -164,7 +170,7 @@ fi
 
 echo "---------------------------------------------------------------------"
 
-dnl set | sort
+dnl set | sort; # just for double checking the script...
 
 ESD_LIBS=$LIBS
 AC_SUBST(ESD_LIBS)

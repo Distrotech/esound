@@ -1,3 +1,11 @@
+1998-10-01  Yo Ric Dude  <ericmit@ix.netcom.com>
+
+	* esd.h, esdlib.c: why sample size is treated as a long in esdlib,
+ 	but an int everywhere else is beyond me.  64 bit platforms should
+ 	be happier now. still have to check 32-64 bit interoperability
+
+	* configure.in: touch-ups and commenting *shudder*.
+
 Thu Oct  1 22:58:03 CEST 1998 Jochen Friedrich <jochen@scram.de>
 
 	* esdlib.c: added kludge to esd_sample_cache() to make it
