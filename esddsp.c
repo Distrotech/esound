@@ -247,9 +247,11 @@ dspctl (int fd, request_t request, void *argp)
       *arg = 0x38;
       break;
 
+#ifdef SNDCTL_DSP_GETCAPS
     case SNDCTL_DSP_GETCAPS:
       *arg = 0;
       break;
+#endif
 
     case SNDCTL_DSP_GETOSPACE:
       {
