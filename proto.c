@@ -5,6 +5,8 @@
 /*******************************************************************/
 /* globals */
 
+int esd_forced_standby = 0;	/* whether we're forcing the standby */
+
 /*******************************************************************/
 /* prototypes */
 int esd_check_endian( esd_client_t *client, unsigned int *endian );
@@ -219,6 +221,7 @@ int esd_proto_standby( esd_client_t *client )
     ok = esd_validate_source( client, client->proto_data, 1 );
 
     if ( ok ) ok = esd_server_standby();
+    esd_forced_standby = 1;
 
     client_ok = maybe_swap_32( client->swap_byte_order, ok );
     ESD_WRITE_INT( client->fd, &client_ok, sizeof(client_ok), 
@@ -235,6 +238,7 @@ int esd_proto_resume( esd_client_t *client )
     ok = esd_validate_source( client, client->proto_data, 1 );
 
     if ( ok ) ok = esd_server_resume();
+    if ( ok ) esd_forced_standby = 0;
 
     client_ok = maybe_swap_32( client->swap_byte_order, ok );
     ESD_WRITE_INT( client->fd, &client_ok, sizeof(client_ok), 
@@ -268,7 +272,7 @@ int esd_proto_stream_play( esd_client_t *client )
 int esd_proto_stream_recorder( esd_client_t *client )
 {
     /* wake up if we're asleep */
-    if ( esd_on_autostandby ) {
+    if ( esd_on_autostandby  && !esd_forced_standby ) {
 	ESDBG_TRACE( printf( "stuff to record, waking up.\n" ); );
 	esd_server_resume();
     }
@@ -757,7 +761,7 @@ int esd_proto_standby_mode( esd_client_t *client )
 {
     int ok = 1, mode, client_mode, actual;
 
-    if ( esd_on_autostandby ) 
+    if ( esd_on_autostandby && !esd_forced_standby ) 
 	mode = ESM_ON_AUTOSTANDBY;
     else if ( esd_on_standby )
 	mode = ESM_ON_STANDBY;

@@ -148,6 +148,8 @@ extern translate_func_t *esd_first_filter_func;
 void erase_filter( esd_player_t *filter );
 
 /* proto.c - deal with client protocol requests */
+extern int esd_forced_standby;
+
 int poll_client_requests(void);
 
 /* players.c - manage the players, recorder, and monitor */

@@ -40,6 +40,7 @@ int esd_autostandby_secs = -1; 	/* timeout to release audio device, disabled <0 
 time_t esd_last_activity = 0;	/* seconds since last activity */
 int esd_on_autostandby = 0;	/* set when auto paused for auto reawaken */
 
+
 /*******************************************************************/
 /* just to create the startup tones for the fun of it */
 void set_audio_buffer( void *buf, esd_format_t format,
@@ -436,7 +437,7 @@ int main ( int argc, char *argv[] )
 	length = mix_players( output_buffer, esd_buf_size_octets );
 	
 	/* awaken if on autostandby and doing anything */
-	if ( esd_on_autostandby && length ) {
+	if ( esd_on_autostandby && length && !esd_forced_standby ) {
 	    ESDBG_TRACE( printf( "stuff to play, waking up.\n" ); );
 	    esd_server_resume();
 	}

@@ -10,17 +10,12 @@ BUGS
 * generates static for some people as of 12/8/98 - 12/9/98 changes.
   Especially in 8 bit server mode?
 
-* enum esd_standby_mode_t { 
-    ESM_ERROR, ESM_ON_STANDBY, ESM_ON_AUTOSTANDBY, ESM_RUNNING
-  };
-  esd_standmy_mode_t esd_in_on_standby( int esd );
-
 * esd is having problems wiht mono samples (ie duplicating sample data
   into stereo from a mono stream or sample - esound "crackles" skipping
   chunks of the sample.. :) )
 
 * if sent to standby mode while on autostandby, it will awaken,
-  instead of remaining silent
+  instead of remaining silent.  need a forced_standby mode?
 
 Planned for 0.2.9:
 ==================

@@ -1,5 +1,13 @@
 1999-02-16  Yo Ric Dude  <ericmit@ix.netcom.com>
 
+
+	* esd-server.h, esd.c, proto.c: added forced standby tracker for
+	greater accuracy in tracking forced standby vs. autostandby modes
+	* clients.c: autostandby/standby cpu buglet
+	* esd.h, proto.c, esdmgr.c: added ability to get server mode,
+	e.g. standby, autostandby, running, etc.
+	* many other modules: -Wall clean up
+
 	* players.c, proto.c, samples.c: gracefully handle error
  	conditions from ESD_READ_*, i.e. check return values.
 
