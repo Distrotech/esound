@@ -145,6 +145,74 @@ void erase_monitor( esd_player_t *monitor )
 
 
 /*******************************************************************/
+/* write block of data from client, return < 0 to have it erased */
+int write_player( esd_player_t *player, void *src_buffer, int src_length, 
+		  int src_rate, int src_format )
+{
+    fd_set wr_fds;
+    int length = 0, actual = 0, can_write = 0;
+    struct timeval timeout;
+    char message[ 100 ];
+    short data, *pos; /* used for swapping */
+    esd_client_t *client;
+    short *buffer;
+
+    /* use select to prevent blocking clients that are ready */
+    timeout.tv_sec = 0;
+    timeout.tv_usec = 0;
+    FD_ZERO( &wr_fds );
+    FD_SET( player->source_id, &wr_fds );
+    
+    /* if the data is ready, read a block */
+    can_write = select( player->source_id + 1, 
+			&wr_fds, NULL, NULL, &timeout ) ;
+    if ( can_write > 0 )
+    {
+	/* translate the data */
+	length = player->translate_func( player->data_buffer, 
+					 player->buffer_length, 
+					 player->rate, 
+					 player->format, 
+					 src_buffer, 
+					 src_length, 
+					 src_rate, 
+					 src_format );
+
+	/* endian swap multi-byte data if we need to */
+	client = (esd_client_t *) (player->parent);
+	if ( client->swap_byte_order 
+	     && ( (player->format & ESD_MASK_BITS) == ESD_BITS16 ) )
+	{
+	    printf( "swapping...\n" );
+	    buffer = (short*) player->data_buffer;
+	    for ( pos = buffer 
+		      ; pos < buffer + length / sizeof(short)
+		      ; pos += sizeof(short) )
+	    {
+		data = swap_endian_16( (*pos) );
+		*pos = data;
+	    }
+	}
+
+	/* write out the data */
+	ESD_WRITE_BIN( player->source_id, player->data_buffer, 
+		       player->buffer_length, length, "str rd" );
+
+    } else if ( can_write < 0 ) {
+	sprintf( message, "error writing client (%d)\n", 
+		 player->source_id );
+	perror( message );
+	return -1;
+    }
+
+    /* check for end of stream */
+    if ( length < 0 ) return -1;
+    if ( length == 0 ) return 0;
+ 
+    return actual;
+}
+
+/*******************************************************************/
 /* read block of data from client, return < 0 to have it erased */
 int read_player( esd_player_t *player )
 {
@@ -280,7 +348,7 @@ int read_player( esd_player_t *player )
 
 /*******************************************************************/
 /* send the players buffer to it's associated socket, erase if EOF */
-void monitor_write( void *output_buffer, int length ) {
+int monitor_write( void *output_buffer, int length ) {
     fd_set wr_fds;
     int can_write;
     struct timeval timeout;
@@ -335,30 +403,17 @@ void monitor_write( void *output_buffer, int length ) {
     return;
 }
 
-void recorder_write() {
-    fd_set wr_fds;
-    int length, can_write;
-    struct timeval timeout;
+int recorder_write( void *buffer, int length ) {
 
-    /* make sure we have a recorder connected */
-    if ( !esd_recorder ) 
-	return;
+    /* write it out */
+    ESDBG_TRACE( printf( "(%02d) writing recorder data\n", 
+			 esd_recorder->source_id ); );
+    length = write_player( esd_recorder, buffer,  length, 
+			   esd_audio_rate, esd_audio_format);
 
-    /* see if we can write to the socket */
-    timeout.tv_sec = 0;
-    timeout.tv_usec = 0;
-    FD_ZERO( &wr_fds );
-    FD_SET( esd_recorder->source_id, &wr_fds );
-    can_write = select( esd_recorder->source_id + 1, NULL, &wr_fds, 
-			NULL, &timeout );
-    if ( !can_write ) 
-	return;
-
-    /* write the data buffer to the socket */
-    ESD_WRITE_BIN( esd_recorder->source_id, esd_recorder->data_buffer, 
-		   esd_recorder->buffer_length, length, "rec wr" );
-
+    /* see how it went */
     if ( length < 0 ) {
+
 	/* couldn't send anything, close it down */
 	ESDBG_TRACE( printf( "(%02d) closing recorder\n", 
 			     esd_recorder->source_id ); );
@@ -374,7 +429,7 @@ void recorder_write() {
 	esd_recorder = NULL;
     }
 
-    return;
+    return length;
 }
 
 /*******************************************************************/

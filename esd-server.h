@@ -141,6 +141,12 @@ void erase_client( esd_client_t *client );
 int get_new_clients( int listen );
 int wait_for_clients_and_data( int listen );
 
+/* filter.c - things with which to handle filters */
+extern esd_player_t *esd_filter_list;
+extern translate_func_t *esd_first_filter_func;
+
+void erase_filter( esd_player_t *filter );
+
 /* proto.c - deal with client protocol requests */
 int poll_client_requests(void);
 
@@ -148,12 +154,6 @@ int poll_client_requests(void);
 extern esd_player_t *esd_players_list;
 extern esd_player_t *esd_recorder;
 extern esd_player_t *esd_monitor_list;
-
-/* filter.c - things with which to handle filters */
-extern esd_player_t *esd_filter_list;
-extern translate_func_t *esd_first_filter_func;
-
-void erase_filter( esd_player_t *filter );
 
 void dump_players(void);
 void add_player( esd_player_t *player );
@@ -164,9 +164,11 @@ void erase_monitor( esd_player_t *monitor );
 esd_player_t *new_stream_player( esd_client_t *client );
 esd_player_t *new_sample_player( int id, int loop );
 
+int write_player( esd_player_t *player, void *src_buffer, int src_length, 
+		  int src_rate, int src_format );
 int read_player( esd_player_t *player );
-void recorder_write(void);
-void monitor_write( void *output_buffer, int length );
+int recorder_write( void *buffer, int length );
+int monitor_write( void *output_buffer, int length );
 
 /* samples.c - manage the players, recorder, and monitor */
 extern esd_sample_t *esd_samples_list;

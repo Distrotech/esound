@@ -485,36 +485,7 @@ int main ( int argc, char *argv[] )
 	if ( esd_recorder && !esd_on_standby ) { 
 	    length = esd_audio_read( output_buffer, esd_buf_size_octets );
 	    if ( length ) {
-		length 
-		    = esd_recorder->translate_func( esd_recorder->data_buffer, 
-						    esd_recorder->buffer_length, 
-						    esd_recorder->rate, 
-						    esd_recorder->format, 
-						    output_buffer, 
-						    esd_buf_size_octets, 
-						    esd_audio_rate,
-						    esd_audio_format );
-/*
-		if ( (esd_audio_format & ESD_MASK_BITS) == ESD_BITS16 ) {
-		    length = mix_from_stereo_16s( esd_recorder->data_buffer, 
-						  esd_recorder->buffer_length, 
-						  esd_recorder->rate, 
-						  esd_recorder->format, 
-						  output_buffer, 
-						  esd_buf_size_octets, 
-						  esd_audio_rate );
-		}
-		else {
-		    length = mix_from_stereo_8u( esd_recorder->data_buffer, 
-						 esd_recorder->buffer_length, 
-						 esd_recorder->rate, 
-						 esd_recorder->format, 
-						 output_buffer, 
-						 esd_buf_size_octets, 
-						 esd_audio_rate );
-		}
-*/
-		recorder_write(); 
+		length = recorder_write( output_buffer, length ); 
 		esd_last_activity = time( NULL );
 	    }
 	}
