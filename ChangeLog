@@ -1,3 +1,9 @@
+2002-06-05  Frederic Crozat  <fcrozat@mandrakesoft.com>
+
+	* esdlib.c: (esd_open_sound):
+	Add parenthesis to fix priority in foo?foo:0 expression
+	(from Alexander Larsson <alexl@redhat.com>)
+
 2002-06-04  Frederic Crozat  <fcrozat@mandrakesoft.com>
 
 	* docs/.cvsignore:
