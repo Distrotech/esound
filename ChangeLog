@@ -1,5 +1,12 @@
 1998-11-28  Yo Ric Dude  <ricdude@ix.netcom.com>
 
+	* configure.in: --enable-esdplay has been converted to
+ 	--with-libaudiofile. some files of the esound source WILL NOT
+ 	currently compile unless libaudiofile is installed.  with the
+ 	inclusion of the audio file handling routines, libaudiofile is now
+ 	a requirement for esound.  Anyone wishing to patch the source so
+ 	it will still compile without libaudiofile is welcome to.
+
 	* esd.h, esdfile.c, esdplay.c, esdsample.c: add a string to
 	differentiate between sample files cached by different programs with
 	the same name.
