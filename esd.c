@@ -34,6 +34,9 @@ void reset_signal( int signum );
 void reset_daemon( int signum );
 int open_listen_socket( const char *hostname, int port );
 
+/* from esd_config.c */
+void esd_config_read(void);
+
 /*******************************************************************/
 /* globals */
 

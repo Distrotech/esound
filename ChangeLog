@@ -1,5 +1,9 @@
 2003-08-01  Frederic Crozat  <fcrozat@mandrakesoft.com>
 
+	* esd.c: Add missing prototype.
+
+2003-08-01  Frederic Crozat  <fcrozat@mandrakesoft.com>
+
 	* acconfig.h:
 	* configure.in:
 	* esd.c:
