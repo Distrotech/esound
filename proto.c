@@ -78,12 +78,15 @@ int validate_source( int fd, struct sockaddr_in source, int owner_only )
 /* daemon rejects untrusted clients, return boolean ok */
 int esd_proto_lock( esd_client_t *client )
 {
-    int ok = 0;
+    int ok = 1;		/* already validated, can't fail */
 
     printf( "locking sound daemon\n" );
     esd_is_locked = 1;
-    ok = 1;
+
     write( client->fd, &ok, sizeof(ok) );
+    fsync( client->fd );
+
+    client->state = ESD_NEXT_REQUEST;
     return ok;
 }
 
@@ -91,13 +94,15 @@ int esd_proto_lock( esd_client_t *client )
 /* allows anyone to connect to the sound daemon, return boolean ok */
 int esd_proto_unlock( esd_client_t *client )
 {
-    int ok = 0;
+    int ok = 1;		/* already validated, can't fail */
 
     printf( "unlocking sound daemon\n" );
     esd_is_locked = 0;
 
-    ok = 1;
     write( client->fd, &ok, sizeof(ok) );
+    fsync( client->fd );
+
+    client->state = ESD_NEXT_REQUEST;
     return ok;
 }
 
@@ -105,12 +110,14 @@ int esd_proto_unlock( esd_client_t *client )
 /* daemon eats sound data, without playing anything, return boolean ok */
 int esd_proto_standby( esd_client_t *client )
 {
-    int ok = 0;
+    int ok = 1;		/* already validated, can't fail */
 
     /* we're already on standby, no problem */
     if ( esd_on_standby ) {
-	ok = 1;
 	write( client->fd, &ok, sizeof(ok) );
+	fsync( client->fd );
+
+	client->state = ESD_NEXT_REQUEST;
 	return ok;
     }	
 
@@ -118,8 +125,11 @@ int esd_proto_standby( esd_client_t *client )
     esd_on_standby = 1;
     /* TODO: close down any recorders, too */
     esd_audio_close();
-    ok = 1;
+
     write( client->fd, &ok, sizeof(ok) );
+    fsync( client->fd );
+
+    client->state = ESD_NEXT_REQUEST;
     return ok;
 }
 
@@ -127,20 +137,25 @@ int esd_proto_standby( esd_client_t *client )
 /* daemon eats sound data, without playing anything, return boolean ok */
 int esd_proto_resume( esd_client_t *client )
 {
-    int ok = 0;
+    int ok = 1;		/* already validated, can't fail */
 
     /* we're already not on standby, no problem */
     if ( !esd_on_standby ) {
-	ok = 1;
 	write( client->fd, &ok, sizeof(ok) );
+	fsync( client->fd );
+
+	client->state = ESD_NEXT_REQUEST;
 	return ok;
     }	
 
     printf( "resuming sound daemon\n" );
     esd_audio_open();
     esd_on_standby = 0;
-    ok = 1;
+
     write( client->fd, &ok, sizeof(ok) );
+    fsync( client->fd );
+
+    client->state = ESD_NEXT_REQUEST;
     return ok;
 }
 
@@ -160,6 +175,8 @@ int esd_proto_stream_play( esd_client_t *client )
     /* add to the list of players */
     player->parent = client;
     add_player( player );
+
+    client->state = ESD_STREAMING_DATA;
     return 1;
 }
 
@@ -190,6 +207,7 @@ int esd_proto_stream_recorder( esd_client_t *client )
 	return 0;
     }
 
+    client->state = ESD_STREAMING_DATA;
     return 1;
 }
 
@@ -213,6 +231,7 @@ int esd_proto_stream_monitor( esd_client_t *client )
 	return 0;
     }
 
+    client->state = ESD_STREAMING_DATA;
     return 1;
 }
 
@@ -240,6 +259,7 @@ int esd_proto_sample_cache( esd_client_t *client )
     write( client->fd, &sample->sample_id, sizeof(sample->sample_id) );
     fsync( client->fd );
 
+    client->state = ESD_NEXT_REQUEST;
     return 1;
 }
 
@@ -260,6 +280,7 @@ int esd_proto_sample_free( esd_client_t *client )
 	 != sizeof( sample_id ) )
 	return 0;
 
+    client->state = ESD_NEXT_REQUEST;
     return 1;
 }
 
@@ -281,6 +302,7 @@ int esd_proto_sample_play( esd_client_t *client )
 	 != sizeof( sample_id ) )
 	return 0;
 
+    client->state = ESD_NEXT_REQUEST;
     return 1;
 }
 
@@ -302,6 +324,7 @@ int esd_proto_sample_loop( esd_client_t *client )
 	 != sizeof( sample_id ) )
 	return 0;
 
+    client->state = ESD_NEXT_REQUEST;
     return 1;
 }
 
@@ -323,6 +346,7 @@ int esd_proto_sample_stop( esd_client_t *client )
 	 != sizeof( sample_id ) )
 	return 0;
 
+    client->state = ESD_NEXT_REQUEST;
     return 1;
 }
 
@@ -382,6 +406,7 @@ int poll_client_requests()
     {
 	/* if it's a streaming client connection, just skip it */
 	/* data will be read (if available) during the mix process */
+	/* TODO: if ( client->state == ESD_STREAMING_DATA ) */
 	if ( client->request == ESD_PROTO_STREAM_PLAY
 	     || client->request == ESD_PROTO_STREAM_REC
 	     || client->request == ESD_PROTO_STREAM_MON ) {
@@ -405,13 +430,14 @@ int poll_client_requests()
  	    is_ok = validate_source( client->fd, client->source, 0 );
  
  	    if ( is_ok ) {
- 	        client->state = ESD_NEXT_REQUEST;
  		is_ok = do_validated_action( client );
+ 	        client->state = ESD_NEXT_REQUEST;
  	    }
  	    else if ( client->request != ESD_PROTO_INVALID ) {
  	        /* send failure code to client */
  	        printf( "only owner may control sound daemon\n" );
  		write( client->fd, &is_ok, sizeof(is_ok) );
+		fsync( client->fd );
  	    }
  	}
  	else {
