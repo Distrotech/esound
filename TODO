@@ -71,6 +71,8 @@ pitch adjust on samples?
 playback samples at different rates?
 
 esdfile.c - wrappers for caching and playing files via libaudiofile
+factor out the file handling routines of esdplay into 
+esd_play_steam_file(), and esd_cache_sample_file();
 
 esd_rename_stream( int stream_id, char *name );
 
@@ -91,8 +93,16 @@ for Solaris: AUDIO_LINE_OUT, AUDIO_SPEAKER, AUDIO_HEADPHONE
 for Linux: pick /dev/dsp2 if more than one card.  
 Pass the device spec to esd_audio_open (?)
 
-change on the fly?
+change audio device with esdctl? on the fly?
 
-esdctl on, with another device on /dev/dsp will actually kill esd.
+alter esdctl to an interactive shell for issuing commands.
+should consolidate esdctl, esdsample, esdloop. 
+
+esdctl on, with another device on /dev/dsp will actually kill esd. or not?
 
 monitoring with stalled data streams still eats cpu like the cookie monster
+
+sample_size is a long, and is not 64 bit clean (reads an int), but longs on 
+64 bit arch's are bigger than 32 bit arch's. make it an int, 
+"32 bits should be enough for everyone"  this will change the protocol
+signature, save it for a little while.

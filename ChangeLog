@@ -1,6 +1,6 @@
 1998-09-29  Yo Ric Dude  <ericmit@ix.netcom.com>
 
-	* esd-server.h, esd.c: updated obsolete info, As noted by Sopwith,
+	* esd-server.h, esd.c: updated obsolete info. As noted by Sopwith,
  	termination procedure, clean_exit(), needed tweaking.
 
 	* esd.h, esdlib.c, esdsample.c, proto.c: esd_sample_getid(),
