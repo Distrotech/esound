@@ -47,6 +47,7 @@ AC_FUNC_ALLOCA
 AC_CHECK_FUNCS(setenv putenv fchown fchmod gethostbyname2)
 AC_CHECK_FUNC(connect,,[AC_CHECK_LIB(socket,connect)])
 AC_CHECK_FUNC(gethostbyname,,[AC_CHECK_LIB(nsl,gethostbyname)])
+AC_CHECK_FUNC(hstrerror,,[AC_CHECK_LIB(resolv,hstrerror)])
 AC_CHECK_FUNC(nanosleep,,[
   AC_CHECK_LIB(rt,nanosleep,,[AC_CHECK_LIB(posix4,nanosleep)])])
 AC_CHECK_FUNCS(usleep)
