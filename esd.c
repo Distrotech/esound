@@ -187,6 +187,11 @@ int open_listen_socket( int port )
 		lin.l_linger);
 	return( -1 );
     }
+    {
+      int n = 1;
+      setsockopt(socket_listen, SOL_SOCKET, SO_REUSEADDR, &n, sizeof(n));
+      /* if it fails, so what */
+    }
 
     /* set the listening information */
     socket_addr.sin_family = AF_INET;

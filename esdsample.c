@@ -72,7 +72,6 @@ int main(int argc, char **argv)
 	     ESD_NAME_MAX - strlen( filename ) );
     name = argv[ arg ];
 
-printf( "name is \'%s\'.\n", filename );
 
     /* if we see any of these, terminate */
     signal( SIGINT, clean_exit );
@@ -138,11 +137,14 @@ printf( "name is \'%s\'.\n", filename );
 	strcpy(filename, name);
     }
 
+    printf( "name is \'%s\'.\n", filename );
+
     reget_sample_id = esd_sample_getid( sock, filename );
 
-    printf( "reget of sample id is <%d>\n", reget_sample_id );
-    if( reget_sample_id != sample_id ) {
-	printf( "sample id's do not match!\n" );
+    printf( "reget of sample %s id is <%d>\n", filename, reget_sample_id );
+    if(( reget_sample_id != sample_id && cache_mode != 2)
+       || reget_sample_id < 0) {
+	printf( "sample id's do not make sense! (cache mode %d)\n", cache_mode );
 	exit( 1 );
     }
 
