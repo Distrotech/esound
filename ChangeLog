@@ -1,3 +1,11 @@
+1998-09-29  Yo Ric Dude  <ericmit@ix.netcom.com>
+
+	* esd.h, esdlib.c, esdsample.c, proto.c: esd_sample_getid(),
+	for fetching a sample id from the name, courtesy of Sopwith.
+
+	* esdcat.c: FILE *source = source; /* hello, mcfly? anybody 
+	in there? */ pointed out by Bibek, Sopwith, and others...
+
 1998-09-27  Yo Ric Dude  <ericmit@ix.netcom.com>
 
 	* configure.in: `AC_PROG_RANLIB' is rendered obsolete by `AM_PROG_LIBTOOL'

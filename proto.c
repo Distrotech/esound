@@ -341,6 +341,37 @@ int esd_proto_sample_cache( esd_client_t *client )
 }
 
 /*******************************************************************/
+/* check for an existing sample name */
+int esd_proto_sample_getid(esd_client_t *client)
+{
+    int client_id, actual, length;
+    esd_sample_t *sample = esd_samples_list;
+    char namebuf[ESD_NAME_MAX];
+
+    if ( esdbg_trace )
+	printf( "(%02d) proto: getting sample ID\n", client->fd );
+
+    ESD_READ_BIN(client->fd, namebuf, ESD_NAME_MAX, actual, "smp getid");
+    namebuf[ESD_NAME_MAX - 1] = '\0';
+
+    while(sample) {
+	if(!strcmp(sample->name, namebuf))
+	    break;
+    }
+
+    if(sample)
+	client_id = maybe_swap_32( client->swap_byte_order, 
+				   sample->sample_id );
+    else
+	client_id = maybe_swap_32(client->swap_byte_order, -1);
+
+    ESD_WRITE_INT( client->fd, &client_id, sizeof(client_id), length, "smp getid" );
+    fsync( client->fd );
+    return 1;
+}
+
+
+/*******************************************************************/
 /* free a sample cached by the client, return boolean ok */
 int esd_proto_sample_free( esd_client_t *client )
 {
@@ -630,7 +661,11 @@ int poll_client_requests()
  		case ESD_PROTO_SAMPLE_CACHE:
  		    is_ok = esd_proto_sample_cache( client );
  		    break;
- 
+
+		case ESD_PROTO_SAMPLE_GETID:
+		    is_ok = esd_proto_sample_getid( client );
+		    break;
+
  		case ESD_PROTO_SAMPLE_FREE:
  		    is_ok = esd_proto_sample_free( client );
  		    break;

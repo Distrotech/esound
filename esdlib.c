@@ -450,6 +450,31 @@ int esd_confirm_sample_cache( int esd )
 }
 
 /*******************************************************************/
+/* get the sample ID for an already-cached sample */
+int esd_sample_getid( int esd, const char *name)
+{
+    int proto = ESD_PROTO_SAMPLE_GETID;
+    int id;
+    char namebuf[ESD_NAME_MAX];
+
+    if ( write( esd, &proto, sizeof(proto) ) != sizeof(proto) )
+	return -1;
+    strncpy(namebuf, name, ESD_NAME_MAX); namebuf[ESD_NAME_MAX - 1] = '\0';
+    if ( write( esd, namebuf, ESD_NAME_MAX ) != ESD_NAME_MAX )
+	return -1;
+
+    /* flush the socket */
+    fsync( esd );
+
+    /* get the sample id back from the server */
+    if ( read( esd, &id, sizeof(id) ) != sizeof(id) )
+	return -1;
+
+    /* return the sample id to the client */
+    return id;
+}
+
+/*******************************************************************/
 /* uncache a sample in the server */
 int esd_sample_free( int esd, int sample )
 {

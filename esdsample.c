@@ -23,7 +23,7 @@ int main(int argc, char **argv)
     int mode = ESD_STREAM, func = ESD_PLAY ;
     esd_format_t format = 0;
 
-    int sample_id = 0, confirm_id = 0;
+    int sample_id = 0, confirm_id = 0, reget_sample_id = 0;
     FILE *source = NULL;
     struct stat source_stats;
     char *host = NULL;
@@ -91,6 +91,15 @@ int main(int argc, char **argv)
 	exit( 1 );
     }
     printf( "sample <%d> uploaded, %d bytes\n", sample_id, total );
+
+
+    reget_sample_id = esd_sample_getid( sock, name );
+
+    printf( "reget of sample id is <%d>\n", reget_sample_id );
+    if( reget_sample_id != sample_id ) {
+	printf( "sample id's do not match!\n" );
+	exit( 1 );
+    }
 
     printf( "press \'q\' <enter> to quit, <enter> to trigger.\n" );
     while ( !terminate ) {

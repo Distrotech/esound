@@ -15,7 +15,7 @@ int main(int argc, char **argv)
     int mode = ESD_STREAM, func = ESD_PLAY ;
     esd_format_t format = 0;
 
-    FILE *source = source;
+    FILE *source = NULL;
     char *host = NULL;
     char *name = NULL;
     

@@ -40,12 +40,14 @@ enum esd_proto {
     ESD_PROTO_SAMPLE_FREE,  /* release a sample in the server */
     ESD_PROTO_SAMPLE_PLAY,  /* play a cached sample */
     ESD_PROTO_SAMPLE_LOOP,  /* loop a cached sample, til eoloop */
-    ESD_PROTO_SAMPLE_STOP,   /* stop a looping sample when done */
+    ESD_PROTO_SAMPLE_STOP,  /* stop a looping sample when done */
     ESD_PROTO_SAMPLE_KILL,  /* stop the looping sample immed. */
 
     /* free and reclaim /dev/dsp functionality */
     ESD_PROTO_STANDBY,	    /* release /dev/dsp and ignore all data */
     ESD_PROTO_RESUME,	    /* reclaim /dev/dsp and play sounds again */
+
+    ESD_PROTO_SAMPLE_GETID, /* get the ID for an already-cached sample */
 
     ESD_PROTO_MAX           /* for bounds checking */
 };
@@ -121,6 +123,9 @@ int esd_record_stream_fallback( esd_format_t format, int rate, char *host, char 
 /* cache a sample in the server returns sample id, < 0 = error */
 int esd_sample_cache( int esd, esd_format_t format, int rate, long length, char *name );
 int esd_confirm_sample_cache( int esd );
+
+/* get the sample id for an already-cached sample */
+int esd_sample_getid( int esd, const char *name);
 
 /* uncache a sample in the server */
 int esd_sample_free( int esd, int sample );
