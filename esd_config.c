@@ -5,6 +5,14 @@
 #include <string.h>
 
 #define LINEBUF_SIZE 1024
+
+#ifdef HAVE_STRTOK_R
+#define DO_STRTOK(S,DELIM) strtok_r(S,DELIM,&strtok_state)
+char strtok_state[LINEBUF_SIZE];
+#else
+#define DO_STRTOK(S,DELIM) strtok(S,DELIM)
+#endif
+
 int esd_no_spawn=1; /* If we can't find even the system config file,
 		       things are screwed up - don't try to make things
 		       worse. */
@@ -90,9 +98,9 @@ esd_config_read_file(FILE *fh)
 	  break;
 	}
 
-      key = strtok(aline, "=");
+      key = DO_STRTOK(aline, "=");
       if(!key) continue;
-      value = strtok(NULL, "=");
+      value = DO_STRTOK(NULL, "=");
       if(!value) value = "";
 
       if(!strcasecmp(key, "auto_spawn"))

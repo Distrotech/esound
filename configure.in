@@ -50,6 +50,7 @@ AC_CHECK_FUNC(nanosleep,,[
   AC_CHECK_LIB(rt,nanosleep,,[AC_CHECK_LIB(posix4,nanosleep)])])
 AC_CHECK_FUNCS(usleep)
 AC_CHECK_FUNC(inet_aton,,[AC_CHECK_LIB(resolv,inet_aton)])
+AC_CHECK_FUNCS(strtok_r)
 
 case $ac_cv_func_nanosleep/$ac_cv_lib_rt_nanosleep/$ac_cv_lib_posix4_nanosleep in
 no/no/no) ;;
@@ -352,5 +353,16 @@ esound.spec
 esound.pc
 esddsp
 docs/Makefile
+docs/esd.1
+docs/esdcat.1
+docs/esd-config.1
+docs/esdctl.1
+docs/esddsp.1
+docs/esdfilt.1
+docs/esdloop.1
+docs/esdmon.1
+docs/esdplay.1
+docs/esdrec.1
+docs/esdsample.1
 ])
 dnl , [case "$CONFIG_FILES" in *esd-config*) chmod +x esd-config;; esac])

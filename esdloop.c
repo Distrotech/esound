@@ -68,7 +68,7 @@ int main(int argc, char **argv)
     }
     
     format = bits | channels | mode | func;
-    printf( "opening socket, format = 0x%08x at %d Hz\n", 
+    fprintf( stderr, "opening socket, format = 0x%08x at %d Hz\n", 
 	    format, rate );
    
     sock = esd_open_sound( host );

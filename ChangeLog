@@ -1,3 +1,34 @@
+2002-06-04  Frederic Crozat  <fcrozat@mandrakesoft.com>
+
+	* docs/.cvsignore:
+	* docs/Makefile.am:
+	* docs/esd-config.1.in:
+	* docs/esd.1.in:
+	* docs/esdcat.1.in:
+	* docs/esdctl.1.in:
+	* docs/esddsp.1.in:
+	* docs/esdfilt.1.in:
+	* docs/esdloop.1.in:
+	* docs/esdmon.1.in:
+	* docs/esdplay.1.in:
+	* docs/esdrec.1.in:
+	* docs/esdsample.1.in:
+	Add manpages (from Debian). Fix bug #81038
+
+	* esd.m4:
+	Apply Debian patch to always use C compiler for test
+	
+	* configure.in:
+	* esd_config.c: (esd_config_read_file):
+	Apply Debian patch to detect if strtok is available on the system
+
+	* esdcat.c: (main):
+	* esdloop.c: (main):
+	* esdmon.c: (main):
+	* esdrec.c: (main):
+	* esdsample.c: (main):
+	Apply Debian patch to output "open socket" message on stderr
+
 2002-06-04  Frederic Crozat <fcrozat@mandrakesoft.com>
 
 	* esd.c: (safe_mksocketdir):

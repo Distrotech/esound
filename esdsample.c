@@ -95,7 +95,7 @@ int main(int argc, char **argv)
 	if ( sock <= 0 ) 
 	    return 1;
 	format = bits | channels | mode | func;
-	printf( "opening socket, format = 0x%08x at %d Hz\n", 
+	fprintf( stderr, "opening socket, format = 0x%08x at %d Hz\n", 
 		format, rate );
 	
 	stat( name, &source_stats );
