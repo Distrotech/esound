@@ -1,3 +1,9 @@
+2000-07-21  Stanislav Brabec  <utx@penguin.cz>
+
+	* acconfig.h, audio.c, audio_dart.c, configure.in, esdcat.c,
+	esdfile.c, esdlib.c, os2medef.h, os2me.h, proto.c: Merged changes
+	from cvs.enlightenment.org.
+
 2000-07-18 Elliot Lee <sopwith@redhat.com>
 	* Undo esd_send_file change on 03-03 - it makes lots of things break.
 	* Fix fcntl that tried to remove non-blocking flag.
