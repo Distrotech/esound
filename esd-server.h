@@ -156,6 +156,8 @@ int mix_players_16s( void *mixed, int length );
 	( (c) ? (swap_endian_32( (x) )) : (x) )
 
 /* evil macros for debugging protocol */
+/* #define ESDBG */ /* define this term for excessive debugging information */
+
 #ifdef ESDBG
 
 #define ESD_READ_INT(s,a,l,r,d) \

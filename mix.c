@@ -256,8 +256,9 @@ int mix_players_16s( void *output, int length )
 	    if ( actual > max ) max = actual;
 	    
 	} else if ( actual == 0 ) {
-	    /* printf( "no data available from player (%d)\n", 
-		     iterator->source_id, iterator ); */
+	    if ( esdbg_trace) 
+		printf( "no data available from player (%d)\n", 
+			iterator->source_id, iterator ); 
 	} else {
 	    /* actual < 0 means erase the player */
 	    erase = iterator;
@@ -271,6 +272,10 @@ int mix_players_16s( void *output, int length )
 	    erase_player( erase );
 	    erase = NULL;
 	}
+    }
+
+    if ( esdbg_trace ) {
+	printf( "maximum stream length = %d bytes\n", max );
     }
 
     clip_mix_to_output_16s( output, max );

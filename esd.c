@@ -241,7 +241,7 @@ int main ( int argc, char *argv[] )
 
 	/* mix new requests, and output to device */
 	length = mix_players_16s( output_buffer, buf_size );
-	if ( length > 0 || esd_monitor ) {
+	if ( length > 0 /* || esd_monitor */ ) {
 	    if ( !esd_on_standby ) {
 		/* standby check goes in here, so esd will eat sound data */
 		/* TODO: eat a round of data with a better algorithm */
@@ -251,9 +251,6 @@ int main ( int argc, char *argv[] )
 	    }
 	} else {
 	    /* be very quiet, and wait for a wabbit to come along */
-	    /* this won't always be triggered when necessary, as */
-	    /* wait_for_clients_and_data() may block without passing */
-	    /* through here first, causing repeating loops */
 	    esd_audio_pause();
 	}
 
@@ -261,6 +258,7 @@ int main ( int argc, char *argv[] )
 	/* mix_players, above, forces buffer to zero if no players */
 	/* this clears out any leftovers from recording, below */
 	if ( esd_monitor && !esd_on_standby ) {
+	    /* TODO: maybe the last parameter here should be length? */
 	    length = mix_from_stereo_16s( output_buffer, 
 					  esd_monitor, buf_size );
 	    if( length )
@@ -276,6 +274,8 @@ int main ( int argc, char *argv[] )
 		recorder_write(); 
 	    }
 	}
+
+	/* TODO: if ( esd_on_standby ) [nano]sleep( buf_size/sample_rate seconds ); */
 
     }
 

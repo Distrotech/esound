@@ -1,3 +1,7 @@
+1998-09-05  Yo Ric Dude  <ericmit@ix.netcom.com>
+
+	* esd.c, mix.c, esd-server.h: fixed the annoying buzz while monitoring
+
 1998-08-28  Yo Ric Dude  <ericmit@ix.netcom.com>
 
 	* audio_alsa.c: Nick Lopez - added the missing audio_alsa.c
