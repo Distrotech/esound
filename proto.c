@@ -49,9 +49,9 @@ esd_proto_handler_info_t esd_proto_map[ ESD_PROTO_MAX ] =
     { ESD_KEY_LEN + sizeof(int), &esd_proto_lock, "lock" },
     { ESD_KEY_LEN + sizeof(int), &esd_proto_unlock, "unlock" },
 
-    { ESD_KEY_LEN + 2 * sizeof(int), &esd_proto_stream_play, "stream play" },
-    { ESD_KEY_LEN + 2 * sizeof(int), &esd_proto_stream_recorder, "stream rec" },
-    { ESD_KEY_LEN + 2 * sizeof(int), &esd_proto_stream_monitor, "stream mon" },
+    { ESD_NAME_MAX + 2 * sizeof(int), &esd_proto_stream_play, "stream play" },
+    { ESD_NAME_MAX + 2 * sizeof(int), &esd_proto_stream_recorder, "stream rec" },
+    { ESD_NAME_MAX + 2 * sizeof(int), &esd_proto_stream_monitor, "stream mon" },
 
     { ESD_NAME_MAX + 3 * sizeof(int), &esd_proto_sample_cache, "sample cache" },
     { sizeof(int), &esd_proto_sample_free, "sample free" },

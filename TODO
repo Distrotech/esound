@@ -1,11 +1,12 @@
 BUGS
 ====
 
-* Doesn't detect end of protocol stream if unfinished
+* Doesn't detect end of protocol stream if unfinished? maybe the cause of the:
+
+* CPU usage issues are back... or are they?  They are, but only if 
+  someone's monitoring...
 
 * some data is required for each protocol handler or Bad Things Happen
-
-* CPU usage issues are back...
 
 * generates static for some people as of 12/8/98 - 12/9/98 changes.
 
