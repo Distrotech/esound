@@ -1,7 +1,5 @@
 config.guess
 config.sub
-ltconfig
-ltmain.sh
 *.lo
 config.log
 config.h

@@ -248,17 +248,23 @@ int deny_severity = LOG_WARNING;],
    LIBS="$esound_save_LIBS"
 fi
 
-dnl build the esddsp wrapper for Linux only
-dsp_ok=no ESDDSP=
+dnl build the esddsp wrapper for Linux/FreeBSD only
+dsp_ok=no ESDDSP= LIBESDDSP= DL_LIB=
+
 AC_MSG_CHECKING([if your platform supports esddsp])
 case "$host_os" in
   linux* | freebsd* )
-    LIBESDDSP=libesddsp.la
-    ESDDSP=esddsp
     dsp_ok=yes
     ;;
 esac
 AC_MSG_RESULT($dsp_ok)
+
+if test "$dsp_ok" = "yes"; then
+   AC_CHECK_FUNC(dlopen, dsp_ok=yes,
+      AC_CHECK_LIB(dl, dlopen, dsp_ok=yes DL_LIB=-ldl))
+   ESDDSP=esddsp
+   LIBESDDSP=libesddsp.la
+fi
 
 # set | sort; # just for double checking the script...
 
@@ -267,6 +273,7 @@ AC_SUBST(AUDIOFILE_LIBS)
 AC_SUBST(ESDPLAY)
 AC_SUBST(LIBESDDSP)
 AC_SUBST(ESDDSP)
+AC_SUBST(DL_LIB)
 
 AC_OUTPUT([
 Makefile

@@ -36,7 +36,7 @@ EXTRA_LTLIBRARIES = \
 
 libesddsp_la_LDFLAGS = -rpath $(libdir) -version-info @ESD_VERSION_INFO@
 
-libesddsp_la_LIBADD = -ldl -lm
+libesddsp_la_LIBADD = @DL_LIB@ -lm
 
 libesddsp_la_SOURCES = \
 	esddsp.c

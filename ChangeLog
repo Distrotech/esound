@@ -1,3 +1,20 @@
+Thu Jan 14 22:52:02 PST 1999 Manish Singh <yosh@gimp.org>
+
+	* esd.c: corrected -d help text
+
+	* esdctl.c: 0 is a perfectly valid argument for volumes, so don't
+	filter it out
+
+	* esddsp.in: libdl isn't everywhere, don't specify it (libtool
+	deps will take care of that)
+
+	* Makefile.am
+	* configure.in: check for libdl
+
+	* acinclude.m4
+	* ltconfig
+	* ltmain.sh: libtool 1.2d for linux shared library deps
+
 1999-01-13  Yo Ric Dude  <ericmit@ix.netcom.com>
 
 	* esd-server.h, esd.c, mix.c, players.c, samples.c: first take at

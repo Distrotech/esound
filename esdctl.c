@@ -164,7 +164,7 @@ int main(int argc, char **argv)
 	    left = atoi( argv[ ++optind ] );
 	    right = atoi( argv[ ++optind ] );
 
-	    if ( !id || !left || !right ) {
+	    if ( !id ) {
 		fprintf( stderr, "panstream failed, id = %d, left = %d, right = %d\n",
 			 id, left, right );
 	    } else {
@@ -176,7 +176,7 @@ int main(int argc, char **argv)
 	    left = atoi( argv[ ++optind ] );
 	    right = atoi( argv[ ++optind ] );
 
-	    if ( !id || !left || !right ) {
+	    if ( !id ) {
 		fprintf( stderr, "pansample failed, id = %d, left = %d, right = %d\n",
 			 id, left, right );
 	    } else {

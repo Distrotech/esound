@@ -343,7 +343,7 @@ int main ( int argc, char *argv[] )
 	    fprintf( stderr, "- disabling startup beeps\n" );
 	} else if ( !strcmp( argv[ arg ], "-h" ) ) {
 	    fprintf( stderr, "Usage: esd [options]\n\n" );
-	    fprintf( stderr, "  -d DEVICE   run server in 8 bit sound mode\n" );
+	    fprintf( stderr, "  -d DEVICE   force esd to use sound device DEVICE\n" );
 	    fprintf( stderr, "  -b          run server in 8 bit sound mode\n" );
 	    fprintf( stderr, "  -r RATE     run server at sample rate of RATE\n" );
 	    fprintf( stderr, "  -as SECS    free audio device after SECS of inactivity\n" );
