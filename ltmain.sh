@@ -1570,8 +1570,8 @@ EOF
 	# Create links to the real library.
 	for linkname in $linknames; do
 	  if test "$realname" != "$linkname"; then
-	    $show "(cd $output_objdir && $rm $linkname && $LN_S $realname $linkname)"
-	    $run eval '(cd $output_objdir && $rm $linkname && $LN_S $realname $linkname)' || exit $?
+	    $show "(cd $output_objdir && $LN_S $realname $linkname)"
+	    $run eval '(cd $output_objdir && $LN_S $realname $linkname)' || exit $?
 	  fi
 	done
 
