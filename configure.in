@@ -41,6 +41,7 @@ AC_C_CONST
 
 dnl Check for system libs needed
 
+AC_CHECK_FUNCS(setenv putenv)
 AC_CHECK_FUNC(connect,,[AC_CHECK_LIB(socket,connect)])
 AC_CHECK_FUNC(gethostbyname,,[AC_CHECK_LIB(nsl,gethostbyname)])
 AC_CHECK_FUNC(nanosleep,,[AC_CHECK_LIB(posix4,nanosleep)])

@@ -166,7 +166,23 @@ main (int argc, char *argv[])
       switch (c)
 	{
 	case 's':
-	  setenv("ESPEAKER", optarg);
+#ifdef HAVE_SETENV
+	  setenv("ESPEAKER", optarg, 1);
+#else
+#ifdef HAVE_PUTENV
+	  {
+	    /* The following malloc is correct, and does take into
+               account the trailing \0 too.  */
+	    char *espeaker_env = malloc (strlen (optarg) + sizeof "ESPEAKER=");
+	    if (espeaker_env)
+	      {
+		strcpy (espeaker_env, "ESPEAKER=");
+		strcat (espeaker_env, optarg);
+		putenv (espeaker_env);
+	      }
+	  }
+#endif
+#endif
 	  break;
 
 	case 'h':
