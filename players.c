@@ -302,7 +302,12 @@ int read_player( esd_player_t *player )
 		if ( actual == 0 
 		     || ( actual < 0 && errno != EAGAIN && errno != EINTR ) )
 		    return -1;
- 
+		/* check for last frame */
+		if ( actual < player->buffer_length - player->actual_length )
+		{
+			player->actual_length += actual;
+			break;
+		}
 		/* more data, save how much we got */
 		player->actual_length += actual;
 	    } while (player->actual_length < player->buffer_length);
