@@ -15,8 +15,8 @@ AC_ARG_WITH(esd-prefix,[  --with-esd-prefix=PFX   Prefix where ESD is installed 
             esd_prefix="$withval", esd_prefix="")
 AC_ARG_WITH(esd-exec-prefix,[  --with-esd-exec-prefix=PFX Exec prefix where ESD is installed (optional)],
             esd_exec_prefix="$withval", esd_exec_prefix="")
-#AC_ARG_ENABLE(esdtest, [  --disable-esdtest       Do not try to compile and run a test ESD program],
-#		    , enable_esdtest=yes)
+AC_ARG_ENABLE(esdtest, [  --disable-esdtest       Do not try to compile and run a test ESD program],
+		    , enable_esdtest=yes)
 
   if test x$esd_exec_prefix != x ; then
      esd_args="$esd_args --exec-prefix=$esd_exec_prefix"
@@ -45,6 +45,8 @@ AC_ARG_WITH(esd-exec-prefix,[  --with-esd-exec-prefix=PFX Exec prefix where ESD 
            sed 's/\([[0-9]]*\).\([[0-9]]*\).\([[0-9]]*\)/\1/'`
     esd_minor_version=`$ESD_CONFIG $esd_args --version | \
            sed 's/\([[0-9]]*\).\([[0-9]]*\).\([[0-9]]*\)/\2/'`
+    esd_micro_version=`$ESD_CONFIG $esd_config_args --version | \
+           sed 's/\([[0-9]]*\).\([[0-9]]*\).\([[0-9]]*\)/\3/'`
     if test "x$enable_esdtest" = "xyes" ; then
       ac_save_CFLAGS="$CFLAGS"
       ac_save_LIBS="$LIBS"
@@ -58,33 +60,49 @@ dnl
       AC_TRY_RUN([
 #include <stdio.h>
 #include <stdlib.h>
-#include <Imlib.h>
+#include <string.h>
+#include <esd.h>
 
-ImLibColor testcolor;
+char*
+my_strdup (char *str)
+{
+  char *new_str;
+  
+  if (str)
+    {
+      new_str = malloc ((strlen (str) + 1) * sizeof(char));
+      strcpy (new_str, str);
+    }
+  else
+    new_str = NULL;
+  
+  return new_str;
+}
 
 int main ()
 {
-  int major, minor;
+  int major, minor, micro;
   char *tmp_version;
 
   system ("touch conf.esdtest");
 
   /* HP/UX 9 (%@#!) writes to sscanf strings */
-  tmp_version = g_strdup("$min_esd_version");
-  if (sscanf(tmp_version, "%d.%d", &major, &minor) != 2) {
+  tmp_version = my_strdup("$min_esd_version");
+  if (sscanf(tmp_version, "%d.%d.%d", &major, &minor, &micro) != 3) {
      printf("%s, bad version string\n", "$min_esd_version");
      exit(1);
    }
 
-    if (($esd_major_version > major) ||
-        (($esd_major_version == major) && ($esd_minor_version > minor)))
+   if (($esd_major_version > major) ||
+      (($esd_major_version == major) && ($esd_minor_version > minor)) ||
+      (($esd_major_version == major) && ($esd_minor_version == minor) && ($esd_micro_version >= micro)))
     {
       return 0;
     }
   else
     {
-      printf("\n*** 'esd-config --version' returned %d.%d, but the minimum version\n", $esd_major_version, $esd_minor_version);
-      printf("*** of ESD required is %d.%d. If esd-config is correct, then it is\n", major, minor);
+      printf("\n*** 'esd-config --version' returned %d.%d.%d, but the minimum version\n", $esd_major_version, $esd_minor_version, $esd_micro_version);
+      printf("*** of ESD required is %d.%d.%d. If esd-config is correct, then it is\n", major, minor, micro);
       printf("*** best to upgrade to the required version.\n");
       printf("*** If esd-config was wrong, set the environment variable ESD_CONFIG\n");
       printf("*** to point to the correct copy of esd-config, and remove the file\n");
@@ -117,7 +135,7 @@ int main ()
           LIBS="$LIBS $ESD_LIBS"
           AC_TRY_LINK([
 #include <stdio.h>
-#include <Imlib.h>
+#include <esd.h>
 ],      [ return 0; ],
         [ echo "*** The test program compiled, but did not run. This usually means"
           echo "*** that the run-time linker is not finding ESD or finding the wrong"

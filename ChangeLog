@@ -1,3 +1,7 @@
+Thu Oct  1 19:27:22 PDT 1998 Manish Singh <yosh@gimp.org>
+
+	* esd.m4: make it work right
+
 1998-10-01  Yo Ric Dude  <ricdude@piranha>
 
 	* esound.spec[.in]: make autoconf do the version updating for us.
