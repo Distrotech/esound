@@ -95,7 +95,6 @@ snd_pcm_t* initAlsa(char *dev, int format, int channels, int speed, int mode)
   
 	snd_pcm_t *handle;
 	snd_pcm_hw_params_t *hwparams;
-	snd_pcm_sw_params_t *swparams;
 	int err;
 	int periods;
   

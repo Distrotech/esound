@@ -583,7 +583,6 @@ esd_connect_unix(const char *host)
 #define min(a,b) ( ( (a)<(b) ) ? (a) : (b) )
 int esd_open_sound( const char *host )
 {
-    int connect_count;
     int socket_out = -1;
     int len;
     char use_unix = 0;

@@ -6,6 +6,7 @@
 #include <sys/un.h>
 #include <errno.h>
 #include <signal.h>
+#include <time.h>
 
 #ifndef HAVE_NANOSLEEP
 #include <sys/time.h>

@@ -1,3 +1,16 @@
+2002-05-03  Frédéric Crozat  <fcrozat@mandrakesoft.com>
+
+	* audio_alsa09.c: (initAlsa):
+	* clients.c:
+	* esd.c:
+	* esdcat.c:
+	* esdfilt.c:
+	* esdlib.c: (esd_open_sound):
+	* esdmon.c:
+	* esdrec.c:
+	* genrand.c: (genrand_dev), (genrand_unix):
+	fix various warnings and missing includes (bug #80690)
+
 2002-05-01  Rodney Dawes  <dobey@free.fr>
 
 	* Makefile.am: Need to dist getopt*.c even when not needed for build

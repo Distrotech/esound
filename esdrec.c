@@ -5,6 +5,7 @@
 #include <dirent.h>
 #include <unistd.h>
 #include <sys/stat.h>
+#include <string.h>
 
 int main(int argc, char **argv)
 {
