@@ -6,7 +6,7 @@
 /* ESD_BUF_SIZE is the maximum possible number of samples */
 signed int mixed_buffer[ ESD_BUF_SIZE ];
 
-/* prototype for compiler */;
+/* prototype for compiler */
 int mix_and_copy( void *dest_buf, int dest_len, 
 		  int dest_rate, esd_format_t dest_format, 
 		  void *source_data, int src_len, 
