@@ -538,13 +538,11 @@ int esd_open_sound( const char *host )
       socket_out = esd_connect_unix(host);
       if (socket_out >= 0) break;
 
-      connect_count++;
-    
 #if defined(HAVE_USLEEP)
       usleep(1000);
 #elif defined(HAVE_NANOSLEEP)
       timewait.tv_sec = 0;
-      timewait.tv_nsec = 10000000;
+      timewait.tv_nsec = 1000000;
       nanosleep(&timewait, NULL);
 #endif
     }
