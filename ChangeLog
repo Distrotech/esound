@@ -1,3 +1,7 @@
+1999-02-03  Yo Ric Dude  <ericmit@ix.netcom.com>
+
+	* esd.c: yeat another CPU usage fix, courtesy of Chutt
+
 1999-02-01  Elliot Lee  <sopwith@redhat.com>
 
 	* Revert session management changes until further discussion.
