@@ -57,7 +57,7 @@ I occasionally hang out in the #E irc channel as <code>ricdude</code>.
 
 <H3>New Features</h3>
 
-<H5>Version 0.2</h5>
+<H5>Version 0.2.1</h5>
 <UL>
 <LI>the configure style installation now works if you don't already
  have a previous version installed.  Evil gnu automake >=P</LI>
@@ -103,11 +103,18 @@ relevant files to useful/accessible places.
 (default=5001)
 <P>
 <DL>
-<DT>esdlock
-<DD>only the "owner" of the daemon can play sounds.  the first 
-key (16 bytes) submitted to the daemon identified the owner.
-<DT>esdunlock
-<DD>anyone can play sounds through the daemon.
+<DT>esdctl
+controls certain aspects of the sound daemon.  
+options are lock, unlock, standby, resume.
+<DL>
+   <DT>lock - only the "owner" of the daemon can play sounds.  the first 
+   key (16 bytes) submitted to the daemon identified the owner.
+   <DT>unlock - anyone can play sounds through the daemon.
+   <DT>standby - frees the audio device for use by other programs.  all sounds
+   are ignored until the daemon is resumed.
+   <DT>resume - brings daemon out of standby mode
+   </DL>
+more than one option may be listed on the command line
 </DL>
 * in addition, "kill -HUP &lt;esd-pid&gt;" resets ownership of the daemon.<BR>
 * the file, ~/.esd-auth, is used to determine identity, and is created at random if needed.

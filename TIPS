@@ -28,6 +28,12 @@ esdcat arguments: -b	= data type unsigned byte
 Currently, esd only supports unsigned byte, and signed word data types.
 
 
+Playing back mp3 files:
+-----------------------
+From Wayne Johnson,
+mpg123 -s sample.mp3 | esdcat
+
+
 Checking recording capabilities:
 --------------------------------
 

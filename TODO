@@ -66,9 +66,16 @@ esd_debug(); ???
 allow server to run at sample rates lower than 44.1kHz, or mono, or 
 8 bit, or any combination of the above.  probably need function 
 pointers in mix.c to do this well:
- mix_funcs[MAX] = { mix_to_stereo_16s, mix_from_stereo_16s };
+  mix_funcs[MAX] = { mix_to_format, mix_from_format, clip_format, ... };
 and update according to specs.
 
 kill_sample
 
-add a queue of requests to the sample clients, and watch for kills
+add a queue of requests to the sample clients, and watch for kills?
+
+pitch adjust on samples?
+
+playback samples at different rates?
+
+esd segfautls if u free a sample BEFORE its finished playing 
+and u can't know when its finished.. :)
