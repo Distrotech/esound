@@ -7,7 +7,7 @@
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <time.h>
-
+#include <signal.h>
 #include <string.h>
 #include <netdb.h>
 #include <sys/types.h>
@@ -19,6 +19,13 @@
 /* prototypes */
 int esd_set_socket_buffers( int sock, int src_format, 
 			    int src_rate, int base_rate );
+void dummy_signal(int signum);
+
+/* dummy handler */
+static void dummy_signal(int signum) {
+      signal( signum, dummy_signal);
+      return;
+}
 
 /*******************************************************************/
 /* alternate implementations */
@@ -71,21 +78,30 @@ int esd_send_auth( int sock )
 {
     int auth_fd = -1, i = 0;
     int endian = ESD_ENDIAN_KEY;
+    int reply;
     char *auth_filename = 0, auth_key[ESD_KEY_LEN];
     char *home = NULL;
     char tumbler = '\0';
     int namelen, retval;
-
+    void (*phandler)(int);
+  
+/* this is unavoidable - incase ESD "dissapears" (ie the socket conn dies) */
+/* we need to catch SIGPIPE to avoid the default handler form giving us */
+/* a bad day - ignore the SIGPIPE, then make sure to cathc all errors */
+    phandler = signal( SIGPIPE, dummy_signal );    /* for closed esd conns */
+  
     /* assemble the authorization filename */
     home = getenv( "HOME" );
     if ( !home ) {
 	fprintf( stderr, "HOME environment variable not set?\n" );
+        signal( SIGPIPE, phandler ); 
 	return -1;
     }
 
     namelen = strlen(home) + sizeof("/.esd_auth");
     if ((auth_filename = malloc(namelen + 1)) == 0) {
 	fprintf( stderr, "Memory exhausted\n" );
+        signal( SIGPIPE, phandler ); 
 	return -1;
     }
 
@@ -130,6 +146,22 @@ int esd_send_auth( int sock )
 	/* send key failed */
 	goto exit_fd;
 
+    /* read auth reply. esd will reply 1 as an int for yes and 0 for no */
+    /* then close the connection */
+    if ( sizeof(reply) != read( sock, &reply, sizeof(reply) ) ) {
+      /* read ok failed */
+      retval = 0;
+      goto exit_fd;
+    }
+    /* we got a reply and it's no - so esd will close the socket now */
+    /* on us anyway... time to return invalid auth... */
+    if (reply == 0) {
+      /* auth failed */
+      retval = 0;
+      goto exit_fd;
+    }
+  
+  
     /* we've run the gauntlet, everything's ok, proceed as usual */
     /* fsync( sock ); */
     retval = 1;
@@ -138,6 +170,7 @@ int esd_send_auth( int sock )
     close( auth_fd );
  exit_fn:
     free( auth_filename );
+    signal( SIGPIPE, phandler ); 
     return retval;
 }
 
@@ -146,7 +179,12 @@ int esd_send_auth( int sock )
 int esd_lock( int esd ) {
     int proto = ESD_PROTO_LOCK;
     int ok = 0;
-
+    void (*phandler)(int);
+  
+/* this is unavoidable - incase ESD "dissapears" (ie the socket conn dies) */
+/* we need to catch SIGPIPE to avoid the default handler form giving us */
+/* a bad day - ignore the SIGPIPE, then make sure to cathc all errors */
+    phandler = signal( SIGPIPE, dummy_signal );    /* for closed esd conns */
     /* diagnostic info */
     /*
     if ( getenv( "ESDBG" ) )
@@ -156,16 +194,24 @@ int esd_lock( int esd ) {
     write( esd, &proto, sizeof(proto) );
     esd_send_auth( esd );
 
-    if ( read( esd, &ok, sizeof(ok) ) != sizeof(ok) )
-	return -1;
+    if ( read( esd, &ok, sizeof(ok) ) != sizeof(ok) ) {
+      signal( SIGPIPE, phandler ); 
+      return -1;
+    }
 
+    signal( SIGPIPE, phandler ); 
     return ok;
 }
 
 int esd_unlock( int esd ){
     int proto = ESD_PROTO_UNLOCK;
     int ok = 0;
-
+    void (*phandler)(int);
+  
+/* this is unavoidable - incase ESD "dissapears" (ie the socket conn dies) */
+/* we need to catch SIGPIPE to avoid the default handler form giving us */
+/* a bad day - ignore the SIGPIPE, then make sure to cathc all errors */
+    phandler = signal( SIGPIPE, dummy_signal );    /* for closed esd conns */
     /* diagnostic info */
     /*
     if ( getenv( "ESDBG" ) )
@@ -175,9 +221,12 @@ int esd_unlock( int esd ){
     write( esd, &proto, sizeof(proto) );
     esd_send_auth( esd );
 
-    if ( read( esd, &ok, sizeof(ok) ) != sizeof(ok) )
-	return -1;
+    if ( read( esd, &ok, sizeof(ok) ) != sizeof(ok) ) {
+      signal( SIGPIPE, phandler ); 
+      return -1;
+    }
 
+    signal( SIGPIPE, phandler ); 
     return ok;
 }
 
@@ -187,7 +236,12 @@ int esd_standby( int esd )
 {
     int proto = ESD_PROTO_STANDBY;
     int ok = 0;
-
+    void (*phandler)(int);
+  
+/* this is unavoidable - incase ESD "dissapears" (ie the socket conn dies) */
+/* we need to catch SIGPIPE to avoid the default handler form giving us */
+/* a bad day - ignore the SIGPIPE, then make sure to cathc all errors */
+    phandler = signal( SIGPIPE, dummy_signal );    /* for closed esd conns */
     /* diagnostic info */
     /*
     if ( getenv( "ESDBG" ) )
@@ -197,9 +251,12 @@ int esd_standby( int esd )
     write( esd, &proto, sizeof(proto) );
     esd_send_auth( esd );
 
-    if ( read( esd, &ok, sizeof(ok) ) != sizeof(ok) )
-	return -1;
+    if ( read( esd, &ok, sizeof(ok) ) != sizeof(ok) ) {
+      signal( SIGPIPE, phandler ); 
+      return -1;
+    }
 
+    signal( SIGPIPE, phandler ); 
     return ok;
 }
 
@@ -207,7 +264,12 @@ int esd_resume( int esd )
 {
     int proto = ESD_PROTO_RESUME;
     int ok = 0;
-
+    void (*phandler)(int);
+  
+/* this is unavoidable - incase ESD "dissapears" (ie the socket conn dies) */
+/* we need to catch SIGPIPE to avoid the default handler form giving us */
+/* a bad day - ignore the SIGPIPE, then make sure to cathc all errors */
+    phandler = signal( SIGPIPE, dummy_signal );    /* for closed esd conns */
     /* diagnostic info */
     /*
     if ( getenv( "ESDBG" ) )
@@ -217,9 +279,12 @@ int esd_resume( int esd )
     write( esd, &proto, sizeof(proto) );
     esd_send_auth( esd );
 
-    if ( read( esd, &ok, sizeof(ok) ) != sizeof(ok) )
-	return -1;
+    if ( read( esd, &ok, sizeof(ok) ) != sizeof(ok) ) {
+      signal( SIGPIPE, phandler ); 
+      return -1;
+    }
 
+    signal( SIGPIPE, phandler ); 
     return ok;
 }
 
@@ -352,7 +417,8 @@ int esd_play_stream( esd_format_t format, int rate,
     int sock;
     int proto = ESD_PROTO_STREAM_PLAY;
     char name_buf[ ESD_NAME_MAX ];
-
+    void (*phandler)(int);
+  
     /* connect to the EsounD server */
     sock = esd_open_sound( host );
     if ( sock < 0 ) 
@@ -364,6 +430,10 @@ int esd_play_stream( esd_format_t format, int rate,
     else
 	name_buf[ 0 ] = '\0';
 
+/* this is unavoidable - incase ESD "dissapears" (ie the socket conn dies) */
+/* we need to catch SIGPIPE to avoid the default handler form giving us */
+/* a bad day - ignore the SIGPIPE, then make sure to cathc all errors */
+    phandler = signal( SIGPIPE, dummy_signal );    /* for closed esd conns */
     /* send the audio format information */
     if ( write( sock, &proto, sizeof(proto) ) != sizeof(proto) )
 	return -1;
@@ -427,6 +497,7 @@ int esd_monitor_stream( esd_format_t format, int rate,
     int sock;
     int proto = ESD_PROTO_STREAM_MON;
     char name_buf[ ESD_NAME_MAX ];
+    void (*phandler)(int);
 
     /* connect to the EsounD server */
     sock = esd_open_sound( host );
@@ -439,15 +510,27 @@ int esd_monitor_stream( esd_format_t format, int rate,
     else
 	name_buf[ 0 ] = '\0';
 
+/* this is unavoidable - incase ESD "dissapears" (ie the socket conn dies) */
+/* we need to catch SIGPIPE to avoid the default handler form giving us */
+/* a bad day - ignore the SIGPIPE, then make sure to cathc all errors */
+    phandler = signal( SIGPIPE, dummy_signal );    /* for closed esd conns */
     /* send the audio format information */
-    if ( write( sock, &proto, sizeof(proto) ) != sizeof(proto) )
-	return -1;
-    if ( write( sock, &format, sizeof(format) ) != sizeof(format) )
-	return -1;
-    if( write( sock, &rate, sizeof(rate) ) != sizeof(rate) )
-	return -1;
-    if( write( sock, name_buf, ESD_NAME_MAX ) != ESD_NAME_MAX )
-	return -1;
+    if ( write( sock, &proto, sizeof(proto) ) != sizeof(proto) ) {
+      signal( SIGPIPE, phandler ); 
+      return -1;
+    }
+    if ( write( sock, &format, sizeof(format) ) != sizeof(format) ) {
+      signal( SIGPIPE, phandler ); 
+      return -1;
+    }
+    if( write( sock, &rate, sizeof(rate) ) != sizeof(rate) ) {
+      signal( SIGPIPE, phandler ); 
+      return -1;
+    }
+    if( write( sock, name_buf, ESD_NAME_MAX ) != ESD_NAME_MAX ) {
+      signal( SIGPIPE, phandler ); 
+      return -1;
+    }
 
     /* Reduce buffers on sockets to the minimum needed */
     esd_set_socket_buffers( sock, format, rate, 44100 );
@@ -461,6 +544,7 @@ int esd_monitor_stream( esd_format_t format, int rate,
 	printf( "esound monitoring stream\n" );
     */
 
+    signal( SIGPIPE, phandler ); 
     return sock;
 }
 
@@ -472,6 +556,7 @@ int esd_filter_stream( esd_format_t format, int rate,
     int sock;
     int proto = ESD_PROTO_STREAM_FILT;
     char name_buf[ ESD_NAME_MAX ];
+    void (*phandler)(int);
 
     /* connect to the EsounD server */
     sock = esd_open_sound( host );
@@ -484,15 +569,27 @@ int esd_filter_stream( esd_format_t format, int rate,
     else
 	name_buf[ 0 ] = '\0';
 
+/* this is unavoidable - incase ESD "dissapears" (ie the socket conn dies) */
+/* we need to catch SIGPIPE to avoid the default handler form giving us */
+/* a bad day - ignore the SIGPIPE, then make sure to cathc all errors */
+    phandler = signal( SIGPIPE, dummy_signal );    /* for closed esd conns */
     /* send the audio format information */
-    if ( write( sock, &proto, sizeof(proto) ) != sizeof(proto) )
-	return -1;
-    if ( write( sock, &format, sizeof(format) ) != sizeof(format) )
-	return -1;
-    if( write( sock, &rate, sizeof(rate) ) != sizeof(rate) )
-	return -1;
-    if( write( sock, name_buf, ESD_NAME_MAX ) != ESD_NAME_MAX )
-	return -1;
+    if ( write( sock, &proto, sizeof(proto) ) != sizeof(proto) ) {
+      signal( SIGPIPE, phandler ); 
+      return -1;
+    }
+    if ( write( sock, &format, sizeof(format) ) != sizeof(format) ) {
+      signal( SIGPIPE, phandler ); 
+      return -1;
+    }
+    if( write( sock, &rate, sizeof(rate) ) != sizeof(rate) ) {
+      signal( SIGPIPE, phandler ); 
+      return -1;
+    }
+    if( write( sock, name_buf, ESD_NAME_MAX ) != ESD_NAME_MAX ) {
+      signal( SIGPIPE, phandler ); 
+      return -1;
+    }
 
     /* Reduce buffers on sockets to the minimum needed */
     esd_set_socket_buffers( sock, format, rate, 44100 );
@@ -506,6 +603,7 @@ int esd_filter_stream( esd_format_t format, int rate,
 	printf( "esound filterng stream\n" );
     */
 
+    signal( SIGPIPE, phandler ); 
     return sock;
 }
 
@@ -517,6 +615,7 @@ int esd_record_stream( esd_format_t format, int rate,
     int sock;
     int proto = ESD_PROTO_STREAM_REC;
     char name_buf[ ESD_NAME_MAX ];
+    void (*phandler)(int);
 
     /* connect to the EsounD server */
     sock = esd_open_sound( host );
@@ -529,15 +628,27 @@ int esd_record_stream( esd_format_t format, int rate,
     else
 	name_buf[ 0 ] = '\0';
 
+/* this is unavoidable - incase ESD "dissapears" (ie the socket conn dies) */
+/* we need to catch SIGPIPE to avoid the default handler form giving us */
+/* a bad day - ignore the SIGPIPE, then make sure to cathc all errors */
+    phandler = signal( SIGPIPE, dummy_signal );    /* for closed esd conns */
     /* send the audio format information */
-    if ( write( sock, &proto, sizeof(proto) ) != sizeof(proto) )
-	return -1;
-    if ( write( sock, &format, sizeof(format) ) != sizeof(format) )
-	return -1;
-    if( write( sock, &rate, sizeof(rate) ) != sizeof(rate) )
-	return -1;
-    if( write( sock, name_buf, ESD_NAME_MAX ) != ESD_NAME_MAX )
-	return -1;
+    if ( write( sock, &proto, sizeof(proto) ) != sizeof(proto) ) {
+      signal( SIGPIPE, phandler ); 
+      return -1;
+    }
+    if ( write( sock, &format, sizeof(format) ) != sizeof(format) ) {
+      signal( SIGPIPE, phandler ); 
+      return -1;
+    }
+    if( write( sock, &rate, sizeof(rate) ) != sizeof(rate) ) {
+      signal( SIGPIPE, phandler ); 
+      return -1;
+    }
+    if( write( sock, name_buf, ESD_NAME_MAX ) != ESD_NAME_MAX ) {
+      signal( SIGPIPE, phandler ); 
+      return -1;
+    }
 
     /* Reduce buffers on sockets to the minimum needed */
     esd_set_socket_buffers( sock, format, rate, 44100 );
@@ -551,6 +662,7 @@ int esd_record_stream( esd_format_t format, int rate,
 	printf( "esound recording stream\n" );
     */
 
+    signal( SIGPIPE, phandler ); 
     return sock;
 }
 
@@ -595,6 +707,7 @@ int esd_sample_cache( int esd, esd_format_t format, int rate,
 {
     int id = 0;
     int proto = ESD_PROTO_SAMPLE_CACHE;
+    void (*phandler)(int);
 
     /* prepare the name buffer */
     char name_buf[ ESD_NAME_MAX ];
@@ -605,25 +718,41 @@ int esd_sample_cache( int esd, esd_format_t format, int rate,
     /* printf( "caching sample: %s (%d) - %ld bytes\n", 
 	    name_buf, esd, size ); */
 
+/* this is unavoidable - incase ESD "dissapears" (ie the socket conn dies) */
+/* we need to catch SIGPIPE to avoid the default handler form giving us */
+/* a bad day - ignore the SIGPIPE, then make sure to cathc all errors */
+    phandler = signal( SIGPIPE, dummy_signal );    /* for closed esd conns */
     /* send the necessary information */
-    if ( write( esd, &proto, sizeof(proto) ) != sizeof(proto) )
-	return -1;
+    if ( write( esd, &proto, sizeof(proto) ) != sizeof(proto) ) {
+      signal( SIGPIPE, phandler ); 
+      return -1;
+    }
 
-    if ( write( esd, &format, sizeof(format) ) != sizeof(format) )
-	return -1;
-    if ( write( esd, &rate, sizeof(rate) ) != sizeof(rate) )
-	return -1;
-    if ( write( esd, &size, sizeof(size) ) != sizeof(size) )
-	return -1;
-    if ( write( esd, name_buf, ESD_NAME_MAX ) != ESD_NAME_MAX )
-	return -1;
+    if ( write( esd, &format, sizeof(format) ) != sizeof(format) ) {
+      signal( SIGPIPE, phandler ); 
+      return -1;
+    }
+    if ( write( esd, &rate, sizeof(rate) ) != sizeof(rate) ) {
+      signal( SIGPIPE, phandler ); 
+      return -1;
+    }
+    if ( write( esd, &size, sizeof(size) ) != sizeof(size) ) {
+      signal( SIGPIPE, phandler ); 
+      return -1;
+    }
+    if ( write( esd, name_buf, ESD_NAME_MAX ) != ESD_NAME_MAX ) {
+      signal( SIGPIPE, phandler ); 
+      return -1;
+    }
 
     /* flush the socket */
     /* fsync( esd ); */
 
     /* get the sample id back from the server */
-    if ( read( esd, &id, sizeof(id) ) != sizeof(id) )
-	return -1;
+    if ( read( esd, &id, sizeof(id) ) != sizeof(id) ) {
+      signal( SIGPIPE, phandler ); 
+      return -1;
+    }
 
     /* diagnostic info */
     /*
@@ -632,6 +761,7 @@ int esd_sample_cache( int esd, esd_format_t format, int rate,
     */
 
     /* return the sample id to the client */
+    signal( SIGPIPE, phandler ); 
     return id;
 }
 
@@ -641,10 +771,17 @@ int esd_sample_cache( int esd, esd_format_t format, int rate,
 int esd_confirm_sample_cache( int esd )
 {
     int id = 0;
+    void (*phandler)(int);
 
+/* this is unavoidable - incase ESD "dissapears" (ie the socket conn dies) */
+/* we need to catch SIGPIPE to avoid the default handler form giving us */
+/* a bad day - ignore the SIGPIPE, then make sure to cathc all errors */
+    phandler = signal( SIGPIPE, dummy_signal );    /* for closed esd conns */
     /* get the sample id back from the server */
-    if ( read( esd, &id, sizeof(id) ) != sizeof(id) )
-	return -1;
+    if ( read( esd, &id, sizeof(id) ) != sizeof(id) ) {
+      signal( SIGPIPE, phandler ); 
+      return -1;
+    }
 
     /* diagnostic info */
     /*
@@ -653,6 +790,7 @@ int esd_confirm_sample_cache( int esd )
     */
 
     /* return the sample id to the client */
+    signal( SIGPIPE, phandler ); 
     return id;
 }
 
@@ -663,9 +801,16 @@ int esd_sample_getid( int esd, const char *name)
     int proto = ESD_PROTO_SAMPLE_GETID;
     int id;
     char namebuf[ESD_NAME_MAX];
+    void (*phandler)(int);
 
-    if ( write( esd, &proto, sizeof(proto) ) != sizeof(proto) )
-	return -1;
+/* this is unavoidable - incase ESD "dissapears" (ie the socket conn dies) */
+/* we need to catch SIGPIPE to avoid the default handler form giving us */
+/* a bad day - ignore the SIGPIPE, then make sure to cathc all errors */
+    phandler = signal( SIGPIPE, dummy_signal );    /* for closed esd conns */
+    if ( write( esd, &proto, sizeof(proto) ) != sizeof(proto) ) {
+      signal( SIGPIPE, phandler ); 
+      return -1;
+    }
 
     /* prepare the name buffer */
     if ( name )
@@ -673,15 +818,19 @@ int esd_sample_getid( int esd, const char *name)
     else
 	namebuf[ 0 ] = '\0';
 
-    if ( write( esd, namebuf, ESD_NAME_MAX ) != ESD_NAME_MAX )
-	return -1;
+    if ( write( esd, namebuf, ESD_NAME_MAX ) != ESD_NAME_MAX ) {
+      signal( SIGPIPE, phandler ); 
+      return -1;
+    }
 
     /* flush the socket */
     /* fsync( esd ); */
 
     /* get the sample id back from the server */
-    if ( read( esd, &id, sizeof(id) ) != sizeof(id) )
-	return -1;
+    if ( read( esd, &id, sizeof(id) ) != sizeof(id) ) {
+      signal( SIGPIPE, phandler ); 
+      return -1;
+    }
 
     /* diagnostic info */
     /*
@@ -691,6 +840,7 @@ int esd_sample_getid( int esd, const char *name)
     */
     
     /* return the sample id to the client */
+    signal( SIGPIPE, phandler ); 
     return id;
 }
 
@@ -700,19 +850,30 @@ int esd_sample_free( int esd, int sample )
 {
     int id;
     int proto = ESD_PROTO_SAMPLE_FREE;
+    void (*phandler)(int);
 
     /* printf( "freeing sample (%d) - <%d>\n", esd, sample ); */
 
+/* this is unavoidable - incase ESD "dissapears" (ie the socket conn dies) */
+/* we need to catch SIGPIPE to avoid the default handler form giving us */
+/* a bad day - ignore the SIGPIPE, then make sure to cathc all errors */
+    phandler = signal( SIGPIPE, dummy_signal );    /* for closed esd conns */
     /* send the necessary information */
-    if ( write( esd, &proto, sizeof(proto) ) != sizeof(proto) )
-	return -1;
-    if ( write( esd, &sample, sizeof(sample) ) != sizeof(sample) )
-	return -1;
+    if ( write( esd, &proto, sizeof(proto) ) != sizeof(proto) ) {
+      signal( SIGPIPE, phandler ); 
+      return -1;
+    }
+    if ( write( esd, &sample, sizeof(sample) ) != sizeof(sample) ) {
+      signal( SIGPIPE, phandler ); 
+      return -1;
+    }
     /* fsync( esd ); */
 
     /* get the sample id back from the server */
-    if ( read( esd, &id, sizeof(id) ) != sizeof(id) )
-	return -1;
+    if ( read( esd, &id, sizeof(id) ) != sizeof(id) ) {
+      signal( SIGPIPE, phandler ); 
+      return -1;
+    }
 
     /* diagnostic info */
     /*
@@ -721,6 +882,7 @@ int esd_sample_free( int esd, int sample )
     */
 
     /* return the id to the client (0 = error, 1 = ok) */
+    signal( SIGPIPE, phandler ); 
     return id;
 }
 
@@ -730,19 +892,30 @@ int esd_sample_play( int esd, int sample )
 {
     int is_ok;
     int proto = ESD_PROTO_SAMPLE_PLAY;
+    void (*phandler)(int);
 
     /* printf( "playing sample (%d) - <%d>\n", esd, sample ); */
 
+/* this is unavoidable - incase ESD "dissapears" (ie the socket conn dies) */
+/* we need to catch SIGPIPE to avoid the default handler form giving us */
+/* a bad day - ignore the SIGPIPE, then make sure to cathc all errors */
+    phandler = signal( SIGPIPE, dummy_signal );    /* for closed esd conns */
     /* send the necessary information */
-    if ( write( esd, &proto, sizeof(proto) ) != sizeof(proto) )
-	return -1;
-    if ( write( esd, &sample, sizeof(sample) ) != sizeof(sample) )
-	return -1;
+    if ( write( esd, &proto, sizeof(proto) ) != sizeof(proto) ) {
+      signal( SIGPIPE, phandler ); 
+      return -1;
+    }
+    if ( write( esd, &sample, sizeof(sample) ) != sizeof(sample) ) {
+      signal( SIGPIPE, phandler ); 
+      return -1;
+    }
     /* fsync( esd ); */
 
     /* get the sample id back from the server */
-    if ( read( esd, &is_ok, sizeof(is_ok) ) != sizeof(is_ok) )
-	return -1;
+    if ( read( esd, &is_ok, sizeof(is_ok) ) != sizeof(is_ok) ) {
+      signal( SIGPIPE, phandler ); 
+      return -1;
+    }
 
     /* diagnostic info */
     /*
@@ -751,6 +924,7 @@ int esd_sample_play( int esd, int sample )
     */
 
     /* return the id to the client (0 = error, 1 = ok) */
+    signal( SIGPIPE, phandler ); 
     return is_ok;
 }
 
@@ -761,19 +935,30 @@ int esd_sample_loop( int esd, int sample )
 {
     int is_ok;
     int proto = ESD_PROTO_SAMPLE_LOOP;
+    void (*phandler)(int);
 
     /* printf( "looping sample (%d) - <%d>\n", esd, sample ); */
 
+/* this is unavoidable - incase ESD "dissapears" (ie the socket conn dies) */
+/* we need to catch SIGPIPE to avoid the default handler form giving us */
+/* a bad day - ignore the SIGPIPE, then make sure to cathc all errors */
+    phandler = signal( SIGPIPE, dummy_signal );    /* for closed esd conns */
     /* send the necessary information */
-    if ( write( esd, &proto, sizeof(proto) ) != sizeof(proto) )
-	return -1;
-    if ( write( esd, &sample, sizeof(sample) ) != sizeof(sample) )
-	return -1;
+    if ( write( esd, &proto, sizeof(proto) ) != sizeof(proto) ) {
+      signal( SIGPIPE, phandler ); 
+      return -1;
+    }
+    if ( write( esd, &sample, sizeof(sample) ) != sizeof(sample) ) {
+      signal( SIGPIPE, phandler ); 
+      return -1;
+    }
     /* fsync( esd ); */
 
     /* get the sample id back from the server */
-    if ( read( esd, &is_ok, sizeof(is_ok) ) != sizeof(is_ok) )
-	return -1;
+    if ( read( esd, &is_ok, sizeof(is_ok) ) != sizeof(is_ok) ) {
+      signal( SIGPIPE, phandler ); 
+      return -1;
+    }
 
     /* diagnostic info */
     /*
@@ -782,6 +967,7 @@ int esd_sample_loop( int esd, int sample )
     */
 
     /* return the id to the client (0 = error, 1 = ok) */
+    signal( SIGPIPE, phandler ); 
     return is_ok;
 }
 
@@ -791,19 +977,30 @@ int esd_sample_stop( int esd, int sample )
 {
     int is_ok;
     int proto = ESD_PROTO_SAMPLE_STOP;
+    void (*phandler)(int);
 
     /* printf( "stopping sample (%d) - <%d>\n", esd, sample ); */
 
+/* this is unavoidable - incase ESD "dissapears" (ie the socket conn dies) */
+/* we need to catch SIGPIPE to avoid the default handler form giving us */
+/* a bad day - ignore the SIGPIPE, then make sure to cathc all errors */
+    phandler = signal( SIGPIPE, dummy_signal );    /* for closed esd conns */
     /* send the necessary information */
-    if ( write( esd, &proto, sizeof(proto) ) != sizeof(proto) )
-	return -1;
-    if ( write( esd, &sample, sizeof(sample) ) != sizeof(sample) )
-	return -1;
+    if ( write( esd, &proto, sizeof(proto) ) != sizeof(proto) ) {
+      signal( SIGPIPE, phandler ); 
+      return -1;
+    }
+    if ( write( esd, &sample, sizeof(sample) ) != sizeof(sample) ) {
+      signal( SIGPIPE, phandler ); 
+      return -1;
+    }
     /* fsync( esd ); */
 
     /* get the sample id back from the server */
-    if ( read( esd, &is_ok, sizeof(is_ok) ) != sizeof(is_ok) )
-	return -1;
+    if ( read( esd, &is_ok, sizeof(is_ok) ) != sizeof(is_ok) ) {
+      signal( SIGPIPE, phandler ); 
+      return -1;
+    }
 
     /* diagnostic info */
     /*
@@ -812,6 +1009,7 @@ int esd_sample_stop( int esd, int sample )
     */
 
     /* return the id to the client (0 = error, 1 = ok) */
+    signal( SIGPIPE, phandler ); 
     return is_ok;
 }
 

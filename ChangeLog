@@ -1,3 +1,10 @@
+1999-03-09  The Rasterman <raster@rasterman.com>
+	* esdlib.c, esd.c: added SIGPIPE handlers and wrappign in all 
+	  libesd calls so "death" of esd and connection is trapped
+	  properly. Also added to auth protocol a "reply" for auth so
+	  authorisation is known at socket open time. same for esd.
+	  Tested and works. 
+
 1999-02-20  Yo Ric Dude  <ericmit@ix.netcom.com>
 
 	* README, TIPS, TODO: updates

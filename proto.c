@@ -110,6 +110,7 @@ int esd_validate_source( esd_client_t *client,
 			 octet *submitted_key,
 			 int owner_only )
 {
+  int ok;
     if( !esd_is_owned ) {
 	/* noone owns it yet, the first client claims ownership */
 	ESDBG_TRACE( printf( "(%02d) esd auth: claiming ownership of esd, auth ok\n", 
@@ -118,6 +119,8 @@ int esd_validate_source( esd_client_t *client,
 	esd_is_locked = 1;
 	memcpy( esd_owner_key, submitted_key, ESD_KEY_LEN );
 	esd_is_owned = 1;
+        ok = 1;
+        write(client->fd, &ok, sizeof(ok));
 	return 1;
     }
 
@@ -125,6 +128,8 @@ int esd_validate_source( esd_client_t *client,
 	/* anyone can connect to it */
 	ESDBG_TRACE( printf( "(%02d) esd auth: not locked nor owner only, auth ok.\n", 
 			     client->fd ); );
+        ok = 1;
+        write(client->fd, &ok, sizeof(ok));
 	return 1;
     }
 
@@ -132,6 +137,8 @@ int esd_validate_source( esd_client_t *client,
 	/* the client key matches the owner, trivial acceptance */
 	ESDBG_TRACE( printf( "(%02d) esd auth: key matches, auth ok.\n", 
 			     client->fd ); );
+        ok = 1;
+        write(client->fd, &ok, sizeof(ok));
 	return 1;
     }
 
@@ -142,6 +149,8 @@ int esd_validate_source( esd_client_t *client,
     /* the client is not authorized to connect to the server */
     ESDBG_TRACE( printf( "(%02d) esd auth: NOT authorized to use esd, closing conn.\n",
 			 client->fd ); );
+    ok = 0;
+    write(client->fd, &ok, sizeof(ok));
     return 0;
 }
 
