@@ -21,6 +21,9 @@ while test $# -gt 0; do
 		echo "-m, --mixer               enable mixer support"
 		echo "-n, --name=NAME           use name to identify player to esd"
 		echo "-v, --verbose             show parameters"
+		echo "--mmap                    use memory mapping emulation"
+		echo "                          (useful for games like quake)"
+
 		exit 0
 		;;
 
@@ -72,6 +75,12 @@ while test $# -gt 0; do
 		verbose=1
 		shift
 		;;
+
+	--mmap)
+	    ESDDSP_MMAP=1
+	    export ESDDSP_MMAP
+	    shift
+	    ;;
 
 	*)
 		# no more esddsp options, get on with life

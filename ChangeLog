@@ -1,3 +1,12 @@
+2004-06-11  Frederic Crozat  <fcrozat@mandrakesoft.com>
+
+	* docs/esddsp.1.in:
+	* esddsp.c: (dsp_init), (mmapemu_flush), (open), (dspctl), (close),
+	(mmap), (munmap):
+	* esddsp.in:
+	MMAP support for esddsp (from artsdsp) (bug #144157,
+	patch from Olivier Blin <oliv.blin@laposte.net>).
+
 2004-04-30  Frederic Crozat  <fcrozat@mandrakesoft.com>
 
 	* docs/esd.1.in:

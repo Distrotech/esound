@@ -157,6 +157,8 @@ options:
 \& -m, --mixer               enable mixer support
 \& -n, --name=NAME           use name to identify player to esd
 \& -v, --verbose             show parameters
+\& --mmap                    use memory mapping emulation
+                             (useful for games like quake)
 .Ve
 .SH "SEE ALSO"
 .IX Header "SEE ALSO"

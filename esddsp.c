@@ -75,6 +75,19 @@ static int settings = 0, done = 0;
 static char *ident = NULL, *mixer = NULL;
 static int use_mixer = 0;
 
+/*
+ * memory mapping emulation
+ */
+static int mmapemu = 0;
+static count_info mmapemu_ocount;
+static char *mmapemu_obuffer = 0;
+static int mmapemu_osize;
+static long long mmapemu_bytes_per_sec;
+struct timeval mmapemu_last_flush;
+
+#define MMAPEMU_FRAGSTOTAL 16
+#define MMAPEMU_FRAGSIZE ESD_BUF_SIZE
+
 #define OSS_VOLUME_BASE 50
 
 #define ESD_VOL_TO_OSS(left, right) (short int)			\
@@ -117,6 +130,9 @@ dsp_init (void)
       char *str = getenv ("ESDDSP_NAME");
       ident = malloc (ESD_NAME_MAX);
       strncpy (ident, (str ? str : "esddsp"), ESD_NAME_MAX);
+
+      str = getenv("ESDDSP_MMAP");
+      mmapemu = str && !strcmp(str,"1");
 
       if (getenv ("ESDDSP_MIXER"))
 	{
@@ -166,6 +182,34 @@ mix_init (int *esd, int *player)
     }
 }
 
+static void mmapemu_flush()
+{
+  struct timeval current_time;
+  long long usec_since_last_flush;
+  long long bytes_to_flush;
+  int frags_to_flush;
+
+  gettimeofday(&current_time, NULL);
+  usec_since_last_flush = 1000000 * (current_time.tv_sec - mmapemu_last_flush.tv_sec) + (current_time.tv_usec - mmapemu_last_flush.tv_usec);
+
+  bytes_to_flush = (mmapemu_bytes_per_sec * usec_since_last_flush) / 1000000;
+  frags_to_flush  = bytes_to_flush / MMAPEMU_FRAGSIZE;
+
+  if (frags_to_flush > MMAPEMU_FRAGSTOTAL)
+    frags_to_flush = MMAPEMU_FRAGSTOTAL;
+
+  if (frags_to_flush > 0)
+    mmapemu_last_flush = current_time;
+
+  while (frags_to_flush-- > 0)
+    {
+      write(sndfd, &mmapemu_obuffer[mmapemu_ocount.ptr], MMAPEMU_FRAGSIZE);
+      mmapemu_ocount.ptr += MMAPEMU_FRAGSIZE;
+      mmapemu_ocount.ptr %= mmapemu_osize;
+      mmapemu_ocount.blocks++;
+      mmapemu_ocount.bytes += MMAPEMU_FRAGSIZE;
+    }
+}
 
 int
 open (const char *pathname, int flags, ...)
@@ -185,7 +229,7 @@ open (const char *pathname, int flags, ...)
 
   if (!strcmp (pathname, "/dev/dsp"))
     {
-      if (!getenv ("ESPEAKER"))
+      if (!getenv ("ESPEAKER") && !mmapemu)
 	{
           int ret;
 
@@ -249,17 +293,44 @@ dspctl (int fd, request_t request, void *argp)
 
 #ifdef SNDCTL_DSP_GETCAPS
     case SNDCTL_DSP_GETCAPS:
-      *arg = 0;
+      if (mmapemu)
+	*arg = DSP_CAP_MMAP | DSP_CAP_TRIGGER | DSP_CAP_REALTIME;
+      else
+	*arg = 0;
       break;
 #endif
 
     case SNDCTL_DSP_GETOSPACE:
+    case SNDCTL_DSP_GETISPACE:
       {
 	audio_buf_info *bufinfo = (audio_buf_info *) argp;
-	bufinfo->bytes = ESD_BUF_SIZE;
+	if (mmapemu)
+	  {
+	    bufinfo->fragstotal = MMAPEMU_FRAGSTOTAL;
+	    bufinfo->fragsize = MMAPEMU_FRAGSIZE;
+	    bufinfo->bytes = 0;              /* FIXME: is this right? */
+	    bufinfo->fragments = 0;
+	  }
+	else
+	  {
+	    bufinfo->bytes = ESD_BUF_SIZE;
+	  }
       }
       break;
 
+    case SNDCTL_DSP_GETOPTR:
+      if (mmapemu)
+        {
+	  DPRINTF("esddsp: mmapemu getoptr\n");
+	  mmapemu_flush();
+	  *((count_info *)arg) = mmapemu_ocount;
+	  mmapemu_ocount.blocks = 0;
+	}
+      else
+        {
+	  DPRINTF ("esddsp: SNDCTL_DSP_GETOPTR unsupported\n");
+	}
+      break;
 
     default:
       DPRINTF ("unhandled /dev/dsp ioctl (%x - %p)\n", request, argp);
@@ -280,6 +351,13 @@ dspctl (int fd, request_t request, void *argp)
         return -1;
       if (write (sndfd, ident, ESD_NAME_MAX) != ESD_NAME_MAX)
         return -1;
+
+      if (mmapemu)
+	{
+	  mmapemu_ocount.ptr=mmapemu_ocount.blocks=mmapemu_ocount.bytes=0;
+	  mmapemu_bytes_per_sec = speed * ((fmt & ESD_BITS16) ? 2 : 1) * ((fmt & ESD_STEREO) ? 2 : 1);
+	  gettimeofday(&mmapemu_last_flush, NULL);
+	}
 
       fmt = ESD_STREAM | ESD_PLAY | ESD_MONO;
       speed = 0;
@@ -414,6 +492,51 @@ close (int fd)
     mixfd = -1;
  
   return (*func) (fd);
+}
+
+void *
+mmap (void  *start,  size_t length, int prot, int flags, int fd, off_t offset)
+{
+  static void *(*func) (void *, size_t, int, int, int, off_t) = NULL;
+  
+  if (!func)
+    func = (void * (*) (void *, size_t, int, int, int, off_t)) dlsym (REAL_LIBC, "mmap");
+
+  if(fd != sndfd || sndfd == -1)
+    return (*func)(start,length,prot,flags,fd,offset);
+  else
+    {
+      DPRINTF ("esddsp: mmap - start = %x, length = %d, prot = %d\n",
+	       start, length, prot);
+      DPRINTF ("      flags = %d, fd = %d, offset = %d\n",flags, fd,offset);
+      if(mmapemu)
+	{
+	  mmapemu_osize = length;
+	  mmapemu_obuffer = malloc(length);
+	  mmapemu_ocount.ptr = mmapemu_ocount.blocks = mmapemu_ocount.bytes = 0;
+	  return mmapemu_obuffer;
+	}
+      else DPRINTF ("esddsp: /dev/dsp mmap (unsupported, try -m option)...\n");
+    }
+  return (void *)-1;
+}
+
+int
+munmap (void *start, size_t length)
+{
+  static int (*func) (void *, size_t) = NULL;
+
+  if (!func)
+    func = (int (*) (void *, size_t)) dlsym (REAL_LIBC, "munmap");
+
+  if(start != mmapemu_obuffer || mmapemu_obuffer == 0)
+    return (*func)(start,length);
+
+  DPRINTF ("esddsp: /dev/dsp munmap...\n");
+  mmapemu_obuffer = 0;
+  free(start);
+
+  return 0;
 }
 
 #ifdef MULTIPLE_X11AMP
