@@ -1,3 +1,10 @@
+2002-05-13  Frederic Crozat  <fcrozat@mandrakesoft.com>
+
+	* audio_alsa.c: (esd_audio_open):
+	* audio_alsa09.c: (esd_audio_open):
+	* audio_oss.c: (esd_audio_open):
+	Cleaner version of endianess fix (idea from Takashi Iwai)
+
 2002-05-13 Stephen Browne <stephen.browne@sun.com>
 
 	* util.c: new file for esd utility functions

@@ -204,11 +204,7 @@ int esd_audio_open()
 
   
 	if ((esd_audio_format & ESD_MASK_BITS) == ESD_BITS16) 
-#if defined(WORDS_BIGENDIAN)
-		format = SND_PCM_FORMAT_S16_BE;
-#else
-		format = SND_PCM_FORMAT_S16_LE;
-#endif
+		format = SND_PCM_FORMAT_S16;
 	else format = SND_PCM_FORMAT_U8;
   
 	if ((esd_audio_format & ESD_MASK_CHAN) == ESD_STEREO) 
