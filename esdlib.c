@@ -582,7 +582,7 @@ static int is_host_local(const char* host)
  * configured not to in esd.conf), and will then try to connect to that
  * using UNIX sockets.
  *
- * Once a connection is created, attempts to give ESD the neccessary
+ * Once a connection is created, attempts to give ESD the necessary
  * authorisation keys to do things - only if this succeeds will the socket
  * be given to the caller.
  *
