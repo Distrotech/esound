@@ -340,7 +340,6 @@ int esd_audio_read( void *buffer, int buf_size )
     return (snd_pcm_read( alsa_sound_handle, buffer, buf_size ));
 }
 
-int writes;
 #define ARCH_esd_audio_write
 int esd_audio_write( void *buffer, int buf_size )
 {
@@ -379,11 +378,10 @@ int esd_audio_write( void *buffer, int buf_size )
     }
 #endif /* ALSA_5_API */
 
-    writes += i;
     return (i);
 }
 
-	#define ARCH_esd_audio_flush
+#define ARCH_esd_audio_flush
 void esd_audio_flush()
 {
     fsync( esd_audio_fd );
