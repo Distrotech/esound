@@ -671,6 +671,10 @@ int main ( int argc, char *argv[] )
 	write (esd_spawnfd, &c, 1);
     }
 
+    if (!esd_use_tcpip) {
+	unlink(ESD_UNIX_SOCKET_NAME);
+	rmdir(ESD_UNIX_SOCKET_DIR);
+      }
     exit (2);
   } else if ( itmp < 0 ) {
     fprintf(stderr, "Audio device open for 44.1Khz, stereo, 16bit failed\n"

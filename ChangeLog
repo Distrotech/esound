@@ -1,3 +1,8 @@
+2002-04-12  Frederic Crozat  <fcrozat@mandrakesoft.com>
+
+	* esd.c: (main): remove socket/socket directory before exiting
+	when sound device can't be open
+
 2002-03-25  Mark McLoughlin  <mark@skynet.ie>
 
 	* configure.in: check for gethostbyname2.
