@@ -61,7 +61,8 @@ const char * esd_audio_devices()
 #ifndef ARCH_esd_audio_close
 void esd_audio_close()
 {
-    close( esd_audio_fd );
+    if ( esd_audio_fd != -1 ) 
+       close( esd_audio_fd );
     esd_audio_fd = -1;
     return;
 }

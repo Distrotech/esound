@@ -1,5 +1,10 @@
 2004-01-15  Frederic Crozat  <fcrozat@mandrakesoft.com>
 
+	* audio.c: (esd_audio_close):
+	Don't try to close audio device if it wasn't opened (Debian).
+
+2004-01-15  Frederic Crozat  <fcrozat@mandrakesoft.com>
+
 	* acconfig.h:
 	* audio_alsa09.c:
 	* configure.in: Use new ALSA PCM API if available 
