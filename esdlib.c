@@ -296,6 +296,30 @@ int esd_play_stream( esd_format_t format, int rate,
     if( write( sock, name_buf, ESD_NAME_MAX ) != ESD_NAME_MAX )
 	return -1;
 
+  /* Reduce buffers on sockets to the minimum needed */
+    {
+      int fd_bufsize;
+      int src_format;
+      
+      src_format = format;
+      fd_bufsize = ESD_BUF_SIZE;
+      if (rate > 0)
+	fd_bufsize = (fd_bufsize * 44100) / rate;
+      else
+	fd_bufsize = (fd_bufsize * 44100) / 44100;
+      if ((src_format & ESD_MASK_BITS) == ESD_BITS16)
+	{
+	  fd_bufsize *= 2;
+	}
+      if (!((src_format & ESD_MASK_CHAN) == ESD_MONO))
+	{
+	  fd_bufsize *= 2;	      
+	}
+      setsockopt(sock, SOL_SOCKET, SO_SNDBUF, 
+		 &fd_bufsize, sizeof(fd_bufsize));
+      setsockopt(sock, SOL_SOCKET, SO_RCVBUF,  
+		 &fd_bufsize, sizeof(fd_bufsize));
+    }
     /* flush the socket */
     /* fsync( sock ); */
     
@@ -356,6 +380,30 @@ int esd_monitor_stream( esd_format_t format, int rate,
     if( write( sock, name_buf, ESD_NAME_MAX ) != ESD_NAME_MAX )
 	return -1;
 
+  /* Reduce buffers on sockets to the minimum needed */
+    {
+      int fd_bufsize;
+      int src_format;
+      
+      src_format = format;
+      fd_bufsize = ESD_BUF_SIZE;
+      if (rate > 0)
+	fd_bufsize = (fd_bufsize * 44100) / rate;
+      else
+	fd_bufsize = (fd_bufsize * 44100) / 44100;
+      if ((src_format & ESD_MASK_BITS) == ESD_BITS16)
+	{
+	  fd_bufsize *= 2;
+	}
+      if (!((src_format & ESD_MASK_CHAN) == ESD_MONO))
+	{
+	  fd_bufsize *= 2;	      
+	}
+      setsockopt(sock, SOL_SOCKET, SO_SNDBUF, 
+		 &fd_bufsize, sizeof(fd_bufsize));
+      setsockopt(sock, SOL_SOCKET, SO_RCVBUF,  
+		 &fd_bufsize, sizeof(fd_bufsize));
+    }
     /* flush the socket */
     /* fsync( sock ); */
     
@@ -392,6 +440,30 @@ int esd_filter_stream( esd_format_t format, int rate,
     if( write( sock, name_buf, ESD_NAME_MAX ) != ESD_NAME_MAX )
 	return -1;
 
+  /* Reduce buffers on sockets to the minimum needed */
+    {
+      int fd_bufsize;
+      int src_format;
+      
+      src_format = format;
+      fd_bufsize = ESD_BUF_SIZE;
+      if (rate > 0)
+	fd_bufsize = (fd_bufsize * 44100) / rate;
+      else
+	fd_bufsize = (fd_bufsize * 44100) / 44100;
+      if ((src_format & ESD_MASK_BITS) == ESD_BITS16)
+	{
+	  fd_bufsize *= 2;
+	}
+      if (!((src_format & ESD_MASK_CHAN) == ESD_MONO))
+	{
+	  fd_bufsize *= 2;	      
+	}
+      setsockopt(sock, SOL_SOCKET, SO_SNDBUF, 
+		 &fd_bufsize, sizeof(fd_bufsize));
+      setsockopt(sock, SOL_SOCKET, SO_RCVBUF,  
+		 &fd_bufsize, sizeof(fd_bufsize));
+    }
     /* flush the socket */
     /* fsync( sock ); */
     
@@ -428,6 +500,30 @@ int esd_record_stream( esd_format_t format, int rate,
     if( write( sock, name_buf, ESD_NAME_MAX ) != ESD_NAME_MAX )
 	return -1;
 
+  /* Reduce buffers on sockets to the minimum needed */
+    {
+      int fd_bufsize;
+      int src_format;
+      
+      src_format = format;
+      fd_bufsize = ESD_BUF_SIZE;
+      if (rate > 0)
+	fd_bufsize = (fd_bufsize * 44100) / rate;
+      else
+	fd_bufsize = (fd_bufsize * 44100) / 44100;
+      if ((src_format & ESD_MASK_BITS) == ESD_BITS16)
+	{
+	  fd_bufsize *= 2;
+	}
+      if (!((src_format & ESD_MASK_CHAN) == ESD_MONO))
+	{
+	  fd_bufsize *= 2;	      
+	}
+      setsockopt(sock, SOL_SOCKET, SO_SNDBUF, 
+		 &fd_bufsize, sizeof(fd_bufsize));
+      setsockopt(sock, SOL_SOCKET, SO_RCVBUF,  
+		 &fd_bufsize, sizeof(fd_bufsize));
+    }
     /* flush the socket */
     /* fsync( sock ); */
     
@@ -454,6 +550,30 @@ int esd_record_stream_fallback( esd_format_t format, int rate,
     esd_audio_format = format;
     esd_audio_rate = rate;
     socket_out = esd_audio_open();
+  /* Reduce buffers on sockets to the minimum needed */
+    {
+      int fd_bufsize;
+      int src_format;
+      
+      src_format = format;
+      fd_bufsize = ESD_BUF_SIZE;
+      if (rate > 0)
+	fd_bufsize = (fd_bufsize * 44100) / rate;
+      else
+	fd_bufsize = (fd_bufsize * 44100) / 44100;
+      if ((src_format & ESD_MASK_BITS) == ESD_BITS16)
+	{
+	  fd_bufsize *= 2;
+	}
+      if (!((src_format & ESD_MASK_CHAN) == ESD_MONO))
+	{
+	  fd_bufsize *= 2;	      
+	}
+      setsockopt(socket_out, SOL_SOCKET, SO_SNDBUF, 
+		 &fd_bufsize, sizeof(fd_bufsize));
+      setsockopt(socket_out, SOL_SOCKET, SO_RCVBUF,  
+		 &fd_bufsize, sizeof(fd_bufsize));
+    }
 
     /* we either got it, or we didn't */
     return socket_out;

@@ -691,3 +691,9 @@ Sat Apr  4 19:57:07 1998  Yo 'Ric Dude  <ricdude@piranha>
 	* esd.h, esdmon.c, esdsample.c, samples.c, audio.c, clients.c,
 	esd.c, esdcat.c, esdlib.c, esdlock.c, esdrec.c, esdunlock.c,
 	mix.c, players.c: Initial revision
+
+Wed Dec  2 11:27:20 EST 1998 The Rasterman  <raster@rasterman.com>
+
+	* clients.c, esd.c, esdlib.c, players.c: Added setsockopt to set the
+	socket bufferign options to the minimum needed to keep esd fed with
+	audio data to also minimize "lag" with streams. Seems to work fine.
