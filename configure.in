@@ -174,7 +174,7 @@ dnl make sure we have the library, -laudiofile
 
 ESDPLAY=
 
-AC_ARG_WITH(autiofile,
+AC_ARG_WITH(audiofile,
 [  --with-audiofile        include support for audiofile related utilities and functions
                               ARG = { yes | no | check } [default=check]])
 
