@@ -147,7 +147,7 @@ esdcat \- The Enlightened Sound Daemon
 esdcat pipes data from a pipe to the sound device
 .SH "USAGE"
 .IX Header "USAGE"
-esdcat [\f(CW\*(C`\-s\*(C'\fR server] [\f(CW\*(C`\-b\*(C'\fR] [\f(CW\*(C`\-m\*(C'\fR] [\f(CW\*(C`\-r\*(C'\fR freq] < file
+esdcat [\f(CW\*(C`\-s\*(C'\fR server] [\f(CW\*(C`\-n\*(C'\fR name] [\f(CW\*(C`\-b\*(C'\fR] [\f(CW\*(C`\-m\*(C'\fR] [\f(CW\*(C`\-r\*(C'\fR freq] < file
 .SH "SEE ALSO"
 .IX Header "SEE ALSO"
 \&\fIesd\fR\|(1), \fIesddsp\fR\|(1), \fIesdfilt\fR\|(1), \fIesdloop\fR\|(1), \fIesdplay\fR\|(1), \fIesdsample\fR\|(1),

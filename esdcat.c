@@ -25,10 +25,12 @@ int main(int argc, char **argv)
     {
 	if (!strcmp("-h",argv[arg]))
 	{
-	    printf("usage:\n\t%s [-s server] [-b] [-m] [-r freq] < file\n",
+	    printf("usage:\n\t%s [-s server] [-n name] [-b] [-m] [-r freq] < file\n",
 		   argv[0]);
 	    exit(0);
 	}
+	else if ( !strcmp( "-n", argv[ arg ] ) )
+	    name = argv[ ++arg ];
 	else if ( !strcmp( "-s", argv[ arg ] ) )
 	    host = argv[ ++arg ];
 	else if ( !strcmp( "-b", argv[ arg ] ) )

@@ -1,3 +1,9 @@
+2003-07-09  Frederic Crozat  <fcrozat@mandrakesoft.com>
+
+	* docs/esdcat.1.in:
+	* esdcat.c: (main): Add support for session name.
+	Patch from <j@thing.net>.
+
 2003-07-05  Frederic Crozat  <fcrozat@mandrakesoft.com>
 
 	* audio_solaris.c: (fill_play_info), (esd_audio_open):
