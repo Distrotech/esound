@@ -33,7 +33,12 @@ Libraries, include files, etc you can use to develop EsounD applications.
 %setup
 
 %build
-CFLAGS="$RPM_OPT_FLAGS" LDFLAGS="-s" ./configure --prefix=%{prefix} 
+# Needed for snapshot releases.
+if [ ! -f configure ]; then
+  CFLAGS="$RPM_OPT_FLAGS" ./autogen.sh --prefix=%prefix
+else
+  CFLAGS="$RPM_OPT_FLAGS" ./configure --prefix=%prefix
+fi
 
 if [ "$SMP" != "" ]; then
   (make "MAKE=make -k -j $SMP"; exit 0)
