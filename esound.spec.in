@@ -41,13 +41,13 @@ to develop EsounD applications.
 %setup
 
 %build
-  CFLAGS="$RPM_OPT_FLAGS" ./configure --prefix=%prefix
+  CFLAGS="$RPM_OPT_FLAGS" ./configure --prefix=%prefix --sysconfdir=/etc
   make
 
 %install
 rm -rf $RPM_BUILD_ROOT
 
-make prefix=$RPM_BUILD_ROOT%{prefix} install
+make prefix=$RPM_BUILD_ROOT%{prefix} sysconfdir=$RPM_BUILD_ROOT/etc install
 
 %post -p /sbin/ldconfig
 
@@ -59,6 +59,7 @@ rm -rf $RPM_BUILD_ROOT
 %files
 %defattr(-, root, root)
 %doc AUTHORS COPYING ChangeLog EsounD.html INSTALL NEWS README TIPS TODO
+/etc/*
 %{prefix}/bin/*
 %{prefix}/lib/lib*.so.*
 %{prefix}/lib/lib*.so

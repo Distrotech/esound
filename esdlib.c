@@ -556,14 +556,22 @@ int esd_play_stream( esd_format_t format, int rate,
 /* a bad day - ignore the SIGPIPE, then make sure to cathc all errors */
     phandler = signal( SIGPIPE, dummy_signal );    /* for closed esd conns */
     /* send the audio format information */
-    if ( write( sock, &proto, sizeof(proto) ) != sizeof(proto) )
-	return -1;
-    if ( write( sock, &format, sizeof(format) ) != sizeof(format) )
-	return -1;
-    if( write( sock, &rate, sizeof(rate) ) != sizeof(rate) )
-	return -1;
-    if( write( sock, name_buf, ESD_NAME_MAX ) != ESD_NAME_MAX )
-	return -1;
+    if ( write( sock, &proto, sizeof(proto) ) != sizeof(proto) ) {
+      signal( SIGPIPE, phandler );
+      return -1;
+      }
+    if ( write( sock, &format, sizeof(format) ) != sizeof(format) ) {
+      signal( SIGPIPE, phandler );
+      return -1;
+      }
+    if( write( sock, &rate, sizeof(rate) ) != sizeof(rate) ) {
+      signal( SIGPIPE, phandler );
+      return -1;
+      }
+    if( write( sock, name_buf, ESD_NAME_MAX ) != ESD_NAME_MAX ) {
+      signal( SIGPIPE, phandler );
+      return -1;
+      }
 
     /* Reduce buffers on sockets to the minimum needed */
     esd_set_socket_buffers( sock, format, rate, 44100 );
@@ -577,7 +585,8 @@ int esd_play_stream( esd_format_t format, int rate,
 	printf( "esound playing stream\n" );
     */
 
-    return sock;
+  signal( SIGPIPE, phandler );
+  return sock;
 }
 
 /*******************************************************************/
