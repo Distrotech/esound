@@ -18,7 +18,12 @@ int open_listen_socket( int port );
 
 /*******************************************************************/
 /* globals */
-int esd_on_standby = 0;	/* set to 1 to route all audio to /dev/null */
+
+int esd_is_owned = 0;		/* start unowned, first client claims it */
+int esd_is_locked = 1;		/* if owned, will prohibit foreign sources */
+char esd_owner_key[ESD_KEY_LEN]; /* the key that locks the daemon */
+
+int esd_on_standby = 0;		/* set to route ignore incoming audio data */
 int esdbg_trace = 0;		/* show warm fuzzy debug messages */
 int esdbg_comms = 0;		/* show protocol level debug messages */
 
@@ -28,6 +33,10 @@ int esd_sample_size = 0;	/* size of sample in bytes */
 
 int esd_beeps = 1;		/* whether or not to beep on startup */
 int listen_socket = -1;		/* socket to accept connections on */
+
+int esd_autostandby_secs = -1; 	/* timeout to release audio device, disabled <0 */
+time_t esd_last_activity = 0;	/* seconds since last activity */
+int esd_on_autostandby = 0;	/* set when auto paused for auto reawaken */
 
 /*******************************************************************/
 /* just to create the startup tones for the fun of it */
@@ -74,6 +83,44 @@ void set_audio_buffer( void *buf, esd_format_t format,
 
 /*******************************************************************/
 /* to properly handle signals */
+
+void reset_daemon( int signum )
+{
+    int tumbler;
+
+    /* TODO: add close of clients and resetting of sample id and samples */
+    ESDBG_TRACE( 
+	printf( "(ca) resetting ownership of sound daemon on signal %d\n",
+		signum ); );
+
+    /* reset the access rights */
+    esd_is_owned = 0;
+    esd_is_locked = 1;
+
+    /* scramble the stored key */
+    srand( time(NULL) );
+    for ( tumbler = 0 ; tumbler < ESD_KEY_LEN ; tumbler++ ) {
+	esd_owner_key[ tumbler ] = rand() % 256;
+    }
+
+    /* close the clients */
+    while ( esd_clients_list != NULL )
+    {
+	erase_client( esd_clients_list );
+    }
+
+    /* free samples */
+    while ( esd_samples_list != NULL )
+    {
+	erase_sample( esd_samples_list->sample_id );
+	/* TODO: kill_sample, so it stops playing */
+	/* a looping sample will get stuck */
+    }
+
+    /* reset signal handler, if not called from a signal, no effect */
+    signal( SIGHUP, reset_daemon );
+}
+
 void clean_exit(int signum) {
     /* just clean up as best we can and terminate from here */
     esd_client_t * client = esd_clients_list;
@@ -161,6 +208,49 @@ int open_listen_socket( int port )
 }
 
 /*******************************************************************/
+/* daemon eats sound data, without playing anything, return boolean ok */
+int esd_server_standby(void)
+{
+    int ok = 1;
+
+    /* only bother if we're not already on standby */
+    if ( !esd_on_standby ) {
+	ESDBG_TRACE( printf( "setting sound daemon to standby\n" ); );
+	
+	/* TODO: close down any recorders, too */
+	esd_on_standby = 1;
+	esd_audio_close();
+    }	
+
+    return ok;
+}
+
+/*******************************************************************/
+/* daemon goes back to playing sound data, returns boolean ok */
+int esd_server_resume(void)
+{
+    int ok = 1;
+
+    /* only bother if we're already on standby */
+    if ( esd_on_standby ) {
+	
+	ESDBG_TRACE( printf( "resuming sound daemon\n" ); );
+	
+	/* reclaim the audio device */
+	if ( esd_audio_open() < 0 ) {
+	    /* device was busy or something, return error, try  later */
+	    ok = 0;
+	} else {
+	    /* turn ourselves back on */
+	    esd_on_standby = 0;
+	    esd_on_autostandby = 0;
+	}
+    }
+
+    return ok;
+}
+
+/*******************************************************************/
 int main ( int argc, char *argv[] )
 {
     /***************************/
@@ -194,7 +284,7 @@ int main ( int argc, char *argv[] )
 		esd_port = atoi( argv[ arg ] );
 		if ( !esd_port ) {
 		    esd_port = ESD_DEFAULT_PORT;
-		    fprintf( stderr, "- could not determine port: %s\n", 
+		    fprintf( stderr, "- could not read port: %s\n", 
 			     argv[ arg ] );
 		}
 		fprintf( stderr, "- accepting connections on port %d\n", 
@@ -208,11 +298,22 @@ int main ( int argc, char *argv[] )
 		default_rate = atoi( argv[ arg ] );
 		if ( !default_rate ) {
 		    default_rate = ESD_DEFAULT_RATE;
-		    fprintf( stderr, "- could not determine rate: %s\n", 
+		    fprintf( stderr, "- could not read rate: %s\n", 
 			     argv[ arg ] );
 		}
 		fprintf( stderr, "- server format: sample rate = %d Hz\n", 
 			 default_rate );
+	    }
+	} else if ( !strcmp( argv[ arg ], "-as" ) ) {
+	    if ( ++arg != argc ) {
+		esd_autostandby_secs = atoi( argv[ arg ] );
+		if ( !esd_autostandby_secs ) {
+		    esd_autostandby_secs = ESD_DEFAULT_AUTOSTANDBY_SECS;
+		    fprintf( stderr, "- could not read autostandby timeout: %s\n", 
+			     argv[ arg ] );
+		}
+		fprintf( stderr, "- autostandby timeout: %d seconds\n", 
+			 esd_autostandby_secs );
 	    }
 #ifdef ESDBG
 	} else if ( !strcmp( argv[ arg ], "-vt" ) ) {
@@ -227,13 +328,14 @@ int main ( int argc, char *argv[] )
 	    fprintf( stderr, "- disabling startup beeps\n" );
 	} else if ( !strcmp( argv[ arg ], "-h" ) ) {
 	    fprintf( stderr, "Usage: esd [options]\n\n" );
-	    fprintf( stderr, "  -b            run server in 8 bit sound mode\n" );
-	    fprintf( stderr, "  -r RATE       run server at sample rate of RATE\n" );
+	    fprintf( stderr, "  -b          run server in 8 bit sound mode\n" );
+	    fprintf( stderr, "  -r RATE     run server at sample rate of RATE\n" );
+	    fprintf( stderr, "  -as SECS    free audio device after SECS of inactivity\n" );
 #ifdef ESDBG
-	    fprintf( stderr, "  -vt           enable trace diagnostic info\n" );
-	    fprintf( stderr, "  -vc           enable comms diagnostic info\n" );
+	    fprintf( stderr, "  -vt         enable trace diagnostic info\n" );
+	    fprintf( stderr, "  -vc         enable comms diagnostic info\n" );
 #endif
-	    fprintf( stderr, "  -port PORT    listen for connections at PORT\n" );
+	    fprintf( stderr, "  -port PORT  listen for connections at PORT\n" );
 	    exit( 0 );
 	} else {
 	    fprintf( stderr, "unrecognized option: %s\n", argv[ arg ] );
@@ -271,7 +373,7 @@ int main ( int argc, char *argv[] )
     signal( SIGINT, clean_exit );	/* for ^C */
     signal( SIGTERM, clean_exit );	/* for default kill */
     signal( SIGPIPE, reset_signal );	/* for closed rec/mon clients */
-    signal( SIGHUP, clear_auth );	/* kill -HUP clear ownership */
+    signal( SIGHUP, reset_daemon );	/* kill -HUP clear ownership */
 
     /* send some sine waves just to check the sound connection */
     i = 0;
@@ -309,6 +411,12 @@ int main ( int argc, char *argv[] )
 	/* mix new requests, and output to device */
 	length = mix_players_16s( output_buffer, esd_buf_size_octets );
 	
+	/* awaken if on autostandby and doing anything */
+	if ( esd_on_autostandby && length ) {
+	    ESDBG_TRACE( printf( "stuff to play, waking up.\n" ); );
+	    esd_server_resume();
+	}
+
 	/* we handle this even when length == 0 because a filter could have
 	 * closed, and we don't want to eat the processor if one did.. */
 	if ( esd_filter_list && !esd_on_standby ) {
@@ -326,6 +434,7 @@ int main ( int argc, char *argv[] )
 		/* esd_audio_write( output_buffer, esd_buf_size_octets ); */
 		esd_audio_write( output_buffer, length );
 		esd_audio_flush();
+		esd_last_activity = time( NULL );
 	    }
 	} else {
 	    /* should be pausing just fine within wait_for_clients_and_data */
@@ -370,11 +479,11 @@ int main ( int argc, char *argv[] )
 		}
 		
 		recorder_write(); 
+		esd_last_activity = time( NULL );
 	    }
 	}
 
-#if 0 
-	if ( esd_on_standby || do_sleep ) {
+	if ( esd_on_standby ) {
 #ifdef HAVE_NANOSLEEP
 	    struct timespec restrain;
 	    restrain.tv_sec = 0;
@@ -393,7 +502,6 @@ int main ( int argc, char *argv[] )
 	    select( 0, 0, 0, 0, &restrain );
 #endif
 	}
-#endif
     } /* while ( 1 ) */
 
     /* how we'd get here, i have no idea, should only exit on signal */

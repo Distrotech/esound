@@ -1,5 +1,8 @@
 1998-12-29  Yo Ric Dude  <ricdude@ix.netcom.com>
 
+	* clients.c, esd-server.h, esd.c, proto.c, samples.c: option to
+	autosuspend after a number of seconds of audio inactivity.
+	"esd -as SECS" to set timeout to SECS seconds, SECS > 0.
 	* esd.c, clients.c: call esd_audio_pause() only if select has
  	returned no clients ready, and no samples are playing.  other
 	miscellaneous tweaks to the when-to-sleep algorithm...

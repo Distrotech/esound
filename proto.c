@@ -4,15 +4,6 @@
 /*******************************************************************/
 /* globals */
 
-/* start unowned, first client claims it */
-static int esd_is_owned = 0;
-
-/* if owned, will prohibit foreign sources */
-static int esd_is_locked = 1;
-
-/* the key that locks the daemon */
-static char esd_owner_key[ESD_KEY_LEN];
-
 /*******************************************************************/
 /* prototypes */
 int esd_check_endian( esd_client_t *client, unsigned int *endian );
@@ -84,31 +75,6 @@ esd_proto_handler_info_t esd_proto_map[ ESD_PROTO_MAX ] =
     { 3 * sizeof(int), &esd_proto_sample_pan, "sample pan" },
 
 };
-
-/*******************************************************************/
-/* resets ownership of the sound daemon */
-void clear_auth( int signum )
-{
-    int i;
-
-    /* TODO: add close of clients and resetting of sample id and samples */
-    ESDBG_TRACE( 
-	printf( "(ca) resetting ownership of sound daemon on signal %d\n",
-		signum ); );
-
-    /* reset the access rights */
-    esd_is_owned = 0;
-    esd_is_locked = 1;
-
-    /* scramble the stored key */
-    srand( time(NULL) );
-    for ( i = 0 ; i < ESD_KEY_LEN ; i++ ) {
-	esd_owner_key[ i ] = rand() % 256;
-    }
-
-    /* reset signal handler, if not called from a signal, no effect */
-    signal( SIGHUP, clear_auth );
-}
 
 /*******************************************************************/
 /* checks for client/server endianness */
@@ -248,18 +214,10 @@ int esd_proto_standby( esd_client_t *client )
     int ok, client_ok, actual;
 
     ok = esd_validate_source( client, client->proto_data, 1 );
+
+    if ( ok ) ok = esd_server_standby();
+
     client_ok = maybe_swap_32( client->swap_byte_order, ok );
-
-    /* only bother if we're not on standby */
-    if ( ok && !esd_on_standby ) {
-	ESDBG_TRACE( printf( "(%02d) setting sound daemon to standby\n", 
-			     client->fd ); );
-	
-	/* TODO: close down any recorders, too */
-	esd_on_standby = 1;
-	esd_audio_close();
-    }	
-
     ESD_WRITE_INT( client->fd, &client_ok, sizeof(client_ok), 
 		   actual, "stdby ok" );
     return ok;
@@ -272,23 +230,10 @@ int esd_proto_resume( esd_client_t *client )
     int ok, client_ok, actual;
 
     ok = esd_validate_source( client, client->proto_data, 1 );
+
+    if ( ok ) ok = esd_server_resume();
+
     client_ok = maybe_swap_32( client->swap_byte_order, ok );
-
-    /* only bother if we're on standby */
-    if ( ok && esd_on_standby ) {
-	
-	ESDBG_TRACE( printf( "(%02d) resuming sound daemon\n", client->fd ); );
-	
-	/* reclaim the audio device */
-	if ( esd_audio_open() < 0 ) {
-	    /* device was busy or something, return error, try  later */
-	    client_ok = ok = 0;
-	} else {
-	    /* turn ourselves back on */
-	    esd_on_standby = 0;
-	}
-    }
-
     ESD_WRITE_INT( client->fd, &client_ok, sizeof(client_ok), 
 		   actual, "resum ok" );
     return ok;
@@ -319,7 +264,13 @@ int esd_proto_stream_play( esd_client_t *client )
 /* manage the single recording client, return boolean ok */
 int esd_proto_stream_recorder( esd_client_t *client )
 {
-    /* if we're already recording, or in standby mode, go away */
+    /* wake up if we're asleep */
+    if ( esd_on_autostandby ) {
+	ESDBG_TRACE( printf( "stuff to recored, waking up.\n" ); );
+	esd_server_resume();
+    }
+
+    /* if we're already recording, or (still) in standby mode, go away */
     if ( esd_recorder || esd_on_standby ) {
 	return 0;
     }

@@ -101,6 +101,10 @@ typedef struct esd_sample {
 /* server function prototypes */
 
 /* esd.c - global variables */
+extern int esd_is_owned;
+extern int esd_is_locked;
+extern char esd_owner_key[ESD_KEY_LEN];
+
 extern int esd_on_standby;
 extern int esdbg_trace;
 extern int esdbg_comms;
@@ -109,18 +113,24 @@ extern int esd_buf_size_octets;
 extern int esd_buf_size_samples;
 extern int esd_sample_size;
 
+extern int esd_autostandby_secs;
+extern time_t esd_last_activity;
+extern int esd_on_autostandby;
+
+int esd_server_standby(void);
+int esd_server_resume(void);
+
 /* clients.c - manage the client connections */
 extern esd_client_t *esd_clients_list;
-void dump_clients();
+void dump_clients(void);
 void add_new_client( esd_client_t *new_client );
 void erase_client( esd_client_t *client );
 
-void clear_auth( int signum ); /* TODO: sig_clear_auth ? */
 int get_new_clients( int listen );
 int wait_for_clients_and_data( int listen );
 
 /* proto.c - deal with client protocol requests */
-int poll_client_requests();
+int poll_client_requests(void);
 
 /* players.c - manage the players, recorder, and monitor */
 extern esd_player_t *esd_players_list;
@@ -148,7 +158,7 @@ void monitor_write( void *output_buffer, int length );
 extern esd_sample_t *esd_samples_list;
 extern int esd_playing_samples;
 
-void dump_samples();
+void dump_samples(void);
 void add_sample( esd_sample_t *sample );
 void erase_sample( int id );
 esd_sample_t *new_sample( esd_client_t *client );
@@ -197,6 +207,8 @@ int filter_write( void *buffer, int size, esd_format_t format, int rate );
 #define maybe_swap_32(c,x) \
 	( (c) ? (swap_endian_32( (x) )) : (x) )
 
+#define ESD_DEFAULT_AUTOSTANDBY_SECS 5
+
 /* evil macros for debugging protocol */
 
 #ifdef ESDBG /* expand debug macros to yield diagnostic information */
@@ -204,7 +216,7 @@ int filter_write( void *buffer, int size, esd_format_t format, int rate );
 #define ESDBG_TRACE(x) \
 	do { \
 	    if ( esdbg_trace ) { \
-		printf( ":trace: [%s,%d] \t", __FILE__, __LINE__ ); \
+		printf( ":trace: [%12s,%5d] \t", __FILE__, __LINE__ ); \
     		x; \
 	    } \
 	} while( 0 );
@@ -212,7 +224,7 @@ int filter_write( void *buffer, int size, esd_format_t format, int rate );
 #define ESDBG_COMMS(x) \
 	do { \
 	    if ( esdbg_comms ) { \
-		printf( ":comms: [%s,%d] \t", __FILE__, __LINE__ ); \
+		printf( ":comms: [%12s,%5d] \t", __FILE__, __LINE__ ); \
     		x; \
 	    } \
 	} while( 0 );
@@ -222,7 +234,7 @@ int filter_write( void *buffer, int size, esd_format_t format, int rate );
 	    unsigned int esd_ri; \
     	    r = read( s, a, l ); \
     	    if ( esdbg_comms ) { \
-		printf( "---> rd [%s,%d] \t%-10s: %2d, %4d = %4d  (%d)     (", \
+		printf( "---> rd [%12s,%5d] \t%-10s: %2d, %4d = %4d  (%d)     (", \
 			__FILE__, __LINE__, d, s, l, r, *a ); \
     		for ( esd_ri = 0 ; esd_ri < sizeof(int) ; esd_ri++ ) \
     		    printf( "0x%02x ", *(((octet*)a)+esd_ri) ); \
@@ -235,7 +247,7 @@ int filter_write( void *buffer, int size, esd_format_t format, int rate );
 	    unsigned int esd_rb; \
     	    r = read( s, a, l ); \
     	    if ( esdbg_comms ) { \
-		printf( "---> rd [%s,%d] \t%-10s: %2d, %4d = %4d  (", \
+		printf( "---> rd [%12s,%5d] \t%-10s: %2d, %4d = %4d  (", \
 			__FILE__, __LINE__, d, s, l, r ); \
     		for ( esd_rb = 0 ; esd_rb < 8 ; esd_rb++ ) \
     		    printf( "0x%02x ", *(((octet*)a)+esd_rb) ); \
@@ -248,7 +260,7 @@ int filter_write( void *buffer, int size, esd_format_t format, int rate );
 	    unsigned int esd_wi; \
     	    r = write( s, a, l ); \
     	    if ( esdbg_comms ) { \
-		printf( "<--- wr [%s,%d] \t%-10s: %2d, %4d = %4d  (%d)     (", \
+		printf( "<--- wr [%12s,%5d] \t%-10s: %2d, %4d = %4d  (%d)     (", \
 			__FILE__, __LINE__, d, s, l, r, *a ); \
     		for ( esd_wi = 0 ; esd_wi < sizeof(int) ; esd_wi++ ) \
     		    printf( "0x%02x ", *(((octet*)a)+esd_wi) ); \
@@ -261,7 +273,7 @@ int filter_write( void *buffer, int size, esd_format_t format, int rate );
 	    unsigned int esd_wb; \
     	    r = write( s, a, l ); \
     	    if ( esdbg_comms ) { \
-		printf( "<--- wr [%s,%d] \t%-10s: %2d, %4d = %4d  (", \
+		printf( "<--- wr [%12s,%5d] \t%-10s: %2d, %4d = %4d  (", \
 			__FILE__, __LINE__, d, s, l, r ); \
     		for ( esd_wb = 0 ; esd_wb < 8 ; esd_wb++ ) \
     		    printf( "0x%02X ", *(((octet*)a)+esd_wb) ); \

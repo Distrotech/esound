@@ -253,7 +253,9 @@ int wait_for_clients_and_data( int listen )
 
 	/* TODO: any reason not to pause indefinitely here? */
 	/* sample players that's why, if no players, can pause indefinitely */
-	/* if ( !esd_playing_samples ) timeout_ptr = NULL; else { ... } */
+	/* if ( esd_on_autostandby 
+	        || (esd_autostandby_secs < 0 && !esd_playing_samples ) )
+	       timeout_ptr = NULL; else { ... } */
 
 	timeout.tv_sec = 0;
 	/* funky math to make sure a long can hold it all, calulate in ms */
@@ -276,25 +278,32 @@ int wait_for_clients_and_data( int listen )
 
     ready = select( max_fd+1, &rd_fds, NULL, NULL, timeout_ptr );
 
-    /* TODO: add auto-standby check here */
-    /* if ( esd_auto_standby && ( time(NULL) > last_time + timeout ) )
- 	esd_standby(); */
-    if ( ready < 0 ) {
-	/* something horrible happened:
+    /* TODO: return ready, and do this in esd.c */
+    if ( ready <= 0 ) {
+	/* if < 0, something horrible happened:
 	   EBADF   invalid file descriptor - let individual read sort it out
 	   EINTR   non blocked signal caught - o well, no big deal
 	   EINVAL  n is negative - not bloody likely
 	   ENOMEM  unable to allocate internal tables - o well, no big deal */
-    } else if ( ready == 0 ) {
-	if ( !is_paused_here ) { /* esd_playing_samples? */
-	    ESDBG_TRACE( printf( "pausing in clients.c (%d)\n", 
-				 esd_playing_samples ); );
+
+	if ( !is_paused_here && !esd_playing_samples ) {
+	    ESDBG_TRACE( printf( "doing nothing, pausing server.\n" ); );
 	    esd_audio_pause();
+	    esd_last_activity = time( NULL );
+	    is_paused_here = 1;
 	}
-	is_paused_here = 1;
+
+	if ( !esd_on_standby && !esd_playing_samples && !esd_recorder ) {
+	    if ( esd_autostandby_secs >= 0
+		 && ( time(NULL) > esd_last_activity + esd_autostandby_secs ) ) {
+		ESDBG_TRACE( printf( "bored, going to standby mode.\n" ); );
+		esd_server_standby();
+		esd_on_autostandby = 1;
+	    }
+	}
     } else {
 	is_paused_here = 0;
     }
 
-    return 0;
+    return ready;
 }

@@ -37,8 +37,6 @@ void free_sample( esd_sample_t *sample )
     /* free any memory allocated with the sample */
     free( sample->data_buffer );
 
-    /* TODO: free sample players with this id */
-
     /* free the sample memory itself */
     free( sample );
     ESDBG_TRACE( printf( "<%02d> freed sample: [0x%p]\n", 
