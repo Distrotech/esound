@@ -21,9 +21,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-/* get defs from configure */
-#include "config.h"
-
 /*************************************/
 /* what can we do to/with the EsounD */
 enum esd_proto { 
