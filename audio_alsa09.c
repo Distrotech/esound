@@ -136,15 +136,24 @@ snd_pcm_t* initAlsa(char *dev, int format, int channels, int speed, int mode)
 		alsaerr = -1;
 		return handle;
 	}
-  
+#ifndef DRIVER_ALSA_09_NEW_PCM_API
 	err = snd_pcm_hw_params_set_rate_near(handle, hwparams, speed, 0);
+#else
+    int t_dir=0;
+    int t_speed=speed;
+    err = snd_pcm_hw_params_set_rate_near(handle, hwparams, &t_speed, &t_dir);
+#endif
 	if (err < 0) {
 		if (alsadbg)
 			fprintf(stderr, "%s\n", snd_strerror(err));
 		alsaerr = -1;
 		return handle;
 	}
+#ifndef DRIVER_ALSA_09_NEW_PCM_API
 	if (err != speed) {
+#else
+	if (t_speed != speed) {
+#endif
 		if (alsadbg)
 			fprintf(stderr, "Rate not avaliable %i != %i\n", speed, err);
 		alsaerr = -1;
@@ -176,8 +185,12 @@ snd_pcm_t* initAlsa(char *dev, int format, int channels, int speed, int mode)
 		alsaerr = -1;
 		return handle;
 	}
-  
+#ifndef DRIVER_ALSA_09_NEW_PCM_API
 	err = snd_pcm_hw_params_set_buffer_size_near(handle, hwparams, BUFFERSIZE); 
+#else
+	snd_pcm_uframes_t t_bufsize=BUFFERSIZE;
+	err = snd_pcm_hw_params_set_buffer_size_near(handle, hwparams, &t_bufsize);
+#endif
 	if (err < 0) { 
 		if (alsadbg)
 			fprintf(stderr, "Buffersize:%s\n", snd_strerror(err)); 

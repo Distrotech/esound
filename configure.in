@@ -269,6 +269,24 @@ if test "x$enable_local_sound" = "xyes"; then
       AC_CHECK_FUNC(snd_cards,,[AC_CHECK_LIB(sound,snd_cards)])
       AC_CHECK_FUNC(snd_cards,,[AC_CHECK_LIB(asound,snd_cards)])
       AC_CHECK_FUNC(snd_pcm_pause,,[AC_CHECK_LIB(asound,snd_pcm_pause)])
+
+      dnl Check if ALSA uses new API
+      saved_cflags="$CFLAGS"
+      CFLAGS="$CFLAGS -Werror"
+      echo -n "checking for alsa new PCM API... "
+      AC_TRY_LINK([
+	  #include <alsa/asoundlib.h>
+	  ], [
+	  snd_pcm_t *pcm;
+	  snd_pcm_hw_params_t *params;
+	  unsigned int val;
+	  int dir;
+	  /* intentionally not uses pointers, trying to replicate bug 129709 */
+	  snd_pcm_hw_params_set_rate_near(pcm, params, val, &dir);
+	  ],[ echo "no" ], AC_DEFINE(DRIVER_ALSA_09_NEW_PCM_API) [ echo "yes" ],
+	  ])
+
+      CFLAGS="$saved_cflags"
    fi
 else
    AC_DEFINE(DRIVER_NONE)
