@@ -645,6 +645,8 @@ int esd_open_sound( const char *host )
 #endif
     
       socket_out = esd_connect_unix(host);
+      if (socket_out < 0)
+	socket_out = esd_connect_tcpip(host);
       if (socket_out >= 0) break;
 
 #if defined(HAVE_USLEEP)
