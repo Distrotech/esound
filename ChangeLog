@@ -1,3 +1,10 @@
+1998-07-05  Yo Ric Dude  <ericmit@ix.netcom.com>
+
+	* esd-server.h, esdlib.c, players.c, proto.c, samples.c:
+	more endian swapping fixes. works for Linux, half of it
+	works irix->linux, much seems to be broken on irix. added
+	test-script for quick run through of features.
+
 1998-07-04  Yo Ric Dude  <ericmit@ix.netcom.com>
 
 	* esd-server.h, esd.h, esdlib.c, players.c, proto.c, samples.c,

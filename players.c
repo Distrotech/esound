@@ -308,12 +308,12 @@ esd_player_t *new_stream_player( esd_client_t *client )
     player->parent = NULL;
     read( client->fd, &player->format, sizeof(player->format) );
     if ( client->swap_byte_order )
-	player->format = switch_endian_32( player->format );
+	player->format = swap_endian_32( player->format );
 
     player->format &= ~ESD_MASK_MODE; /* force to ESD_STREAM */
     read( client->fd, &player->rate, sizeof(player->rate) );
     if ( client->swap_byte_order )
-	player->rate = switch_endian_32( player->rate );
+	player->rate = swap_endian_32( player->rate );
 
     player->source_id = client->fd;
     read( client->fd, player->name, ESD_NAME_MAX );

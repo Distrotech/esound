@@ -117,6 +117,7 @@ int read_sample( esd_sample_t *sample )
 esd_sample_t *new_sample( esd_client_t *client )
 {
     esd_sample_t *sample;
+    int client_id;
 
     /* make sure we have the memory to save the client... */
     sample = (esd_sample_t*) malloc( sizeof(esd_sample_t) );
@@ -129,15 +130,15 @@ esd_sample_t *new_sample( esd_client_t *client )
     sample->parent = NULL;
     read( client->fd, &sample->format, sizeof(sample->format) );
     if ( client->swap_byte_order )
-	sample->format = switch_endian_32( sample->format );
+	sample->format = swap_endian_32( sample->format );
 
     read( client->fd, &sample->rate, sizeof(sample->rate) );
     if ( client->swap_byte_order )
-	sample->rate = switch_endian_32( sample->rate );
+	sample->rate = swap_endian_32( sample->rate );
 
     read( client->fd, &sample->sample_length, sizeof(sample->sample_length) );
     if ( client->swap_byte_order )
-	sample->sample_length = switch_endian_32( sample->sample_length );
+	sample->sample_length = swap_endian_32( sample->sample_length );
 
     read( client->fd, sample->name, ESD_NAME_MAX );
     sample->name[ ESD_NAME_MAX - 1 ] = '\0';
@@ -162,7 +163,10 @@ esd_sample_t *new_sample( esd_client_t *client )
 
     printf( "sample: <%d> [0x%p] - %d bytes\n", 
 	    sample->sample_id, sample, sample->sample_length );
-    write( client->fd, &sample->sample_id, sizeof(sample->sample_id) );
+
+    client_id = maybe_swap_32( client->swap_byte_order, 
+			       sample->sample_id );
+    write( client->fd, &client_id, sizeof(client_id) );
 
     return sample;
 }

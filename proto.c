@@ -101,11 +101,12 @@ int validate_source( esd_client_t *client, struct sockaddr_in source, int owner_
 int esd_proto_lock( esd_client_t *client )
 {
     int ok = 1;		/* already validated, can't fail */
+    int client_ok = maybe_swap_32( client->swap_byte_order, ok );
 
     printf( "locking sound daemon\n" );
     esd_is_locked = 1;
 
-    write( client->fd, &ok, sizeof(ok) );
+    write( client->fd, &client_ok, sizeof(client_ok) );
     fsync( client->fd );
 
     client->state = ESD_NEXT_REQUEST;
@@ -117,11 +118,12 @@ int esd_proto_lock( esd_client_t *client )
 int esd_proto_unlock( esd_client_t *client )
 {
     int ok = 1;		/* already validated, can't fail */
+    int client_ok = maybe_swap_32( client->swap_byte_order, ok );
 
     printf( "unlocking sound daemon\n" );
     esd_is_locked = 0;
 
-    write( client->fd, &ok, sizeof(ok) );
+    write( client->fd, &client_ok, sizeof(client_ok) );
     fsync( client->fd );
 
     client->state = ESD_NEXT_REQUEST;
@@ -133,10 +135,11 @@ int esd_proto_unlock( esd_client_t *client )
 int esd_proto_standby( esd_client_t *client )
 {
     int ok = 1;		/* already validated, can't fail */
+    int client_ok = maybe_swap_32( client->swap_byte_order, ok );
 
     /* we're already on standby, no problem */
     if ( esd_on_standby ) {
-	write( client->fd, &ok, sizeof(ok) );
+	write( client->fd, &client_ok, sizeof(client_ok) );
 	fsync( client->fd );
 
 	client->state = ESD_NEXT_REQUEST;
@@ -148,7 +151,7 @@ int esd_proto_standby( esd_client_t *client )
     /* TODO: close down any recorders, too */
     esd_audio_close();
 
-    write( client->fd, &ok, sizeof(ok) );
+    write( client->fd, &client_ok, sizeof(client_ok) );
     fsync( client->fd );
 
     client->state = ESD_NEXT_REQUEST;
@@ -160,10 +163,11 @@ int esd_proto_standby( esd_client_t *client )
 int esd_proto_resume( esd_client_t *client )
 {
     int ok = 1;		/* already validated, can't fail */
+    int client_ok = maybe_swap_32( client->swap_byte_order, ok );
 
     /* we're already not on standby, no problem */
     if ( !esd_on_standby ) {
-	write( client->fd, &ok, sizeof(ok) );
+	write( client->fd, &client_ok, sizeof(client_ok) );
 	fsync( client->fd );
 
 	client->state = ESD_NEXT_REQUEST;
@@ -174,7 +178,7 @@ int esd_proto_resume( esd_client_t *client )
     esd_audio_open();
     esd_on_standby = 0;
 
-    write( client->fd, &ok, sizeof(ok) );
+    write( client->fd, &client_ok, sizeof(client_ok) );
     fsync( client->fd );
 
     client->state = ESD_NEXT_REQUEST;
@@ -263,10 +267,15 @@ int esd_proto_sample_cache( esd_client_t *client )
 {
     esd_sample_t *sample;
     int length;
+    int client_id;
+
     printf( "proto: caching sample (%d)\n", client->fd );
 
     sample = new_sample( client );
     /* add to the list of sample */
+    client_id = maybe_swap_32( client->swap_byte_order, 
+			       sample->sample_id );
+
     if ( sample != NULL ) {
 	sample->parent = client;
 	if( ( length = read_sample( sample ) ) < sample->sample_length ) {
@@ -278,7 +287,7 @@ int esd_proto_sample_cache( esd_client_t *client )
 	return 0;
     }
 
-    write( client->fd, &sample->sample_id, sizeof(sample->sample_id) );
+    write( client->fd, &client_id, sizeof(client_id) );
     fsync( client->fd );
 
     client->state = ESD_NEXT_REQUEST;
@@ -289,20 +298,19 @@ int esd_proto_sample_cache( esd_client_t *client )
 /* free a sample cached by the client, return boolean ok */
 int esd_proto_sample_free( esd_client_t *client )
 {
-    int sample_id;
+    int sample_id, client_id;
 
-    if ( read( client->fd, &sample_id, sizeof(sample_id) ) 
+    if ( read( client->fd, &client_id, sizeof(client_id) ) 
 	 != sizeof( sample_id ) )
 	return 0;
 
-    if ( client->swap_byte_order )
-	sample_id = switch_endian_32( sample_id );
+    sample_id = maybe_swap_32( client->swap_byte_order, client_id );
 
     printf( "proto: erasing sample (%d)\n", sample_id );
     erase_sample( sample_id );
 
-    if ( write( client->fd, &sample_id, sizeof(sample_id) ) 
-	 != sizeof( sample_id ) )
+    if ( write( client->fd, &client_id, sizeof( client_id ) ) 
+	 != sizeof( client_id ) )
 	return 0;
 
     client->state = ESD_NEXT_REQUEST;
@@ -313,21 +321,20 @@ int esd_proto_sample_free( esd_client_t *client )
 /* play a sample cached by the client, return boolean ok */
 int esd_proto_sample_play( esd_client_t *client )
 {
-    int sample_id;
+    int sample_id, client_id;
 
-    if ( read( client->fd, &sample_id, sizeof(sample_id) ) 
-	 != sizeof( sample_id ) )
+    if ( read( client->fd, &client_id, sizeof(client_id) ) 
+	 != sizeof( client_id ) )
 	return 0;
 
-    if ( client->swap_byte_order )
-	sample_id = switch_endian_32( sample_id );
+    sample_id = maybe_swap_32( client->swap_byte_order, client_id );
 
     printf( "playing sample <%d>\n", sample_id );
     if ( !play_sample( sample_id, 0 ) )
 	sample_id = 0;
 
-    if ( write( client->fd, &sample_id, sizeof(sample_id) ) 
-	 != sizeof( sample_id ) )
+    if ( write( client->fd, &client_id, sizeof(client_id) ) 
+	 != sizeof( client_id ) )
 	return 0;
 
     client->state = ESD_NEXT_REQUEST;
@@ -338,20 +345,19 @@ int esd_proto_sample_play( esd_client_t *client )
 /* play a sample cached by the client, return boolean ok */
 int esd_proto_sample_loop( esd_client_t *client )
 {
-    int sample_id;
+    int sample_id, client_id;
 
-    if ( read( client->fd, &sample_id, sizeof(sample_id) ) 
-	 != sizeof( sample_id ) )
+    if ( read( client->fd, &client_id, sizeof(client_id) ) 
+	 != sizeof( client_id ) )
 	return 0;
 
-    if ( client->swap_byte_order )
-	sample_id = switch_endian_32( sample_id );
+    sample_id = maybe_swap_32( client->swap_byte_order, client_id );
 
     printf( "looping sample <%d>\n", sample_id );
     if ( !play_sample( sample_id, 1 ) )
 	sample_id = 0;
 
-    if ( write( client->fd, &sample_id, sizeof(sample_id) ) 
+    if ( write( client->fd, &client_id, sizeof(client_id) ) 
 	 != sizeof( sample_id ) )
 	return 0;
 
@@ -363,27 +369,28 @@ int esd_proto_sample_loop( esd_client_t *client )
 /* play a sample cached by the client, return boolean ok */
 int esd_proto_sample_stop( esd_client_t *client )
 {
-    int sample_id;
+    int sample_id, client_id;
 
-    if ( read( client->fd, &sample_id, sizeof(sample_id) ) 
-	 != sizeof( sample_id ) )
+    if ( read( client->fd, &client_id, sizeof(client_id) ) 
+	 != sizeof( client_id ) )
 	return 0;
     
-    if ( client->swap_byte_order )
-	sample_id = switch_endian_32( sample_id );
+    sample_id = maybe_swap_32( client->swap_byte_order, client_id );
 
     printf( "stopping sample <%d>\n", sample_id );
     if ( !stop_sample( sample_id ) )
 	sample_id = 0;
 
-    if ( write( client->fd, &sample_id, sizeof(sample_id) ) 
-	 != sizeof( sample_id ) )
+    if ( write( client->fd, &client_id, sizeof(client_id) ) 
+	 != sizeof( client_id ) )
 	return 0;
 
     client->state = ESD_NEXT_REQUEST;
     return 1;
 }
 
+/*******************************************************************/
+/* now that we trust the client, do it's bidding, return boolean ok */
 static int do_validated_action ( esd_client_t *client )
 {
     int is_ok;
@@ -480,7 +487,7 @@ int poll_client_requests()
  	    length = read( client->fd, &client->request, 
 			   sizeof(client->request) );
 	    if ( client->swap_byte_order )
-		client->request = switch_endian_32( client->request );
+		client->request = swap_endian_32( client->request );
 
  	    if ( length <= 0 ) {
  		/* no more data available from that client, close it */

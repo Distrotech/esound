@@ -158,7 +158,8 @@ int esd_open_sound( char *host )
        my copy of /usr/include/netinet/in.h (instead of 64)
     */
 
-    char default_host[64] = "0.0.0.0";
+    char default_host[] = "0.0.0.0";
+    char connect_host[64];
     int port = ESD_DEFAULT_PORT;
     int host_div = 0;
    
@@ -170,14 +171,14 @@ int esd_open_sound( char *host )
 
 	/* get host */
 	if ( host_div ) {
-	    strncpy( host, espeaker, host_div );
-	    host[ host_div ] = '\0';
+	    strncpy( connect_host, espeaker, host_div );
+	    connect_host[ host_div ] = '\0';
 	}
 
         /* Resolving the host name */
-        if ( ( he = gethostbyname( host ) ) == NULL ) {
+        if ( ( he = gethostbyname( connect_host ) ) == NULL ) {
 	    fprintf( stderr, "Can\'t resolve host name \"%s\"!\n", 
-		     host);
+		     connect_host);
 	    return(-1);
         }
 	/* TODO: is bcopy portable? maybe memcpy is more appropriate */
@@ -189,7 +190,7 @@ int esd_open_sound( char *host )
 	    port = atoi( espeaker + host_div + 1 );
 	if ( !port ) 
 	    port = ESD_DEFAULT_PORT;
-	/* printf( "(remote) host is %s : %d\n", host, port ); */
+	/* printf( "(remote) host is %s : %d\n", connect_host, port ); */
     } else if( !inet_aton( default_host, &socket_addr.sin_addr ) ) {
 	fprintf( stderr, "couldn't convert %s to inet address\n", 
 		 default_host );

@@ -136,14 +136,16 @@ int mix_players_16s( void *mixed, int length );
 /* evil evil macros */
 
 /* switch endian order for cross platform playing */
-#define switch_endian_16(x) ( ( (x) >> 8 ) | ( ((x)&0xFF) << 8 ) )
-#define switch_endian_32(x) \
+#define swap_endian_16(x) ( ( (x) >> 8 ) | ( ((x)&0xFF) << 8 ) )
+#define swap_endian_32(x) \
 	( ( (x) >> 24 ) | ( ((x)&0xFF0000) >> 8 ) | \
 	  ( ((x)&0xFF00) << 8 ) | ( ((x)&0xFF) << 24 ) )
 
 /* the endian key is transferred in binary, if it's read into int, */
 /* and matches ESD_ENDIAN_KEY (ENDN), then the endianness of the */
 /* server and the client match; if it's SWAP_ENDIAN_KEY, swap data */
-#define ESD_SWAP_ENDIAN_KEY switch_endian_32(ESD_ENDIAN_KEY)
+#define ESD_SWAP_ENDIAN_KEY swap_endian_32(ESD_ENDIAN_KEY)
+#define maybe_swap_32(c,x) \
+	( (c) ? (swap_endian_32( (x) )) : (x) )
 
 #endif /* #ifndef ESD_SERVER_H */
