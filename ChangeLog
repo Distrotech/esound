@@ -1,3 +1,8 @@
+1998-09-25  Mandrake <mandrake@mandrake.net>
+
+	* autogen.sh: added libtoolize --copy --force to autogen.sh per
+	Andreas Jellinghaus <aj@dungeon.inka.de>
+
 1998-09-26  Yo Ric Dude  <ericmit@ix.netcom.com>
 
 	* clients.c: artistic changes 
