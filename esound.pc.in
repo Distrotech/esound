@@ -8,5 +8,5 @@ Name: esound
 Description: esound
 Requires: audiofile
 Version: @VERSION@
-Libs: -L${libdir} -lesd
+Libs: -L${libdir} -lesd @SOUND_LIBS@
 Cflags: -I${includedir}
