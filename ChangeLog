@@ -1,3 +1,11 @@
+2005-01-17  David Schleef  <ds@schleef.org>
+
+	* Makefile.am: update for modern automake/autoconf
+	* audio.c: make ALSA-1.0 the default driver
+	* configure.ac: update for modern automake/autoconf
+	* configure.in: remove
+	* m4/as-arts.m4: (new) arts detection
+
 2004-11-23  David Schleef  <ds@schleef.org>
 
 	* docs/esd-config.1.in: Remove word break. (bug #158839, fix

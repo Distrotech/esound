@@ -1,6 +1,8 @@
 
 SUBDIRS = docs
 
+ACLOCAL_FLAGS = -I m4
+
 SPEC_FILE = esound.spec
 
 INCLUDES = $(AUDIOFILE_CFLAGS) -DSYSCONFDIR=\"$(sysconfdir)\" \
@@ -167,4 +169,6 @@ EXTRA_DIST = \
 	getopt.h 	\
 	TODO		\
 	MAINTAINERS	\
+	m4/*.m4		\
 	$(AUDIO_BACKENDS)
+

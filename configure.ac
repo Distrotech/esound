@@ -1,13 +1,18 @@
-dnl Initialize the autoconf settings
-
-AC_INIT(esd.h)
-
-AM_CONFIG_HEADER(config.h)
+AC_PREREQ([2.58])
+AC_INIT(esd, 0.2.35)
 
 ESD_MAJOR_VERSION=0
 ESD_MINOR_VERSION=2
 ESD_MICRO_VERSION=35
 ESD_VERSION=$ESD_MAJOR_VERSION.$ESD_MINOR_VERSION.$ESD_MICRO_VERSION
+
+AC_CANONICAL_TARGET([])
+AM_INIT_AUTOMAKE(1.6)
+AM_MAINTAINER_MODE
+
+AM_CONFIG_HEADER(config.h)
+
+ACLOCAL_AMFLAGS="-I m4 $ACLOCAL_AMFLAGS"
 
 dnl set version info for libesd.so to package rev - $MAJOR + $MINOR : $MICRO : $MINOR
 ESD_VERSION_INFO=`expr $ESD_MINOR_VERSION + $ESD_MAJOR_VERSION`:$ESD_MICRO_VERSION:$ESD_MINOR_VERSION
@@ -18,9 +23,6 @@ AC_SUBST(ESD_MICRO_VERSION)
 AC_SUBST(ESD_VERSION)
 AC_SUBST(ESD_VERSION_INFO)
 
-AM_INIT_AUTOMAKE(esound, $ESD_VERSION)
-
-AM_MAINTAINER_MODE
 
 AC_PROG_CC
 AC_PROG_CPP
@@ -30,7 +32,6 @@ AM_PROG_LIBTOOL
 
 dnl Check for tools
 
-AC_CANONICAL_HOST
 AC_PROG_MAKE_SET
 
 AC_PROG_INSTALL
@@ -58,19 +59,19 @@ AC_CHECK_FUNC(inet_pton,use_inet_pton=yes,[AC_CHECK_LIB(resolv,inet_pton)])
        if test "x$use_inet_pton" = "xyes"; then
                case $ac_cv_func_inet_pton/$ac_cv_lib_resolv_inet_pton in
                no/no) ;;
-               *) AC_DEFINE(HAVE_INET_PTON)
+               *) AC_DEFINE(HAVE_INET_PTON, 1, [Defined if inet_pton() works])
                esac
        else
                AC_CHECK_FUNC(inet_aton,,[AC_CHECK_LIB(resolv,inet_aton)])
                case $ac_cv_func_inet_aton/$ac_cv_lib_resolv_inet_aton in
                no/no) ;;
-               *) AC_DEFINE(HAVE_INET_ATON)
+               *) AC_DEFINE(HAVE_INET_ATON, 1, [Defined if inet_aton() works])
                esac
        fi
 
 case $ac_cv_func_nanosleep/$ac_cv_lib_rt_nanosleep/$ac_cv_lib_posix4_nanosleep in
 no/no/no) ;;
-*) AC_DEFINE(HAVE_NANOSLEEP)
+*) AC_DEFINE(HAVE_NANOSLEEP, 1, [Defined if nanosleep() works])
 esac
 
 dnl Check if INADDR_LOOPBACK exists
@@ -79,7 +80,7 @@ AC_TRY_COMPILE([
     #include<sys/types.h>
     #include<netinet/in.h>],
     [unsigned long ul = INADDR_LOOPBACK;],,
-    [AC_DEFINE(INADDR_LOOPBACK, (u_int32_t)0x7f000001)])
+    [AC_DEFINE(INADDR_LOOPBACK, (u_int32_t)0x7f000001, [Defined as the address of the loopback interface])])
     
 
 dnl ========================================================================
@@ -109,12 +110,12 @@ if test $enable_ipv6 = yes; then
     fi
 
     if test $have_getaddrinfo = yes; then
-      AC_DEFINE(ENABLE_IPV6)
+      AC_DEFINE(ENABLE_IPV6, 1, [Defined if ipv6 is enabled])
     fi
 
 
     dnl Check for inet_ntop. We need it only for debugging
-    AC_CHECK_FUNC(inet_ntop, AC_DEFINE(HAVE_INET_NTOP))
+    AC_CHECK_FUNC(inet_ntop, AC_DEFINE(HAVE_INET_NTOP, 1, [Defined if inet_ntop() works]))
   fi
 else
   AC_MSG_RESULT(no)
@@ -130,7 +131,7 @@ AC_TRY_LINK([
     #include<sys/types.h>
     #include<sys/un.h>], 
     [struct sockaddr_un su; int i = SUN_LEN(&su);],
-    [AC_DEFINE(HAVE_SUN_LEN)], )
+    [AC_DEFINE(HAVE_SUN_LEN, 1, [Defined if SUN_LEN() exists])], )
 
 dnl check for getopt_long, substitute the distributed versions if not
 
@@ -143,15 +144,33 @@ AC_CHECK_HEADERS(sys/filio.h sys/ioctl.h)
 
 dnl see if we want to enable insanely verbose debugging
 
-AC_ARG_ENABLE(debugging,[  --enable-debugging      enable verbose diagnostic info [default=no]], , enable_debugging=no )
+AC_ARG_ENABLE(debugging,
+  AC_HELP_STRING([--enable-debugging],[enable verbose diagnostic info [default=no]]),
+  [enable_debuggin=${enableval}],
+  [enable_debugging=no])
 
 if test "x$enable_debugging" = "xyes"; then
-  AC_DEFINE(ESDBG)
+  AC_DEFINE(ESDBG, 1, [Defined if debugging is enabled])
 fi
 
 dnl see if we intentionally want to disable local sound
 
-AC_ARG_ENABLE(local_sound,[  --enable-local-sound    turn on local sound playing [default=yes]], , enable_local_sound=yes)
+AC_ARG_ENABLE(local_sound,
+  AC_HELP_STRING([--enable-local-sound],[turn on local sound playing [default=yes]]),
+  [enable_local_sound=${enableval}],
+  [enable_local_sound=yes])
+AC_ARG_ENABLE(oss,
+  AC_HELP_STRING([--enable-oss],[use OSS if available [default=yes]]),
+  [enable_oss=${enableval}],
+  [enable_oss=yes])
+AC_ARG_ENABLE(alsa,
+  AC_HELP_STRING([--enable-alsa],[use ALSA if available [default=yes]]),
+  [enable_alsa=${enableval}],
+  [enable_alsa=yes])
+AC_ARG_ENABLE(arts,
+  AC_HELP_STRING([--enable-arts],[use arts if available [default=no]]),
+  [enable_arts=${enableval}],
+  [enable_arts=no])
 
 if test "x$enable_local_sound" = "xyes"; then
    found_sound=no
@@ -170,27 +189,30 @@ if test "x$enable_local_sound" = "xyes"; then
    CPPFLAGS="$CPPFLAGS -I/usr/include/mme"
    AC_CHECK_HEADERS(mme/mme_api.h)
    CPPFLAGS="$xCPPFLAGS"
+   AM_PATH_ARTS(, HAVE_ARTS=yes, HAVE_ARTS=no)
 
    dnl Define the driver needed based on the first header file found
 
-   if test "${ac_cv_header_sys_soundcard_h}" = "yes" || \
-      test "${ac_cv_header_soundcard_h}" = "yes" || \
-      test "${ac_cv_header_machine_soundcard_h}" = "yes"; then
+   if test x"$enable_oss" = xyes ; then
+     if test "${ac_cv_header_sys_soundcard_h}" = "yes" || \
+        test "${ac_cv_header_soundcard_h}" = "yes" || \
+        test "${ac_cv_header_machine_soundcard_h}" = "yes"; then
 
-      dnl Platform mklinux/powerpc needs special care and feeding
-      found_sound=yes
-      AC_DEFINE(DRIVER_OSS)
+        dnl Platform mklinux/powerpc needs special care and feeding
+        found_sound=yes
+        AC_DEFINE(DRIVER_OSS, 1, [Defined if OSS backend is enabled])
+     fi
    fi
 
    if test "${ac_cv_header_sys_audio_h}" = "yes"; then
       case ${host_os} in
       hpux*)
           found_sound=yes
-          AC_DEFINE(DRIVER_HPUX)
+          AC_DEFINE(DRIVER_HPUX, 1, [Defined if HPUX backend is enabled])
       ;;
       aix*)
           found_sound=yes
-          AC_DEFINE(DRIVER_AIX)
+          AC_DEFINE(DRIVER_AIX, 1, [Defined if AIX backend is enabled])
       esac
    fi
 
@@ -200,7 +222,7 @@ if test "x$enable_local_sound" = "xyes"; then
       case ${host_os} in
       solaris*)
          found_sound=yes
-         AC_DEFINE(DRIVER_SOLARIS)
+         AC_DEFINE(DRIVER_SOLARIS, 1, [Defined if Solaris backend is enabled])
          ;;
       esac
    fi
@@ -208,7 +230,7 @@ if test "x$enable_local_sound" = "xyes"; then
    case ${host_os} in
    os2*)
       found_sound=yes
-      AC_DEFINE(DRIVER_DART)
+      AC_DEFINE(DRIVER_DART, 1, [Defined if OS/2 backend is enabled])
       ;;
    esac
 
@@ -216,7 +238,7 @@ if test "x$enable_local_sound" = "xyes"; then
       case ${host_os} in
       irix*)
          found_sound=yes
-         AC_DEFINE(DRIVER_IRIX)
+         AC_DEFINE(DRIVER_IRIX, 1, [Defined if IRIX backend is enabled])
       esac
    fi
 
@@ -224,34 +246,40 @@ if test "x$enable_local_sound" = "xyes"; then
       case ${host_os} in
       osf*)
 	found_sound=yes
-	AC_DEFINE(DRIVER_OSF)
+	AC_DEFINE(DRIVER_OSF, 1, [Defined if OSF backend is enabled])
 	CPPFLAGS="$CPPFLAGS -I/usr/include/mme"
 	SOUND_LIBS=-lmme
       esac
    fi
 
-   AC_ARG_ENABLE(alsa,[  --enable-alsa           use alsa if available [default=yes]], , enable_alsa=yes)
-
-   
    if test "x$enable_alsa" = "xyes"; then
       if test "${ac_cv_header_sys_soundlib_h}" = "yes"; then
          found_sound=yes
-         AC_DEFINE(DRIVER_ALSA)
-
-      elif test "${ac_cv_header_alsa_asoundlib_h}" = "yes"; then
+         AC_DEFINE(DRIVER_ALSA, 1, [Defined if ALSA backend is enabled (deprecated)])
+      fi
+      if test "${ac_cv_header_alsa_asoundlib_h}" = "yes"; then
          found_sound=yes
-         AC_DEFINE(DRIVER_ALSA_09)
-
-      elif test "${ac_cv_header_sys_asoundlib_h}" = "yes"; then
+         AC_DEFINE(DRIVER_ALSA_09, 1, [Defined if ALSA-1.0 backend is enabled])
+      fi
+      if test "${ac_cv_header_sys_asoundlib_h}" = "yes"; then
          found_sound=yes
-         AC_DEFINE(DRIVER_NEWALSA)
+         AC_DEFINE(DRIVER_NEWALSA, 1, [Defined if old ALSA backend is enabled (deprecated)])
       fi
    fi
 
    if test "${ac_cv_header_CoreAudio_CoreAudio_h}" = "yes"; then
       found_sound=yes
-      AC_DEFINE(DRIVER_COREAUDIO)
+      AC_DEFINE(DRIVER_COREAUDIO, 1, [Defined if CoreAudio backend is enabled])
       SOUND_LIBS="-Wl,-framework -Wl,CoreAudio"
+   fi
+
+   if test "x$enable_arts" = "xyes" ; then
+     if test "x$HAVE_ARTS" = "xyes"; then
+       found_sound=yes
+       CFLAGS="$CFLAGS $ARTSC_CFLAGS"
+       LIBS="$LIBS $ARTS_LIBS"
+       AC_DEFINE(DRIVER_ARTS, 1, [Defined if Arts backend is enabled])
+     fi
    fi
 
    if test "$found_sound" = "no"; then
@@ -283,13 +311,15 @@ if test "x$enable_local_sound" = "xyes"; then
 	  int dir;
 	  /* intentionally not uses pointers, trying to replicate bug 129709 */
 	  snd_pcm_hw_params_set_rate_near(pcm, params, val, &dir);
-	  ],[ echo "no" ], AC_DEFINE(DRIVER_ALSA_09_NEW_PCM_API) [ echo "yes" ],
+	  ],[ echo "no" ], AC_DEFINE(DRIVER_ALSA_09_NEW_PCM_API, 1, [Defined if alsa-0.9 new pcm api is detected]) [ echo "yes" ],
 	  ])
 
       CFLAGS="$saved_cflags"
    fi
+
+
 else
-   AC_DEFINE(DRIVER_NONE)
+   AC_DEFINE(DRIVER_NONE, 1, [Defined if no backend is enabled])
 fi
 
 dnl offer daemon in serverdir
@@ -387,7 +417,7 @@ if test "x$with_libwrap" = "xyes"; then
 int allow_severity = LOG_INFO;
 int deny_severity = LOG_WARNING;],
 [struct request_info *request; return hosts_access (request);],
-      [AC_DEFINE(USE_LIBWRAP)
+      [AC_DEFINE(USE_LIBWRAP, 1, [Defined if libwrap is used])
        WRAP_LIB="-lwrap"
        wrap_ok=yes],
       [LIBS="$LIBS -lnsl"
@@ -398,7 +428,7 @@ int allow_severity = LOG_INFO;
 int deny_severity = LOG_WARNING;],
 [struct request_info *request; return hosts_access (request);],
 
-         [AC_DEFINE(USE_LIBWRAP)
+         [AC_DEFINE(USE_LIBWRAP, 1, [Defined if libwrap is used])
           WRAP_LIB="-lwrap -lnsl"
           wrap_ok=yes])])
 
