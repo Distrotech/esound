@@ -69,6 +69,7 @@ int main(int argc, char **argv)
 
     printf( "sample uploaded, %d bytes\n", total );
     esd_sample_play( sock, sample_id );
+   sleep(100);
     esd_sample_free( sock, sample_id );
 
     printf( "closing down\n" );

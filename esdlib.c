@@ -58,10 +58,12 @@ int esd_send_auth( int socket )
     /* send the key to the server */
     if ( ESD_KEY_LEN != write( socket, auth_key, ESD_KEY_LEN ) ) {
 	/* send key failed */
+	close( auth_fd );
 	return 0;
     }
 
     /* we've run the gauntlet, everything's ok, proceed as usual */
+   close( auth_fd );
     return 1;
 }
 
