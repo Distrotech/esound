@@ -1,5 +1,9 @@
-1999-02-13  Yo Ric Dude  <ericmit@ix.netcom.com>
+1999-02-14  Yo Ric Dude  <ericmit@ix.netcom.com>
 
+	* clients.c, esd.c: less brutal audio flushing algorithm.
+
+1999-02-13  Yo Ric Dude  <ericmit@ix.netcom.com>
+	
 	* esdfile.c, esdlib.c: added and commented out diagnostic code. 
 	* esd-server.h, esd.c, players.c, proto.c, samples.c, players.c:
  	add flag to force sample deletion, and force sample deletion only
@@ -23,7 +27,7 @@ Fri Feb  5 14:28:17 PST 1999 Manish Singh <yosh@gimp.org>
 
 1999-02-03  Yo Ric Dude  <ericmit@ix.netcom.com>
 
-	* esd.c: yeat another CPU usage fix, courtesy of Chutt
+	* esd.c: yet another CPU usage fix, courtesy of Chutt
 
 1999-02-01  Elliot Lee  <sopwith@redhat.com>
 

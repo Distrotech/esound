@@ -458,7 +458,7 @@ int main ( int argc, char *argv[] )
 		/* TODO: on monitor, why isn't this a buffer of zeroes? */
 		/* esd_audio_write( output_buffer, esd_buf_size_octets ); */
 		esd_audio_write( output_buffer, length );
-		esd_audio_flush();
+		/* esd_audio_flush(); */ /* this is overkill */
 		esd_last_activity = time( NULL );
 	    }
 	} else {

@@ -281,6 +281,7 @@ int wait_for_clients_and_data( int listen )
 
 	if ( !is_paused_here && !esd_playing_samples && (esd_autostandby_secs<0) ) {
 	    ESDBG_TRACE( printf( "doing nothing, pausing server.\n" ); );
+	    esd_audio_flush();
 	    esd_audio_pause();
 	    esd_last_activity = time( NULL );
 	    is_paused_here = 1;
