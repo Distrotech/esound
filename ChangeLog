@@ -1,3 +1,8 @@
+2003-08-30  Dan Winship  <danw@ximian.com>
+
+	* Makefile.am (AUDIO_BACKENDS): add several missing backends that
+	weren't getting disted.
+
 2003-08-11  Frederic Crozat  <fcrozat@mandrakesoft.com>
 
 	* configure.in: Release 0.2.31

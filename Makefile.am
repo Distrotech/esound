@@ -42,15 +42,19 @@ libesd_la_SOURCES = \
 
 # one of these gets included by audio.c
 AUDIO_BACKENDS = \
-	audio_aix.c	\
-	audio_alsa.c	\
-	audio_alsa09.c  \
-	audio_hpux.c	\
-	audio_irix.c	\
-	audio_none.c	\
-	audio_oss.c	\
-	audio_mklinux.c	\
-	audio_solaris.c	
+	audio_aix.c		\
+	audio_alsa.c		\
+	audio_alsa09.c  	\
+	audio_coreaudio.c	\
+	audio_dart.c		\
+	audio_hpux.c		\
+	audio_mklinux.c		\
+	audio_irix.c		\
+	audio_none.c		\
+	audio_osf.c		\
+	audio_oss.c		\
+	audio_solaris.c		\
+	audio_win32.c
 
 libesddsp_la_LDFLAGS = -version-info $(ESD_VERSION_INFO)
 libesddsp_la_LIBADD = $(DL_LIB) -lm
