@@ -14,7 +14,7 @@ Source0:   esound-%{PACKAGE_VERSION}.tar.gz
 URL:       http://www.tux.org/~ricdude/EsounD.html
 BuildRoot: /var/tmp/esound-%{PACKAGE_VERSION}-root
 
-Docdir: %{prefix}/doc
+Docdir: %{_prefix}/doc
 
 %description
 EsounD -- the Enlightened Sound Daemon -- is a server process
@@ -33,22 +33,26 @@ by your audio device.
 Summary: Libraries, includes and more to develop EsounD applications.
 Group: Development/Libraries
 Requires: esound
+Requires: audiofile-devel
 
 %description devel
 Libraries, include files and other resources you can use
 to develop EsounD applications.
 
 %prep
-%setup
+%setup -q
 
 %build
-  CFLAGS="$RPM_OPT_FLAGS" ./configure --prefix=%prefix --sysconfdir=/etc
-  make
+CFLAGS="$RPM_OPT_FLAGS" ./configure --prefix=%prefix --sysconfdir=/etc
+
+make
 
 %install
 rm -rf $RPM_BUILD_ROOT
 
-make prefix=$RPM_BUILD_ROOT%{prefix} sysconfdir=$RPM_BUILD_ROOT/etc install
+make prefix=$RPM_BUILD_ROOT%{_prefix} sysconfdir=$RPM_BUILD_ROOT/etc install
+
+strip $RPM_BUILD_ROOT%{_prefix}/bin/* ||:
 
 %post -p /sbin/ldconfig
 
@@ -59,23 +63,37 @@ rm -rf $RPM_BUILD_ROOT
 
 %files
 %defattr(-, root, root)
-%doc AUTHORS COPYING ChangeLog EsounD.html INSTALL NEWS README TIPS TODO
-/etc/*
-%{prefix}/bin/*
-%{prefix}/lib/lib*.so.*
-%{prefix}/lib/lib*.so
+%doc AUTHORS COPYING ChangeLog docs/esound.sgml INSTALL NEWS README TIPS TODO
+%config /etc/*
+%{_prefix}/bin/esd
+%{_prefix}/bin/esdcat
+%{_prefix}/bin/esdctl
+%{_prefix}/bin/esddsp
+%{_prefix}/bin/esdfilt
+%{_prefix}/bin/esdloop
+%{_prefix}/bin/esdmon
+%{_prefix}/bin/esdplay
+%{_prefix}/bin/esdrec
+%{_prefix}/bin/esdsample
+%{_prefix}/lib/lib*.so.*
 
 %files devel
 %defattr(-, root, root)
 
-%{prefix}/lib/*a
-%{prefix}/include/*
-%{prefix}/share/aclocal/*
+%{_prefix}/bin/esd-config
+%{_prefix}/lib/*a
+%{_prefix}/include/*
+%{_prefix}/share/aclocal/*
+%{_prefix}/lib/lib*.so
 
 %changelog
+* Mon Aug 30 1999 Elliot Lee <sopwith@redhat.com> 0.2.13-1
+- Update to 0.2.13
+- Merge in changes from RHL 6.0 spec file.
+
 * Sat Nov 21 1998 Pablo Saratxaga <srtxg@chanae.alphanet.ch>
 
-- added %{prefix}/share/aclocal/* to %files devel
+- added %{_prefix}/share/aclocal/* to %files devel
 - added spanish and french translations for rpm
 
 * Thu Oct 1 1998 Ricdude <ericmit@ix.netcom.com>

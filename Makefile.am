@@ -124,5 +124,9 @@ rpm: $(PACKAGE)-$(VERSION).tar.gz
 	cp $(PACKAGE)-$(VERSION).tar.gz /usr/src/redhat/SOURCES
 	rpm -ba $(SPEC_FILE)
 
-dist-hook:
+dist-hook: esound.spec
 	cp $(SPEC_FILE) $(distdir)
+	mkdir $(distdir)/docs
+	cp $(srcdir)/docs/esound.sgml $(distdir)/docs
+
+CLEANFILES=esound.spec
