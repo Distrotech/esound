@@ -44,20 +44,20 @@ dnl Check for system libs needed
 AC_CHECK_FUNCS(setenv putenv)
 AC_CHECK_FUNC(connect,,[AC_CHECK_LIB(socket,connect)])
 AC_CHECK_FUNC(gethostbyname,,[AC_CHECK_LIB(nsl,gethostbyname)])
-AC_CHECK_FUNC(nanosleep,,[AC_CHECK_LIB(posix4,nanosleep)])
-AC_CHECK_FUNCS(usleep,,)
+AC_CHECK_FUNC(nanosleep,,[
+  AC_CHECK_LIB(rt,nanosleep,,[AC_CHECK_LIB(posix4,nanosleep)])])
+AC_CHECK_FUNCS(usleep)
 AC_CHECK_FUNC(inet_aton,,[AC_CHECK_LIB(resolv,inet_aton)])
 
-if test x$ac_cv_func_nanosleep = xno && test x$ac_cv_lib_posix4_nanosleep = xno 
-then :
-else
-  AC_DEFINE(HAVE_NANOSLEEP)
-fi
-if test x$ac_cv_func_inet_aton = xno && test x$ac_cv_lib_resolv_inet_aton = xno 
-then :
-else
-  AC_DEFINE(HAVE_INET_ATON)
-fi
+case $ac_cv_func_nanosleep/$ac_cv_lib_rt_nanosleep/$ac_cv_lib_posix4_nanosleep in
+no/no/no) ;;
+*) AC_DEFINE(HAVE_NANOSLEEP)
+esac
+
+case $ac_cv_func_inet_aton/$ac_cv_lib_resolv_inet_aton in 
+no/no) ;;
+*) AC_DEFINE(HAVE_INET_ATON)
+esac
 
 dnl Check if INADDR_LOOPBACK exists
   
