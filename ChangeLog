@@ -1,3 +1,8 @@
+1998-11-03  Christopher Blizzard  <blizzard@appliedtheory.com>
+
+	* esdctl.c (main): Change call from esd_free_all_info() to
+ 	esd_free_esd_info() so that this will build.
+
 1998-11-03  Yo Ric Dude  <ricdude@ix.netcom.com>
 
 	* TODO, configure.in: update version number
