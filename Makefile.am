@@ -1,5 +1,7 @@
-AF_LIB = @AF_LIB@
+AUDIOFILE_LIBS = @AUDIOFILE_LIBS@
 LIBESDDSP = @LIBESDDSP@
+
+INCLUDES = @AUDIOFILE_CFLAGS@
 
 bin_SCRIPTS = \
 	@ESDDSP@	\
@@ -94,6 +96,7 @@ esdsample_SOURCES = \
 esdloop_SOURCES = \
 	esdloop.c
 
+
 EXTRA_esdplay_SOURCES = \
 	esdplay.c
 
@@ -103,7 +106,7 @@ LIBOBJS = @LIBOBJS@
 
 esd_LDADD = $(LIBOBJS) $(WRAP_LIB) $(LDADD)
 esdctl_LDADD = $(LIBOBJS) $(LDADD)
-esdplay_LDADD = $(LIBOBJS) $(AF_LIB) $(LDADD)
+esdplay_LDADD = $(LIBOBJS) $(AUDIOFILE_LIBS) $(LDADD)
 
 m4datadir = $(datadir)/aclocal
 m4data_DATA = esd.m4

@@ -1,3 +1,6 @@
+1998-10-21 Bertrand Guiheneuf <Bertrand.Guiheneuf@inria.fr>
+        * use the audiofile.m4 macro to detect libaudiofile
+
 1998-11-09  Yo Ric Dude  <ricdude@ix.netcom.com>
 
 	* clients.c, esdlib.c, filter.c, mix.c, players.c, proto.c
