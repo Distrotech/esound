@@ -1,4 +1,20 @@
 ===============
+Version 0.2.35
+===============
+	* fix location of configuration file in man (Craig Routledge)
+	* MMAP support for esddsp (from artsdsp, Olivier Blin)
+	* GNU/kFreeBSD support (Robert Milan)
+	* add new default_options in configuration file and environement 
+	  variable, fix regression caused by patch since 0.2.30
+	* use ALSA default alias (Cyrille Chepelov)
+	* clean code (Kjartan Maraas)
+	
+===============
+Version 0.2.34
+===============
+	* don't use C99 extensions (Jens Granseuer)
+
+===============
 Version 0.2.33
 ===============
 	* use new ALSA PCM API if available (Lukasz Mach and Eddy Mylyono)

@@ -1,5 +1,11 @@
 2004-08-12  Frederic Crozat  <fcrozat@mandrakesoft.com>
 
+	* configure.in:
+	* NEWS
+	Release 0.2.35
+
+2004-08-12  Frederic Crozat  <fcrozat@mandrakesoft.com>
+
 	* audio_alsa09.c:
 	Use Alsa default alias when no card is specified (bug #144318,
 	original fix from Cyrille Chepelov)
@@ -47,6 +53,12 @@
 	* docs/esd.1.in:
 	Fix location of configuration file (Craig Routledge
 	<webstuff@craigroutledge.com>).
+
+2004-03-16  Frederic Crozat  <fcrozat@mandrakesoft.com>
+ 
+	* NEWS:
+	* configure.in:
+        Release 0.2.34
 
 2004-03-03  Frederic Crozat  <fcrozat@mandrakesoft.com>
 
