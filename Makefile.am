@@ -7,7 +7,8 @@ EXTRA_DIST = \
 	EsounD.html \
 	TIPS \
 	test-script \
-	test.wav
+	test.wav \
+	getopt.h
 
 lib_LTLIBRARIES = libesd.la
 
@@ -74,7 +75,7 @@ EXTRA_esdplay_SOURCES = \
 
 LDADD = libesd.la -lm
 
-esdplay_LDADD = $(AF_LIB) $(LDADD)
+esdplay_LDADD = @LIBOBJS@ $(AF_LIB) $(LDADD)
 
 m4datadir = $(datadir)/aclocal
 m4data_DATA = esd.m4

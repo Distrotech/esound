@@ -42,6 +42,9 @@ else
   AC_DEFINE(HAVE_INET_ATON)
 fi
 
+AC_CHECK_FUNC(getopt_long,,[LIBOBJS="$LIBOBJS getopt.o getopt1.o"])
+AC_SUBST(LIBOBJS)
+
 dnl Needed for FIONBIO on Solaris at least
 AC_CHECK_HEADERS(sys/filio.h sys/ioctl.h)
 
@@ -172,4 +175,4 @@ AC_SUBST(ESDPLAY)
 AC_OUTPUT([
 Makefile
 esd-config
-], [chmod +x esd-config])
+], [case "$CONFIG_FILES" in *esd-config*) chmod +x esd-config;; esac])

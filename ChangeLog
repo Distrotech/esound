@@ -1,3 +1,10 @@
+1998-10-01  Raja R Harinath  <harinath@cs.umn.edu>
+
+	* configure.in (esd-config): Turn on execute bit only if
+	`esd-config' was generated.
+	(getopt_long): New check.
+	* getopt.h, getopt.c, getopt1.c: New files.
+
 Wed Sep 30 21:08:19 PDT 1998 Manish Singh <yosh@gimp.org>
 
 	* esd.m4
