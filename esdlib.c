@@ -12,9 +12,10 @@
 int esd_send_auth( int socket )
 {
     int auth_fd = -1, i = 0;
-    char auth_filename[NAME_MAX+1] = "", auth_key[ESD_KEY_LEN];
+    char *auth_filename = 0, auth_key[ESD_KEY_LEN];
     char *home = NULL;
     char tumbler = '\0';
+    int namelen, retval;
 
     /* assemble the authorization filename */
     home = getenv( "HOME" );
@@ -22,12 +23,19 @@ int esd_send_auth( int socket )
 	printf( "HOME environment variable not set?\n" );
 	return -1;
     }
+
+    namelen = strlen(home) + sizeof("/.esd_auth");
+    if ((auth_filename = malloc(namelen)) == 0) {
+	printf( "Memory exhausted\n" );
+	return -1;
+    }
+
     strcpy( auth_filename, home );
     strcat( auth_filename, "/.esd_auth" );
 
+    retval = 0;
     /* open the authorization file */
-    if ( -1 == (auth_fd = open( auth_filename, O_RDONLY ) ) )
-    {
+    if ( -1 == (auth_fd = open( auth_filename, O_RDONLY ) ) ) {
 	/* it doesn't exist? create one */
 	auth_fd = open( auth_filename, O_RDWR | O_CREAT | O_EXCL,
 			S_IRUSR | S_IWUSR );
@@ -35,7 +43,7 @@ int esd_send_auth( int socket )
 	if ( -1 == auth_fd ) {
 	    /* coun't even create it?  bail */
 	    perror( auth_filename );
-	    return 0;
+	    goto exit_fn;
 	}
 
 	/* spew random garbage for a key */
@@ -50,21 +58,22 @@ int esd_send_auth( int socket )
     }
 
     /* read the key from the authorization file */
-    if ( ESD_KEY_LEN != read( auth_fd, auth_key, ESD_KEY_LEN ) ) {
-	close( auth_fd );
-	return 0;
-    }
-	
+    if ( ESD_KEY_LEN != read( auth_fd, auth_key, ESD_KEY_LEN ) )
+	goto exit_fd;
+
     /* send the key to the server */
-    if ( ESD_KEY_LEN != write( socket, auth_key, ESD_KEY_LEN ) ) {
+    if ( ESD_KEY_LEN != write( socket, auth_key, ESD_KEY_LEN ) )
 	/* send key failed */
-	close( auth_fd );
-	return 0;
-    }
+	goto exit_fd;
 
     /* we've run the gauntlet, everything's ok, proceed as usual */
-   close( auth_fd );
-    return 1;
+    retval = 1;
+
+ exit_fd:
+    close( auth_fd );
+ exit_fn:
+    free( auth_filename );
+    return retval;
 }
 
 /*******************************************************************/
