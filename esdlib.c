@@ -1102,7 +1102,7 @@ int esd_record_stream_fallback( esd_format_t format, int rate,
 
 /*******************************************************************/
 /* cache a sample in the server returns sample id, <= 0 is error */
-int esd_sample_cache( int esd, esd_format_t format, int rate, 
+int esd_sample_cache( int esd, esd_format_t format, const int rate, 
 		      const int size, const char *name )
 {
     int id = 0;
