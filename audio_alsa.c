@@ -211,8 +211,12 @@ int esd_audio_open()
 #endif
 
     /* set the sound driver audio format for playback */
-    alsa_format.format = ( (esd_audio_format & ESD_MASK_BITS) == ESD_BITS16 )
-	? /* 16 bit */ SND_PCM_SFMT_S16_LE : /* 8 bit */ SND_PCM_SFMT_U8;
+    alsa_format.format = ( (esd_audio_format & ESD_MASK_BITS) == ESD_BITS16 )  
+#if defined(WORDS_BIGENDIAN)
+      ? /* 16 bit */ SND_PCM_SFMT_S16_BE : /* 8 bit */ SND_PCM_SFMT_U8;
+#else
+      ? /* 16 bit */ SND_PCM_SFMT_S16_LE : /* 8 bit */ SND_PCM_SFMT_U8;
+#endif
     alsa_format.rate = esd_audio_rate;
 
 #ifdef ALSA_5_API
@@ -256,7 +260,11 @@ int esd_audio_open()
     }
 
     if ( params.format.rate != esd_audio_rate || params.format.voices != 2
+#if defined(WORDS_BIGENDIAN)
+                       || params.format.format != SND_PCM_SFMT_S16_BE ) {
+#else
                        || params.format.format != SND_PCM_SFMT_S16_LE ) {
+#endif
                       fprintf( stderr, "set format didn't work.");
                       return(-1);
         }
@@ -294,7 +302,11 @@ int esd_audio_open()
 	printf( "error: %s: in snd_pcm_playback_params\n", snd_strerror(ret) );
     }
     if ( alsa_format.rate != esd_audio_rate || alsa_format.channels != 2
+#if defined(WORDS_BIGENDIAN)
+       || alsa_format.format != SND_PCM_SFMT_S16_BE )
+#else
        || alsa_format.format != SND_PCM_SFMT_S16_LE )
+#endif
         fprintf( stderr, "set format didn't work.");
 
 #endif /* ALSA_5_API */

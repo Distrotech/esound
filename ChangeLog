@@ -1,3 +1,10 @@
+2002-05-12  Frédéric Crozat  <fred@crozat.net>
+
+	* audio_alsa.c:
+	* audio_alsa09.c: (esd_audio_open):
+	Fix endianess problem (for PPC people) with ALSA. 
+	Thanks to Jack Howarth <howarth@bromo.med.uc.edu>
+
 2002-05-10  Shivaram U  <shivaram.upadhyayula@wipro.com>
 
 	* Makefile.am: Fix for build failure on Solaris. Changed variable names
