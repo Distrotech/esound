@@ -352,18 +352,19 @@ int esd_open_sound( const char *host )
 		      strlen(socket_unix.sun_path) ) < 0 )
 	{
 	  static int connect_count = 0;
-	  int pid;
-	  
 	  
 	  connect_count++;
-	  
 	  if (connect_count == 1)
 	    {
 	      /* try to run esd */
 	      
-	      if (!(pid=fork())) {
-		execl("/bin/sh", "/bin/sh", "-c", "esd -terminate -nobeeps", NULL);
-		perror("execl");
+	      if (!fork()) {
+		if (!fork())
+		  {
+		    execl("/bin/sh", "/bin/sh", "-c", "esd -terminate -nobeeps -as 2", NULL);
+		    perror("execl");
+		  }
+		exit(0);
 	      }
 	    }
 	  /* if we tried more than 6 times (6 seconds) give up */
@@ -470,18 +471,19 @@ int esd_open_sound( const char *host )
 		      sizeof(struct sockaddr_in) ) < 0 )
 	{
 	  static int connect_count = 0;
-	  int pid;
-	  
 	  
 	  connect_count++;
-	  
 	  if (connect_count == 1)
 	    {
 	      /* try to run esd */
 	      
-	      if (!(pid=fork())) {
-		execl("/bin/sh", "/bin/sh", "-c", "esd -terminate -nobeeps", NULL);
-		perror("execl");
+	      if (!fork()) {
+		if (!fork())
+		  {
+		    execl("/bin/sh", "/bin/sh", "-c", "esd -terminate -nobeeps -as 2", NULL);
+		    perror("execl");
+		  }
+		exit(0);
 	      }
 	    }
 	  /* if we tried more than 6 times (6 seconds) give up */
