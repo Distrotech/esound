@@ -120,6 +120,8 @@ int esd_record_stream_fallback( esd_format_t format, int rate, char *host, char 
 
 /* cache a sample in the server returns sample id, < 0 = error */
 int esd_sample_cache( int esd, esd_format_t format, int rate, long length, char *name );
+int esd_confirm_sample_cache( int esd );
+
 /* uncache a sample in the server */
 int esd_sample_free( int esd, int sample );
 
