@@ -1,3 +1,9 @@
+2002-06-17  Frederic Crozat  <fcrozat@mandrakesoft.com>
+
+	* esd.c: (main):
+	Fix problem with via82cxxx sound driver 
+	(patch provided by Samual Audet <guardia@step.polymtl.ca>)
+
 2002-06-14  Frederic Crozat  <fcrozat@mandrakesoft.com>
 
 	* docs/esd.1.in:

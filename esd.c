@@ -801,6 +801,9 @@ int main ( int argc, char *argv[] )
 	}
     }
 
+    /* put some stuff in sound driver before pausing */
+    esd_audio_write( NULL, 0);
+
     /* pause the sound output */
     esd_audio_pause();
 
