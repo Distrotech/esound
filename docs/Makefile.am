@@ -4,8 +4,8 @@ DOCS = @DOCS@
 doc: $(DOCS)
 
 esound/index.html: esound.sgml
-	cd $(srcdir) && @DB2HTML@ esound.sgml
-	cd $(srcdir) && cp esound/book1.html esound/index.html
+	@DB2HTML@ $(srcdir)/esound.sgml
+	cp esound/book1.html esound/index.html
 
 esound.ps: esound.sgml
 	cd $(srcdir) && @DB2PS@ esound.sgml
