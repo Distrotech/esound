@@ -1,3 +1,15 @@
+2002-06-04  Frederic Crozat <fcrozat@mandrakesoft.com>
+
+	* esd.c: (safe_mksocketdir):
+	Fix socket directory test (bug #83158)
+	(Patch from Diego SantaCruz <DiegoSantaCrux@epfl.ch>)
+
+2002-06-04  Frederic Crozat <fcrozat@mandrakesoft.com>
+
+	* esdlib.c: (esd_open_sound):
+	Fix size of allocated string for daemon spawn. 
+	(Patch from Alex Larsson <alexl@redhat.com>)
+
 2002-06-04  Frederic Crozat  <fcrozat@mandrakesoft.com>
 
 	* players.c: (read_player):

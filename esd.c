@@ -255,7 +255,7 @@ struct stat dir_stats;
        * required, just a mode that isn't more permissive than the
        * one requested.
        */
-      if ( ~ESD_UNIX_SOCKET_DIR_MODE & dir_stats.st_mode)
+      if ( ~ESD_UNIX_SOCKET_DIR_MODE & (dir_stats.st_mode & ~S_IFMT))
 	updateMode = 1;
 #if defined(S_ISVTX)
       if ((dir_stats.st_mode & S_IWOTH) && !(dir_stats.st_mode & S_ISVTX))
