@@ -21,4 +21,4 @@ libesd.la
 .libs
 _libs
 .deps
-
+esdplay
