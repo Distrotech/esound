@@ -22,7 +22,7 @@ DIE=0
 	DIE=1
 }
 
-(automake --version) < /dev/null > /dev/null 2>&1 || {
+(automake-1.4 --version) < /dev/null > /dev/null 2>&1 || {
 	echo
 	echo "You must have automake installed to compile esound."
 	echo "Get ftp://ftp.cygnus.com/pub/home/tromey/automake-1.2d.tar.gz"
@@ -36,11 +36,11 @@ fi
 
 THEDIR="`pwd`"
 cd $srcdir
-aclocal $ACLOCAL_FLAGS
+aclocal-1.4 $ACLOCAL_FLAGS
 libtoolize --force
 autoheader
 autoconf
-automake --gnu --add-missing
+automake-1.4 --gnu --add-missing
 cd "$THEDIR"
 
 if test -z "$*"; then
