@@ -59,7 +59,15 @@ static int settings, done;
 
 int open (const char *pathname, int flags, mode_t mode)
 {
-  int ret = __open (pathname, flags, mode);
+  int ret = -1;
+
+  if (getenv ("ESPEAKER"))
+    {
+      if (strcmp (pathname, "/dev/dsp"))
+	ret = __open (pathname, flags, mode);
+    }
+  else
+    ret = __open (pathname, flags, mode);
 
   if (ret == -1 && !strcmp (pathname, "/dev/dsp"))
     {
@@ -192,9 +200,9 @@ int unlink (const char *filename)
     return __unlink (filename);
 }
 
-typedef int (*SockAddrFunc) (int fd, struct sockaddr *addr, int len);
+typedef int (*SAFunc) (int fd, struct sockaddr *addr, int len);
 
-int sockaddr_mangle (SockAddrFunc func, int fd, struct sockaddr *addr, int len)
+static int sockaddr_mangle (SAFunc func, int fd, struct sockaddr *addr, int len)
 {
   char *num;
 
@@ -229,4 +237,4 @@ int connect (int fd, struct sockaddr *addr, int len)
   return sockaddr_mangle (__connect, fd, addr, len);
 }
 
-#endif
+#endif /* MULTIPLE_X11AMP */
