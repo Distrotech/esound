@@ -157,9 +157,6 @@ int esd_file_cache( int esd, const char *name_prefix, const char *filename )
     length = afGetTrackBytes( in_file, AF_DEFAULT_TRACK );
     afGetSampleFormat( in_file, AF_DEFAULT_TRACK, &in_format, &in_width );
 
-    /* TODO: should this be set to the native endian order of the playing machine? */
-    afSetVirtualByteOrder( in_file, AF_DEFAULT_TRACK, AF_BYTEORDER_LITTLEENDIAN );
-
     /*  printf ("frames: %i channels: %i rate: %f format: %i width: %i\n",
      *	        frame_count, in_channels, in_rate, in_format, in_width);
      */
