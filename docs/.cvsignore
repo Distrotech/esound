@@ -1,7 +1,8 @@
-esound
+Makefile
 Makefile.in
-esound.log
+esound
 esound.aux
 esound.dvi
+esound.log
 esound.ps
 esound.tex
