@@ -15,7 +15,7 @@ esd_get_socket_dirname (void)
 			audiodev = strrchr(audiodev, '/');
 			audiodev++;
 		}
-		dirname = malloc(strlen(audiodev) +9);
+		dirname = malloc(strlen(audiodev) + sizeof("/tmp/.esd"));
 		strcpy(dirname, "/tmp/.esd");
 		strcat(dirname, audiodev);
 	}
@@ -31,7 +31,7 @@ esd_get_socket_name (void)
 
 	if (name == NULL) {
 		dirname = esd_get_socket_dirname();
-		name = malloc(strlen(dirname) +7);
+		name = malloc(strlen(dirname) + sizeof("/socket"));
 		strcpy(name, dirname);
 		strcat(name, "/socket");
 	}
