@@ -216,7 +216,14 @@ int wait_for_clients_and_data( int listen )
     /* add the clients to the list, too */
     while ( client != NULL )
     {
-	/* add this client */
+	/* add this client, but only if it's not monitoring */
+	if ( client->state == ESD_STREAMING_DATA &&
+	     client->request == ESD_PROTO_STREAM_MON )
+	{
+	    client = client->next;
+	    continue;
+	}
+
 	FD_SET( client->fd, &rd_fds );
 
 	/* update the maximum fd for the select() */
@@ -259,6 +266,11 @@ int wait_for_clients_and_data( int listen )
 
     ready = select( max_fd+1, &rd_fds, NULL, NULL, timeout_ptr );
 
+    ESDBG_COMMS( printf( "paused=%d, samples=%d, auto=%d, standby=%d, record=%d\n",
+			 is_paused_here, esd_playing_samples, 
+			 esd_autostandby_secs, esd_on_standby, 
+			 (esd_recorder != 0) ); );
+
     /* TODO: return ready, and do this in esd.c */
     if ( ready <= 0 ) {
 	/* if < 0, something horrible happened:
@@ -267,7 +279,7 @@ int wait_for_clients_and_data( int listen )
 	   EINVAL  n is negative - not bloody likely
 	   ENOMEM  unable to allocate internal tables - o well, no big deal */
 
-	if ( !is_paused_here && !esd_playing_samples && !esd_autostandby_secs ) {
+	if ( !is_paused_here && !esd_playing_samples && (esd_autostandby_secs<0) ) {
 	    ESDBG_TRACE( printf( "doing nothing, pausing server.\n" ); );
 	    esd_audio_pause();
 	    esd_last_activity = time( NULL );

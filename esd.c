@@ -202,8 +202,7 @@ int open_listen_socket( int port )
 	       (struct sockaddr *) &socket_addr,
 	       sizeof(struct sockaddr_in) ) < 0 )
     {
-	fprintf(stderr,"Unable to bind port %d\n", 
-		socket_addr.sin_port );
+	fprintf(stderr,"Unable to bind port %d\n", port );
 	exit(1);
     }
     if (listen(socket_listen,16)<0)
@@ -477,8 +476,8 @@ int main ( int argc, char *argv[] )
 	/* if someone's monitoring the sound stream, send them data */
 	/* mix_players, above, forces buffer to zero if no players */
 	/* this clears out any leftovers from recording, below */
-	/* if ( esd_monitor_list && !esd_on_standby && length ) { */
-	if ( esd_monitor_list && !esd_on_standby ) { 
+	if ( esd_monitor_list && !esd_on_standby && length ) {
+	/* if ( esd_monitor_list && !esd_on_standby ) {  */
 	    monitor_write( output_buffer, length );
 	}
 

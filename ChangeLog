@@ -1,3 +1,10 @@
+1999-02-10  Yo Ric Dude  <ericmit@ix.netcom.com>
+
+	* clients.c, esd.c, esdlib.c: only check for more data if the
+	stream isn't a monitor stream, as there's nothing to read anyway.
+	correct condition on esd_autostandby_secs for pausing. use the
+	host representation of the port number instead of network order.
+
 Fri Feb  5 14:28:17 PST 1999 Manish Singh <yosh@gimp.org>
 
 	* esd-config.in: erk. NEVER include @CFLAGS@ or @LDFLAGS@ in these
