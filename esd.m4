@@ -32,7 +32,7 @@ AC_ARG_ENABLE(esdtest, [  --disable-esdtest       Do not try to compile and run 
   fi
 
   AC_PATH_PROG(ESD_CONFIG, esd-config, no)
-  min_esd_version=ifelse([$1], ,0.2.5,$1)
+  min_esd_version=ifelse([$1], ,0.2.7,$1)
   AC_MSG_CHECKING(for ESD - version >= $min_esd_version)
   no_esd=""
   if test "$ESD_CONFIG" = "no" ; then
