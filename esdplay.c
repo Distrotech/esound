@@ -68,7 +68,7 @@ play_file (const char *filename)
       return 1;
     }
 
-  bytes_per_frame = in_width / 8;
+  bytes_per_frame = (in_width  * in_channels) / 8;
 
   if (in_channels == 1)
     out_channels = ESD_MONO;
