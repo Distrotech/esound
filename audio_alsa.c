@@ -358,6 +358,7 @@ int esd_audio_write( void *buffer, int buf_size )
     }
 
 #ifdef ALSA_5_API
+    status.channel = SND_PCM_CHANNEL_PLAYBACK;
     ret = snd_pcm_channel_status( alsa_sound_handle, &status );
     if( ret ) {
                   if( driver_trace ) fprintf( stderr, "error: %s: in snd_pcm_channel_status\n", snd_strerror(ret) );
