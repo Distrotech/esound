@@ -106,6 +106,7 @@ int read_sample( esd_sample_t *sample )
     int actual = 0, total = sample->cached_length;
     esd_client_t *client = (esd_client_t *) sample->parent;
     short data, *pos;
+    short *buffer = (short*) sample->data_buffer;
 
     ESDBG_COMMS( printf( "{rs} resuming sample cache at %d\n", total ); );
 
@@ -120,8 +121,8 @@ int read_sample( esd_sample_t *sample )
 		 && ( (sample->format & ESD_MASK_BITS) == ESD_BITS16 ) )
 	    {
 		printf( "swapping...\n" );
-		for ( pos = sample->data_buffer + total 
-			  ; pos < sample->data_buffer + actual / sizeof(short)
+		for ( pos = buffer + total / sizeof(short)
+			  ; pos < buffer + actual / sizeof(short)
 			  ; pos += sizeof(short) ) 
 		{
 		    data = swap_endian_16( (*pos) );

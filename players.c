@@ -153,6 +153,7 @@ int read_player( esd_player_t *player )
     char message[ 100 ];
     short data, *pos; /* used for swapping */
     esd_client_t *client;
+    short *buffer;
 
     switch( player->format & ESD_MASK_MODE ) {
     case ESD_STREAM:
@@ -183,8 +184,9 @@ int read_player( esd_player_t *player )
 		 && ( (player->format & ESD_MASK_BITS) == ESD_BITS16 ) )
 	    {
 		printf( "swapping...\n" );
-		for ( pos = player->data_buffer 
-			  ; pos < player->data_buffer + actual / sizeof(short)
+		buffer = (short*) player->data_buffer;
+		for ( pos = buffer 
+			  ; pos < buffer + actual / sizeof(short)
 			  ; pos += sizeof(short) )
 		{
 		    data = swap_endian_16( (*pos) );
@@ -264,6 +266,7 @@ int read_player( esd_player_t *player )
 	}
 
 	/* sample data is swapped as it's cached, no swap needed here */
+	break;
 
     default:
 	ESDBG_TRACE( printf( "-%02d- read_player: format 0x%08x not supported\n", 
@@ -491,7 +494,8 @@ esd_player_t *new_sample_player( int sample_id, int loop )
     /* and initialize the player */
     player->next = NULL;
     player->parent = sample;
-    player->format = sample->format | ESD_SAMPLE;
+    player->format = sample->format & ~ESD_MASK_MODE;
+    player->format |= ESD_SAMPLE;
     if ( loop ) {
 	player->format &= ~ESD_MASK_FUNC;
 	player->format |= ESD_LOOP;

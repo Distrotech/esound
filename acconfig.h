@@ -12,3 +12,4 @@
 #undef HAVE_INET_ATON
 #undef HAVE_NANOSLEEP
 #undef USE_LIBWRAP
+#undef ESDBG

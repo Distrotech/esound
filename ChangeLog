@@ -1,3 +1,17 @@
+1998-12-08  Yo Ric Dude  <ricdude@ix.netcom.com>
+
+	* acconfig.h, configure.in, esd-server.h: use autoconf to turn
+ 	on/off insanely verbose diagnostic information
+
+	* clients.c: improved timeout for select algorithm - if we're
+ 	recording, return immediately, otherwise timeout after 1/2 an
+ 	ESD_BUF_SIZE amount of time.
+
+	* esd.c: just use select instead of this nanosleep stuff.
+
+	* samples.c, players.c: fixed problems with looping samples and a
+ 	pointer assignment warning
+
 1998-11-30  Jeff Garzik  <jgarzik@pobox.com>
 
 	* configure.in:

@@ -237,11 +237,19 @@ int wait_for_clients_and_data( int listen )
     }
 
     /* if we're doing something useful, make sure we return immediately */
-    if ( esd_players_list || esd_recorder ) {
+    if ( esd_recorder ) {
 	timeout.tv_sec = 0;
 	timeout.tv_usec = 0;
 	timeout_ptr = &timeout;
     } else {
+
+	timeout.tv_sec = 0;
+	/* funky math to make sure a long can hold it all, calulate in ms */
+	timeout.tv_usec = (long) esd_buf_size_samples * 1000L
+	    / (long) esd_audio_rate / 4L; 	/* divide by two for stereo */
+	timeout.tv_usec *= 1000L; 		/* convert to microseconds */
+	timeout_ptr = &timeout;
+
 	/* we might not be doing something useful, kill audio echos */
 	esd_audio_pause();
     }
