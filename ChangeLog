@@ -1,3 +1,7 @@
+1998-07-03  Manish Singh  <yosh@gimp.org>
+
+	* esdcat.c: pass a valid pointer for name in esd_play_stream_callback
+	(quick fix; esdlib should really do proper arg checking)
 
 1998-07-01  Yo Ric Dude  <ericmit@ix.netcom.com>
 
