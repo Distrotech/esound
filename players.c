@@ -1,5 +1,6 @@
 
 #include "esd-server.h"
+#include <errno.h>
 
 /*******************************************************************/
 /* globals */
@@ -246,7 +247,8 @@ int read_player( esd_player_t *player )
 			  player->buffer_length, actual, "str rd" );
 
 	    /* check for end of stream */
-	    if ( actual == 0 ) 
+	    if ( actual == 0 
+		 || ( actual < 0 && errno != EAGAIN && errno != EINTR ) )
 		return -1;
  
 	    /* more data, save how much we got */

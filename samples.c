@@ -1,5 +1,6 @@
 
 #include "esd-server.h"
+#include <errno.h>
 
 /*******************************************************************/
 /* globals */
@@ -124,6 +125,10 @@ int read_sample( esd_sample_t *sample )
 		      min( esd_buf_size_octets, sample->sample_length-total),
 		      actual, "rd_samp" );
 
+	if ( actual == 0 
+	     || ( actual < 0 && errno != EAGAIN && errno != EINTR ) )
+	    return 0;
+
 	if ( actual > 0 ) {
 	    /* endian swap multi-byte data if we need to */
 	    if ( client->swap_byte_order 
@@ -147,7 +152,7 @@ int read_sample( esd_sample_t *sample )
     /* TODO: what if total != sample_length ? */
     ESDBG_TRACE( printf( "<%02d> %d bytes total\n", sample->sample_id, total ); );
     sample->cached_length = total;
-    return total;
+    return 1;
 }
 
 /*******************************************************************/

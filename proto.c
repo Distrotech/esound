@@ -1,5 +1,6 @@
 
 #include "esd-server.h"
+#include <errno.h>
 
 /*******************************************************************/
 /* globals */
@@ -377,7 +378,12 @@ int esd_proto_sample_cache( esd_client_t *client )
     /* add to the list of sample */
     if ( sample != NULL ) {
 	sample->parent = client;
-	if( read_sample( sample ) < sample->sample_length ) {
+	if ( !read_sample( sample ) )
+	{
+	    return 0;	/* something failed during the read, just bail */
+	}
+
+	if ( sample->cached_length < sample->sample_length ) {
 	    client->state = ESD_CACHING_SAMPLE;
 	    ESDBG_TRACE( printf( "(%02d) continue caching sample next trip\n", 
 				 client->fd ); );
@@ -808,7 +814,9 @@ int poll_client_requests()
 	    }
 
 	    /* check length, as EOF returns readable */
-	    if ( !length ) {
+	    if ( !length 
+		 || ( length < 0 && errno != EAGAIN && errno != EINTR ) )
+	    {
 		ESDBG_TRACE( printf( "(%02d) interrupted request %d, %s.\n", 
 				     client->fd, client->request, 
 				     esd_proto_map[ client->request ].description ); );
@@ -838,10 +846,13 @@ int poll_client_requests()
 	    ESDBG_COMMS( printf( "--------------------------------\n" ); );
 	    ESD_READ_INT( client->fd, &client->request, 
 			  sizeof(client->request), length, "request" );
+
 	    if ( client->swap_byte_order )
 		client->request = swap_endian_32( client->request );
 
- 	    if ( length <= 0 ) {
+ 	    if ( length == 0
+		 || ( length < 0 && errno != EAGAIN && errno != EINTR ) )
+	    {
  		/* no more data available from that client, close it */
 		ESDBG_TRACE( printf( "(%02d) no more protocol requests for client\n", 
 				     client->fd ); );

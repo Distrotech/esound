@@ -1,17 +1,29 @@
 BUGS
 ====
 
-* Doesn't detect end of protocol stream if unfinished? maybe the cause of the:
-
 * CPU usage issues are back... or are they?  They are, but only if 
   someone's monitoring...
-
-* some data is required for each protocol handler or Bad Things Happen
+ 
+  I *really* hope that's fixed.  I don't see any problems over here,
+  but I've used that excuse before...
 
 * generates static for some people as of 12/8/98 - 12/9/98 changes.
+  Especially in 8 bit server mode?
 
-Planned for 0.2.7:
+* enum esd_standby_mode_t { 
+    ESM_ERROR, ESM_ON_STANDBY, ESM_ON_AUTOSTANDBY, ESM_RUNNING
+  };
+  esd_standmy_mode_t esd_in_on_standby( int esd );
+
+* esd is having problems wiht mono samples (ie duplicating sample data
+  into stereo from a mono stream or sample - esound "crackles" skipping
+  chunks of the sample.. :) )
+
+Planned for 0.2.9:
 ==================
+
+* some data is required for each protocol handler or Bad Things Happen.
+  In the immortal words of John Parker, "So what, big deal."
 
 * factor out monitor_write internals, and recorder_write, and filter_write
   into a write_player, and conditionally swap data on those writes.

@@ -1,3 +1,8 @@
+1999-02-16  Yo Ric Dude  <ericmit@ix.netcom.com>
+
+	* players.c, proto.c, samples.c: gracefully handle error
+ 	conditions from ESD_READ_*, i.e. check return values.
+
 Mon Feb 15 18:19:31 EST 1999 Mandrake <mandrake@mandrake.net>
 	* esdlib.c: boy am I getting tired of reading the
 	"cannot connect to esound server" error message whenever I don't
