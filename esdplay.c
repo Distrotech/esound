@@ -166,7 +166,7 @@ main (int argc, char *argv[])
       switch (c)
 	{
 	case 's':
-	  server = strdup (optarg);
+	  setenv("ESPEAKER", optarg);
 	  break;
 
 	case 'h':
