@@ -1,3 +1,8 @@
+2002-08-18  Frederic Crozat  <fcrozat@mandrakesoft.com>
+
+	* players.c: (read_player): fix crash on Solaris 9
+	(bug #88810, patch from Balamurali Viswanathan <balamurali.viswanathan@wipro.com>)
+
 2002-08-16  Frederic Crozat  <fcrozat@mandrakesoft.com>
 
 	* configure.in: add summary info at end of configure (Tom Prado
