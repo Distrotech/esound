@@ -79,3 +79,6 @@ rm -rf $RPM_BUILD_ROOT
 
 - First try at an RPM
 
+* Thu Oct 1 1998 Ricdude <ericmit@ix.netcom.com>
+
+- make autoconf do the version updating for us.

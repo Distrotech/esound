@@ -1,3 +1,9 @@
+1998-10-01  Yo Ric Dude  <ricdude@piranha>
+
+	* esound.spec[.in]: make autoconf do the version updating for us.
+
+	* Makefile.am, configure.in: move version updating to same place.
+
 1998-10-01  Yo Ric Dude  <ricdude@ix.netcom.com>
 
 	* audio_alsa.c: multiple audio card detection patches from Bibek.

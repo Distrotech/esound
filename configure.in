@@ -6,10 +6,15 @@ ESD_MAJOR_VERSION=0
 ESD_MINOR_VERSION=2
 ESD_MICRO_VERSION=5
 ESD_VERSION=$ESD_MAJOR_VERSION.$ESD_MINOR_VERSION.$ESD_MICRO_VERSION
+
+dnl set version info for libesd.so to package rev - $MAJOR + $MINOR : $MICRO : $MINOR
+ESD_VERSION_INFO=2:5:2
+
 AC_SUBST(ESD_MAJOR_VERSION)
 AC_SUBST(ESD_MINOR_VERSION)
 AC_SUBST(ESD_MICRO_VERSION)
 AC_SUBST(ESD_VERSION)
+AC_SUBST(ESD_VERSION_INFO)
 
 VERSION=$ESD_VERSION
 PACKAGE=esound
@@ -29,6 +34,10 @@ AC_PROG_CPP
 
 AM_PROG_LIBTOOL
 AC_PROG_INSTALL
+
+dnl Check for compiler environment
+
+AC_C_CONST
 
 dnl Check for system libs needed
 
@@ -181,4 +190,5 @@ AC_SUBST(ESDPLAY)
 AC_OUTPUT([
 Makefile
 esd-config
+esound.spec
 ], [case "$CONFIG_FILES" in *esd-config*) chmod +x esd-config;; esac])
