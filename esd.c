@@ -634,7 +634,7 @@ int main ( int argc, char *argv[] )
 	    fprintf( stderr, "  -vc           enable comms diagnostic info\n" );
 	    fprintf( stderr, "  -vm           enable mixer diagnostic info\n" );
 #endif
-	    fprintf( stderr, "  -port PORT   listen for connections at PORT (only for tcp/ip)\n" );
+	    fprintf( stderr, "  -port PORT    listen for connections at PORT (only for tcp/ip)\n" );
 	    fprintf( stderr, "  -bind ADDRESS binds to ADDRESS (only for tcp/ip)\n" );
 	    fprintf( stderr, "\nPossible devices are:  %s\n", esd_audio_devices() );
 	    exit( 0 );

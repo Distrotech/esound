@@ -1,3 +1,7 @@
+2003-02-24  Stanislav Brabec  <sbrabec@suse.cz>
+
+	* docs/esd.1.in, esd.c: Updated man page, typo fix.
+
 2002-12-05  Stanislav Brabec  <sbrabec@suse.cz>
 
 	* audio_alsa09.c: Limit maximum periods to 64 (bug #100125).
