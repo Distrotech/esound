@@ -157,6 +157,7 @@ void monitor_write( void *output_buffer, int length );
 /* samples.c - manage the players, recorder, and monitor */
 extern esd_sample_t *esd_samples_list;
 extern int esd_playing_samples;
+extern int esd_next_sample_id;
 
 void dump_samples(void);
 void add_sample( esd_sample_t *sample );

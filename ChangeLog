@@ -1,3 +1,8 @@
+1998-12-30  Yo Ric Dude  <ricdude@ix.netcom.com>
+
+	* esd-server.h, esd.c, samples.c: actually reset *everything* in
+	the daemon on a SIGHUP
+
 1998-12-29  Yo Ric Dude  <ricdude@ix.netcom.com>
 
 	* clients.c, esd-server.h, esd.c, proto.c, samples.c: option to
@@ -25,7 +30,6 @@
 Mon Dec 21 21:44:44 EST 1998 Mandrake <mandrake@mandrake.net>
 
 	* esdlib.c - fixed some warnings.
-
 
 1998-12-21  Yo Ric Dude  <ricdude@ix.netcom.com>
 

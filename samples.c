@@ -6,7 +6,7 @@
 esd_sample_t *esd_samples_list = NULL;
 
 int esd_playing_samples = 0;
-static int esd_next_sample_id = 1;	/* sample id = 0 is an error */
+int esd_next_sample_id = 1;	/* sample id = 0 is an error */
 
 /*******************************************************************/
 /* prototypes */

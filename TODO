@@ -14,9 +14,6 @@ Planned for 0.2.7:
 * factor out the "Reduce buffers on sockets to the minimum needed" code
   to a single function(socket); 
 
-* on a SIGHUP, reset ownership of the daemon, close all clients, 
-  free all samples, and reset sample id.
-
 * Pass a device spec to esd_audio_open (?) as a char *
   for Solaris: AUDIO_LINE_OUT, AUDIO_SPEAKER, AUDIO_HEADPHONE
   for Linux: pick /dev/dsp2 if more than one card.  

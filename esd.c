@@ -88,9 +88,8 @@ void reset_daemon( int signum )
 {
     int tumbler;
 
-    /* TODO: add close of clients and resetting of sample id and samples */
     ESDBG_TRACE( 
-	printf( "(ca) resetting ownership of sound daemon on signal %d\n",
+	printf( "(ca) resetting sound daemon on signal %d\n",
 		signum ); );
 
     /* reset the access rights */
@@ -116,6 +115,9 @@ void reset_daemon( int signum )
 	/* TODO: kill_sample, so it stops playing */
 	/* a looping sample will get stuck */
     }
+
+    /* reset next sample id */
+    esd_next_sample_id = 1;
 
     /* reset signal handler, if not called from a signal, no effect */
     signal( SIGHUP, reset_daemon );
