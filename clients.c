@@ -255,17 +255,6 @@ int wait_for_clients_and_data( int listen )
 	    timeout_ptr = &timeout;
 
 	}
-
-	/* we might not be doing something useful, kill audio echos */
-#if 0
-	if ( !esd_players_list && !esd_recorder ) {
-	    if ( !is_paused_here ) {
-		is_paused_here = 1;
-		ESDBG_TRACE( printf( "pausing in clients.c\n" ); );
-		esd_audio_pause();
-	    }
-	}
-#endif
     }
 
     ready = select( max_fd+1, &rd_fds, NULL, NULL, timeout_ptr );
@@ -278,14 +267,14 @@ int wait_for_clients_and_data( int listen )
 	   EINVAL  n is negative - not bloody likely
 	   ENOMEM  unable to allocate internal tables - o well, no big deal */
 
-	if ( !is_paused_here && !esd_playing_samples ) {
+	if ( !is_paused_here && !esd_playing_samples && !esd_autostandby_secs ) {
 	    ESDBG_TRACE( printf( "doing nothing, pausing server.\n" ); );
 	    esd_audio_pause();
 	    esd_last_activity = time( NULL );
 	    is_paused_here = 1;
 	}
 
-	if ( is_paused_here && !esd_on_standby 
+	if ( !is_paused_here && !esd_on_standby 
 	     && !esd_playing_samples && !esd_recorder ) {
 
 	    if ( esd_autostandby_secs >= 0
@@ -293,6 +282,7 @@ int wait_for_clients_and_data( int listen )
 		ESDBG_TRACE( printf( "bored, going to standby mode.\n" ); );
 		esd_server_standby();
 		esd_on_autostandby = 1;
+		is_paused_here = 1;
 	    }
 
 	}

@@ -1,5 +1,7 @@
 1999-01-26  Yo Ric Dude  <ericmit@ix.netcom.com>
 
+	* clients.c: fixed recently broken autosuspend feature
+
 	* esd-server.h, esd.c, players.c: move recorder_write guts to a
 	separate function, to be used by monitors, and filters.
 
