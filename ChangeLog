@@ -1,3 +1,10 @@
+Mon Feb 15 18:19:31 EST 1999 Mandrake <mandrake@mandrake.net>
+	* esdlib.c: boy am I getting tired of reading the
+	"cannot connect to esound server" error message whenever I don't
+	have esd running from that file.  there needs to be a better
+	way to dump out this error.  maybe some sort of rotatable message
+	file?  who knows?  but not like that.
+
 1999-02-14  Yo Ric Dude  <ericmit@ix.netcom.com>
 
 	* clients.c, esd.c: less brutal audio flushing algorithm.

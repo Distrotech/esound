@@ -314,8 +314,8 @@ int esd_open_sound( const char *host )
 		  (struct sockaddr *) &socket_addr,
 		  sizeof(struct sockaddr_in) ) < 0 )
     {
-	fprintf(stderr,"Unable to connect to EsounD server at port %d\n", 
-		port );
+	/* fprintf(stderr,"Unable to connect to EsounD server at port %d\n", 
+		port ); */
 	/* fprintf(stderr,"This generally means that the program could not talk to the esound server\n"); */
 	return -1;
     }
