@@ -3,22 +3,18 @@ BUGS!
 =====
 
 monitoring with stalled data streams still eats cpu like the cookie monster
-tweak the sleep value for the select
+- tweak the sleep value for the select
 
+<[D]espair> esd produces weird midbass static
+- this one works:  cvs -z3 checkout -D "1998-10-10 ?23:00?" esound
+- FIXED: don't bother with update, checkout the esound module again
 
 Planned for 0.2.5:
 ==================
 
 clean up esddsp.c for release with 0.2.5.
 
-compile libesddsp.so.0.2.5 for Linux.
-
-supply esddsp script that does:
-	LD_PRELOAD=/path/to/installed/libesddsp.so
-	invoke $@
-
 some semblance of documentation upgrade
-
 
 
 Planned for 0.2.6:

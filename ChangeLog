@@ -1,12 +1,16 @@
+1998-10-21  Yo Ric Dude  <ricdude@ix.netcom.com>
+
+	* esddsp.c, esddsp.in: give esddsp some class, allow for passing
+	of identifying name to esd via environment variable
+
 Tue Oct 20 20:43:48 PDT 1998 Manish Singh <yosh@gimp.org>
 
 	* clients.c: make optional use of tcp_wrappers
 
-	* Makefile.am
-	* configure.in: OSS runs on other platforms too, so explictly special
-	case for linux for esddsp. Also don't install the wrapper script if 
-	esddsp isn't supported. Add a check for libwrap and friends. Some
-	reorganization.
+	* Makefile.am, configure.in: OSS runs on other platforms too, so
+ 	explictly special case for linux for esddsp. Also don't install
+ 	the wrapper script if esddsp isn't supported. Add a check for
+ 	libwrap and friends. Some reorganization.
 
 	* esddsp.c: respond to SNDCTL_DSP_GETCAPS (and say we can't do much)
 	More evilness to get multiple x11amps to coexist (optional)

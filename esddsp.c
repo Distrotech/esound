@@ -128,7 +128,10 @@ int ioctl (int fd, int request, void *argp)
       if (settings == 3 && !done)
 	{
 	  int proto = ESD_PROTO_STREAM_PLAY;
-	  char buf[ESD_NAME_MAX] = "dsp";
+	  char buf[ESD_NAME_MAX];
+	  strncpy( buf, /* use environment variable for alternate name */
+		   ( getenv("ESDDSP_NAME") ? getenv("ESDDSP_NAME") : "esddsp" ), 
+		   ESD_NAME_MAX );
 
 	  done = 1;
 
