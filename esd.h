@@ -272,8 +272,8 @@ int esd_set_default_sample_pan( int esd, int sample_id,
 
 /*******************************************************************/
 /* esdfile.c - audiofile wrappers for sane handling of files */
-int esd_play_file( const char *filename, int fallback );
-int esd_file_cache( int esd, const char *filename );
+int esd_play_file( const char *name_prefix, const char *filename, int fallback );
+int esd_file_cache( int esd, const char *name_prefix, const char *filename );
 
 
 /*******************************************************************/

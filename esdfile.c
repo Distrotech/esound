@@ -22,7 +22,7 @@ int esd_send_file( int esd, AFfilehandle au_file, int frame_length )
     return 0;
 }
 
-int esd_play_file( const char *filename, int fallback )
+int esd_play_file( const char *name_prefix, const char *filename, int fallback )
 {
     /* input from libaudiofile... */
     AFfilehandle in_file;
@@ -34,6 +34,7 @@ int esd_play_file( const char *filename, int fallback )
     int out_sock, out_bits, out_channels, out_rate;
     int out_mode = ESD_STREAM, out_func = ESD_PLAY;
     esd_format_t out_format;
+    char name[ ESD_NAME_MAX ] = "";
 
     /* open the audio file */
     in_file = afOpenFile( filename, "r", NULL );
@@ -79,9 +80,16 @@ int esd_play_file( const char *filename, int fallback )
     out_format = out_bits | out_channels | out_mode | out_func;
     out_rate = (int) in_rate;
 
+    /* construct name */
+    if ( name_prefix ) {
+	strncpy( name, name_prefix, ESD_NAME_MAX - 2 );
+	strcat( name, ":" );
+    }
+    strncpy( name + strlen( name ), filename, ESD_NAME_MAX - strlen( name ) );
+
     /* connect to server and play stream */
     if ( fallback )
-	out_sock = esd_play_stream_fallback( out_format, out_rate, NULL, filename );
+	out_sock = esd_play_stream_fallback( out_format, out_rate, NULL, name );
     else
 	out_sock = esd_play_stream( out_format, out_rate, NULL, filename );
 
@@ -99,7 +107,7 @@ int esd_play_file( const char *filename, int fallback )
     return 1;
 }
 
-int esd_file_cache( int esd, const char *filename )
+int esd_file_cache( int esd, const char *name_prefix, const char *filename )
 {
     /* input from libaudiofile... */
     AFfilehandle in_file;
@@ -112,6 +120,7 @@ int esd_file_cache( int esd, const char *filename )
     int out_mode = ESD_STREAM, out_func = ESD_PLAY;
     esd_format_t out_format;
     int length, sample_id, confirm_id;
+    char name[ ESD_NAME_MAX ];
 
     /* open the audio file */
     in_file = afOpenFile( filename, "r", NULL );
@@ -158,9 +167,16 @@ int esd_file_cache( int esd, const char *filename )
     out_format = out_bits | out_channels | out_mode | out_func;
     out_rate = (int) in_rate;
 
+    /* construct name */
+    if ( name_prefix ) {
+	strncpy( name, name_prefix, ESD_NAME_MAX - 2 );
+	strcat( name, ":" );
+    }
+    strncpy( name + strlen( name ), filename, ESD_NAME_MAX - strlen( name ) );
+
     /* connect to server and play stream */
     sample_id = esd_sample_cache( esd, out_format, out_rate, 
-				  length, filename );
+				  length, name );
 
     /* play */
     esd_send_file( esd, in_file, bytes_per_frame );

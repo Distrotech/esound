@@ -1,5 +1,9 @@
 1998-11-28  Yo Ric Dude  <ricdude@ix.netcom.com>
 
+	* esd.h, esdfile.c, esdplay.c, esdsample.c: add a string to
+	differentiate between sample files cached by different programs with
+	the same name.
+
 	* Makefile.am, esdfile.c, esd.h: added convenient audiofile
 	wrappers for playing and caching audio file data. 
 	* esd.h, esdlib.c: const clean up.

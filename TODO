@@ -29,10 +29,6 @@ and update according to specs.
 Volume and left/right volume would be on a per-play basis, then?
 play_sample_pan( int sample_id, int left_volume, int right_volume );
 
-esdfile.c - wrappers for caching and playing files via libaudiofile
-factor out the file handling routines of esdplay into 
-esd_play_steam_file(), and esd_cache_sample_file();
-
 esd_rename_stream( int stream_id, char *name );
 
 esd_player_t: add fields
@@ -47,6 +43,8 @@ Pass the device spec to esd_audio_open (?)
 
 change audio device with esdctl? on the fly?
 
+on a SIGHUP, reset ownership of the daemon, close all streams, 
+and free all samples.
 
 Planned for later:
 ================== 

@@ -112,7 +112,7 @@ play_file (const char *filename)
 static int
 play_file (const char *filename)
 {
-    esd_play_file( filename, 1 );
+    esd_play_file( program_name, filename, 1 );
 }
 
 #endif

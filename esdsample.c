@@ -28,7 +28,7 @@ int main(int argc, char **argv)
     struct stat source_stats;
     char *host = NULL;
     char *name = NULL;
-    char *filename = NULL;
+    char filename[ ESD_NAME_MAX ] = "";
     int cache_mode = 0; /* cache mode, 1 = data, 0 = file */
     
     for ( arg = 1 ; arg < argc ; arg++)
@@ -57,7 +57,14 @@ int main(int argc, char **argv)
     }
 
     /* filename is the next option */
+    /* construct name */
+    strncpy( filename, argv[0], ESD_NAME_MAX - 2 );
+    strcat( filename, ":" );
+    strncpy( filename + strlen( filename ), argv[ arg ], 
+	     ESD_NAME_MAX - strlen( filename ) );
     name = argv[ arg ];
+
+printf( "name is \'%s\'.\n", filename );
 
     /* if we see any of these, terminate */
     signal( SIGINT, clean_exit );
@@ -81,7 +88,7 @@ int main(int argc, char **argv)
 	    return 1;
 	
 	stat( name, &source_stats );
-	sample_id = esd_sample_cache( sock, format, rate, source_stats.st_size, name );
+	sample_id = esd_sample_cache( sock, format, rate, source_stats.st_size, filename );
 	printf( "sample id is <%d>\n", sample_id );
     
 	while ( ( length = fread( buf, 1, ESD_BUF_SIZE, source ) ) > 0 )
@@ -108,7 +115,7 @@ int main(int argc, char **argv)
 	if ( sock <= 0 ) 
 	    return 1;
 	
-	sample_id = esd_file_cache( sock, name );
+	sample_id = esd_file_cache( sock, argv[0], name );
 	printf( "sample id is <%d>\n", sample_id );
     
 	/* if we see any of these, terminate */
@@ -118,10 +125,10 @@ int main(int argc, char **argv)
 	    exit( 1 );
 	}
 
-	printf( "sample <%d> uploaded: %s\n", sample_id, name );
+	printf( "sample <%d> uploaded: %s\n", sample_id, filename );
     }
 
-    reget_sample_id = esd_sample_getid( sock, name );
+    reget_sample_id = esd_sample_getid( sock, filename );
 
     printf( "reget of sample id is <%d>\n", reget_sample_id );
     if( reget_sample_id != sample_id ) {
