@@ -166,8 +166,9 @@ int stop_sample( int id )
     /* iterate until we hit a NULL */
     while ( player != NULL )
     {
-	/* see if we hit the target sample */
-	if ( player->source_id == id ) {
+	/* see if we hit the target sample, and it's really a sample */
+	if ( ( (player->format) & ESD_MASK_MODE == ESD_SAMPLE )
+	     && ( player->source_id == id ) ) {
 
 	    /* remove the loop setting on the sample */
 	    player->format &= ~ESD_MASK_FUNC;

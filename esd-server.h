@@ -3,6 +3,71 @@
 
 /* get public information from the public header file */
 #include <esd.h>
+
+/*******************************************************************/
+/* sound daemon data structures */
+
+/* the ESD_*'s are defined from the lsb for client format info, */
+/* from the msb for server side info. it should all fit into an int */
+
+/* endianness of data */
+#define ESD_MASK_END	( 0xF000000 )
+#define ESD_ENDSAME	( 0x0000000 )
+#define ESD_ENDDIFF	( 0x1000000 )
+
+/* a client is what contacts the server, and makes requests of daemon */
+typedef struct esd_client {
+    struct esd_client *next; 	/* it's a list, eh? link 'em */
+
+    esd_proto_t request;	/* current request for this client */
+    int fd;			/* the clients protocol stream */
+    struct sockaddr_in source;	/* data maintained about source */
+
+    int swap_byte_order;	/* for big/little endian compatibility */
+    /* TODO: need to detect endianness of client - tweak the protocol so it */
+    /* always sends an int = 0x0001 as the first piece of data after */
+    /* authentication if server reads 0x0001, it's the same endianness, */
+    /* no swapping needed.  if the server reads 0x1000, set this flag,  */
+    /* read_data() should then swap all the bytes before the mixing */
+    /* subsystem gets a hold of it. */
+} esd_client_t;
+
+/* a player is what produces data for a sound */
+typedef struct esd_player {
+    struct esd_player *next;	/* point to next player in list */
+    void *parent;		/* the client or sample that spawned player */
+
+    esd_format_t format;	/* magic int with the format info */
+    int rate;			/* sample rate */
+
+    int source_id;		/* either a stream fd or sample id */
+    octet *data_buffer;		/* buffer to hold sound data */
+    int buffer_length;		/* total buffer length */
+    int actual_length;		/* actual length of data in buffer */
+
+    /* time_t last_read; */	/* timeout for streams, not used */
+    int last_pos;		/* track read position for samples */
+
+} esd_player_t;
+
+/* TODO?: typedef esd_player_t esd_recorder_t, and monitor? */
+
+/* a sample is a pre-cached sound, played by sample_id */
+typedef struct esd_sample {
+    struct esd_sample *next;	/* point to next sample in list */
+    struct esd_client *parent;	/* the client that spawned sample */
+
+    esd_format_t format;	/* magic int with the format info */
+    int rate;			/* sample rate */
+
+    int sample_id;		/* the sample's id number */
+    octet *data_buffer;		/* buffer to hold sound data */
+    int sample_length;		/* total buffer length */
+
+    int ref_count;		/* track players for clean deletion */
+    int erase_when_done;	/* track uncache requests */
+} esd_sample_t;
+
 /*******************************************************************/
 /* server function prototypes */
 
@@ -17,8 +82,10 @@ void erase_client( esd_client_t *client );
 
 void clear_auth( int signum ); /* TODO: sig_clear_auth ? */
 int get_new_clients( int listen );
-int poll_client_requests();
 int wait_for_clients_and_data( int listen );
+
+/* proto.c - deal with client protocol requests */
+int poll_client_requests();
 
 /* players.c - manage the players, recorder, and monitor */
 extern esd_player_t *esd_players_list;

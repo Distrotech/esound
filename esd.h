@@ -56,15 +56,9 @@ enum esd_proto {
 /* the properties of a sound buffer are logically or'd */
 
 /* bits of stream/sample data */
-#define ESD_MASK_BITS	( 0x0003 )
+#define ESD_MASK_BITS	( 0x000F )
 #define ESD_BITS8 	( 0x0000 )
 #define ESD_BITS16	( 0x0001 )
-
-/* endianness of data */
-#define ESD_MASK_END	( 0x000C )
-#define ESD_ENDSM	( 0x0000 )
-#define ESD_ENDBIG	( 0x0008 )
-/* TODO: maybe ESD_ENDSAME/DIFF ? only the server needs this info */
 
 /* how many interleaved channels of data */
 #define ESD_MASK_CHAN	( 0x00F0 )
@@ -75,6 +69,7 @@ enum esd_proto {
 #define ESD_MASK_MODE	( 0x0F00 )
 #define ESD_STREAM	( 0x0000 )
 #define ESD_SAMPLE	( 0x0100 )
+#define ESD_ADPCM	( 0x0200 )	/* TODO: anyone up for this? =P */
 
 /* the function of the stream/sample, and common functions */
 #define ESD_MASK_FUNC	( 0xF000 )
@@ -155,52 +150,6 @@ void esd_audio_flush();
 #ifdef __cplusplus
 }
 #endif
-
-/*******************************************************************/
-/* sound daemon data structures */
-
-typedef struct esd_client {
-    struct esd_client *next; 	/* it's a list, eh? link 'em */
-
-    esd_proto_t request;	/* current request for this client */
-    int fd;			/* the clients protocol stream */
-    struct sockaddr_in source;	/* data maintained about source */
-
-} esd_client_t;
-
-typedef struct esd_player {
-    struct esd_player *next;	/* point to next player in list */
-    void *parent;		/* the client or sample that spawned player */
-
-    esd_format_t format;	/* magic int with the format info */
-    int rate;			/* sample rate */
-
-    int source_id;		/* either a stream fd or sample id */
-    octet *data_buffer;		/* buffer to hold sound data */
-    int buffer_length;		/* total buffer length */
-    int actual_length;		/* actual length of data in buffer */
-
-    /* time_t last_read; */	/* timeout for streams, not used */
-    int last_pos;		/* track read position for samples */
-
-} esd_player_t;
-
-/* TODO?: typedef esd_player_t esd_recorder_t, and monitor? */
-
-typedef struct esd_sample {
-    struct esd_sample *next;	/* point to next sample in list */
-    struct esd_client *parent;	/* the client that spawned sample */
-
-    esd_format_t format;	/* magic int with the format info */
-    int rate;			/* sample rate */
-
-    int sample_id;		/* the sample's id number */
-    octet *data_buffer;		/* buffer to hold sound data */
-    int sample_length;		/* total buffer length */
-
-    int ref_count;		/* track players for clean deletion */
-    int erase_when_done;	/* track uncache requests */
-} esd_sample_t;
 
 /* length of the audio buffer size */
 #define ESD_BUF_SIZE (4 * 1024)

@@ -114,7 +114,7 @@ int mix_from_stereo_16s( signed short *source_data_ss,
 /* takes the input player, and mixes to 16 bit signed waveform */
 int mix_to_stereo_32s( esd_player_t *player, int length )
 {
-    int wr_dat = 0, rd_dat = 0;
+    int wr_dat = 0, rd_dat = 0, count = 0, step = 0;
     register unsigned char *source_data_uc = NULL;
     register signed short *source_data_ss = NULL;
     signed short sample;
@@ -185,12 +185,25 @@ int mix_to_stereo_32s( esd_player_t *player, int length )
 
 	    /* mix stereo, 16 bit sound source to stereo, 16 bit */
 	    if ( player->rate == 44100 ) {
+		/* optimize for simple increment by one and add loop */
 		while ( wr_dat < length/sizeof(signed short) )
 		{
 		    mixed_buffer[ wr_dat ] += source_data_ss[ wr_dat ];
 		    wr_dat++;
 		}
+	    } else if ( ! (44100 % player->rate) ) {
+		/* optimize for simple increment by n and add loop */
+		step = 44100 / player->rate;
+		while ( wr_dat < length/sizeof(signed short) )
+		{
+		    for ( count = 0 ; count < step ; count++ )
+		    {
+			mixed_buffer[ wr_dat ] += source_data_ss[ rd_dat ];
+			wr_dat++; rd_dat+= step;
+		    }
+		}
 	    } else {
+		/* non integral multiple of sample rates, do it the hard way */
 		while ( wr_dat < length/sizeof(signed short) )
 		{
 		    rd_dat = wr_dat * player->rate / 44100;

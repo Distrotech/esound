@@ -25,11 +25,25 @@ void dump_players()
 /* deallocate memory for the player */
 void free_player( esd_player_t *player )
 {
+    esd_sample_t *sample;
+
+    /* see if we need to do any housekeeping */
+    if ( ( player->format & ESD_MASK_MODE ) == ESD_STREAM ) {
+	/* TODO: erase client should be independent of players */
+	erase_client( player->parent );
+    } else if ( ( player->format & ESD_MASK_MODE ) == ESD_SAMPLE ) {
+	sample = (esd_sample_t *) (player->parent);
+	sample->ref_count--;
+	printf( "free player: (%d, #%d) [0x%p]\n", 
+		player->source_id, sample->ref_count, player );
+    }
+
     /* free any memory allocated with the player */
     free( player->data_buffer );
 
     /* free the player memory itself */
     free( player );
+
     return;
 }
 
@@ -62,12 +76,6 @@ void erase_player( esd_player_t *player )
 		/* we are deleting the head of the list */
 		esd_players_list = current->next;
 	    }
-
-	    /* TODO: erase client should be independent of players */
-	    if ( ( player->format & ESD_MASK_MODE ) == ESD_STREAM )
-		erase_client( player->parent );
-	    else if ( ( player->format & ESD_MASK_MODE ) == ESD_SAMPLE )
-		((esd_sample_t*)player->parent)->ref_count--;
 
 	    /* TODO: delete if needed */
 
@@ -349,7 +357,6 @@ esd_player_t *new_sample_player( int sample_id, int loop )
     }
     player->rate = sample->rate;
     player->source_id = sample->sample_id;
-    sample->ref_count++;
 
     printf( "connection format: 0x%08x at %d Hz\n", 
 	    player->format, player->rate );
@@ -375,9 +382,10 @@ esd_player_t *new_sample_player( int sample_id, int loop )
 
     /* everything's ok, return the allocated player */
     player->last_pos = 0;
+    sample->ref_count++;
 
-    printf( "player: (%d) [0x%p]\n", 
-	    player->source_id, player );
+    printf( "new player : (%d, #%d) [0x%p]\n", 
+	    player->source_id, sample->ref_count, player );
 
     return player;
 }
