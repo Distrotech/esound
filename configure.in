@@ -179,6 +179,7 @@ AM_PATH_AUDIOFILE(0.1.5, [
 
 ESDPLAY=esdplay
 echo "--- libaudiofile found. Building esound with audiofile support"
+LIBS="$LIBS -laudiofile"
 
 ],[
 
@@ -253,7 +254,7 @@ case "$host_os" in
 esac
 AC_MSG_RESULT($dsp_ok)
 
-dnl set | sort; # just for double checking the script...
+set | sort; # just for double checking the script...
 
 ESD_LIBS=$LIBS
 AC_SUBST(ESD_LIBS)

@@ -104,12 +104,34 @@ void erase_sample( int id )
 int read_sample( esd_sample_t *sample )
 {
     int actual = 0, total = sample->cached_length;
+    esd_client_t *client = (esd_client_t *) sample->parent;
+    short data, *pos;
+
+    ESDBG_COMMS( printf( "{rs} resuming sample cache at %d\n", total ); );
 
     while ( ( total < sample->sample_length ) && ( actual >= 0 ) ) {
 	ESD_READ_BIN( sample->parent->fd, sample->data_buffer + total,
 		      min( esd_buf_size_octets, sample->sample_length-total),
 		      actual, "rd_samp" );
-	if ( actual > 0 ) total += actual; /* irix may return -1 if no data */
+
+	if ( actual > 0 ) {
+	    /* endian swap multi-byte data if we need to */
+	    if ( client->swap_byte_order 
+		 && ( (sample->format & ESD_MASK_BITS) == ESD_BITS16 ) )
+	    {
+		printf( "swapping...\n" );
+		for ( pos = sample->data_buffer + total 
+			  ; pos < sample->data_buffer + actual / sizeof(short)
+			  ; pos += sizeof(short) ) 
+		{
+		    data = swap_endian_16( (*pos) );
+		    *pos = data;
+		}
+	    }
+
+	    /* irix may return -1 if no data */
+	    total += actual; 
+	}
     }
 
     /* TODO: what if total != sample_length ? */

@@ -151,6 +151,8 @@ int read_player( esd_player_t *player )
     int actual = 0, actual_2nd = 0, can_read = 0;
     struct timeval timeout;
     char message[ 100 ];
+    short data, *pos; /* used for swapping */
+    esd_client_t *client;
 
     switch( player->format & ESD_MASK_MODE ) {
     case ESD_STREAM:
@@ -174,6 +176,21 @@ int read_player( esd_player_t *player )
  
 	    /* more data, save how much we got */
 	    player->actual_length = actual;
+
+	    /* endian swap multi-byte data if we need to */
+	    client = (esd_client_t *) (player->parent);
+	    if ( client->swap_byte_order 
+		 && ( (player->format & ESD_MASK_BITS) == ESD_BITS16 ) )
+	    {
+		printf( "swapping...\n" );
+		for ( pos = player->data_buffer 
+			  ; pos < player->data_buffer + actual / sizeof(short)
+			  ; pos += sizeof(short) )
+		{
+		    data = swap_endian_16( (*pos) );
+		    *pos = data;
+		}
+	    }
 
 	} else if ( can_read < 0 ) {
 	    sprintf( message, "error reading client (%d)\n", 
@@ -240,12 +257,13 @@ int read_player( esd_player_t *player )
 		    player->last_pos = 0;
 		}
 	    }
+
 	} else {
 	    /* something horrible has happened to the sample */
 	    return -1;
 	}
 
-	break;
+	/* sample data is swapped as it's cached, no swap needed here */
 
     default:
 	ESDBG_TRACE( printf( "-%02d- read_player: format 0x%08x not supported\n", 

@@ -1,5 +1,8 @@
 1998-11-28  Yo Ric Dude  <ricdude@ix.netcom.com>
 
+	* players.c, samples.c: swap 16 bit audio data if the server and
+	client are on differring endian machines. - not tested! =)
+	
 	* configure.in: --enable-esdplay has been converted to
  	--with-libaudiofile. some files of the esound source WILL NOT
  	currently compile unless libaudiofile is installed.  with the
