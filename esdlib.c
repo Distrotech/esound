@@ -69,8 +69,18 @@ int inet_aton(const char *cp, struct in_addr *inp)
 }
 #endif
 
-/*******************************************************************/
-/* set socket buffer lengths to optimal length for audio data transfer */
+/**
+ * esd_set_socket_buffers: set buffer lengths on a socket to optimal.
+ * @sock: ESD socket
+ * @src_format: data format
+ * @src_rate: sample rate for this stream
+ * @base_rate: sample rate that server is running at.
+ * 
+ * Sets send and receive buffer lengths to optimal length for audio data
+ * transfer.
+ *
+ * Return Value: Size that buffers were set to.
+ */
 int esd_set_socket_buffers( int sock, int src_format, 
 			    int src_rate, int base_rate )
 {
@@ -87,10 +97,16 @@ int esd_set_socket_buffers( int sock, int src_format,
     return buf_size;
 }
 
-/*******************************************************************/
-/* get the stream latency to esound (latency is number of samples  */
-/* at 44.1khz stereo 16 bit - you'll have to adjust if oyur input  */
-/* sampling rate is less (in bytes per second)                     */
+/**
+ * esd_get_latency: get stream latency
+ * @esd: ESD socket
+ *
+ * Get the stream latency to esound (latency is number of samples
+ * at 44.1khz stereo 16 bit - you'll have to adjust if oyur input
+ * sampling rate is less (in bytes per second))
+ *
+ * Return Value: Latency, in number of samples at 44.1khz stereo 16 bit.
+ */
 int esd_get_latency(int esd)
 {
   int lag = 0;
@@ -127,8 +143,15 @@ int esd_get_latency(int esd)
   return lag;
 }
 
-/*******************************************************************/
-/* send the authorization cookie, create one if needed */
+/**
+ * esd_send_auth: send authorization to esd
+ * @sock: ESD socket
+ * 
+ * Send the authorization cookie, creating a new one if needed.
+ *
+ * Return Value: -1 on error, 0 if authorization was refused by server,
+ * 1 if authorization was accepted.
+ **/
 int esd_send_auth( int sock )
 {
     int auth_fd = -1, i = 0;
@@ -229,8 +252,18 @@ int esd_send_auth( int sock )
     return retval;
 }
 
-/*******************************************************************/
-/* lock/unlock will disable/enable foreign clients from connecting */
+/**
+ * esd_lock: disable foreign clients
+ * @esd: ESD socket
+ * 
+ * Locks the ESD on the end of the specified socket, so that it will not
+ * accept connections from untrusted clients - eg, clients which do not
+ * present the appropriate key.
+ *
+ * Counterpart to esd_unlock().
+ *
+ * Return Value: -1 on error, 0 if failed, otherwise success.
+ */
 int esd_lock( int esd ) {
     int proto = ESD_PROTO_LOCK;
     int ok = 0;
@@ -258,6 +291,18 @@ int esd_lock( int esd ) {
     return ok;
 }
 
+/**
+ * esd_unlock: disable foreign clients
+ * @esd: ESD socket
+ * 
+ * Unlocks the ESD on the end of the specified socket, so that it will
+ * accept connections from untrusted clients - eg, clients which do not
+ * present the appropriate key.
+ *
+ * Counterpart to esd_lock().
+ *
+ * Return Value: -1 on error, 0 if failed, otherwise success.
+ */
 int esd_unlock( int esd ){
     int proto = ESD_PROTO_UNLOCK;
     int ok = 0;
@@ -285,8 +330,18 @@ int esd_unlock( int esd ){
     return ok;
 }
 
-/*******************************************************************/
-/* standby/resume will free/reclaim audio device so others may use it */
+/**
+ * esd_standby: release audio device
+ * @esd: ESD socket
+ * 
+ * Causes the ESD on the end of the specified socket to stop playing sounds
+ * and release its connection to the audio device so that other processes
+ * may use it.
+ *
+ * Counterpart to esd_resume().
+ *
+ * Return Value: -1 on error, 0 if failed, otherwise success.
+ */
 int esd_standby( int esd )
 {
     int proto = ESD_PROTO_STANDBY;
@@ -315,6 +370,17 @@ int esd_standby( int esd )
     return ok;
 }
 
+/**
+ * esd_resume: reclaim audio device
+ * @esd: ESD socket
+ * 
+ * Causes the ESD on the end of the specified socket to attempt to reconnect
+ * to the audio device and start playing sounds again.
+ *
+ * Counterpart to esd_standby().
+ *
+ * Return Value: -1 on error, 0 if failed, otherwise success.
+ */
 int esd_resume( int esd )
 {
     int proto = ESD_PROTO_RESUME;
@@ -343,6 +409,17 @@ int esd_resume( int esd )
     return ok;
 }
 
+/**
+ * esd_connect_tcpip: make a TCPIP connection to ESD
+ * @host: Specifies hostname and port to connect to as "hostname:port"
+ * Both parts are optional, the default being to connect to localhost on
+ * ESD_DEFAULT_PORT.  This default is used if host is NULL.
+ *
+ * Attempts to make a connection to ESD using TCPIP.
+ * Similar to esd_connect_unix().
+ *
+ * Return Value: -1 on error, else a socket number connected to ESD.
+ */
 static int
 esd_connect_tcpip(const char *host)
 {
@@ -430,6 +507,16 @@ esd_connect_tcpip(const char *host)
   return -1;
 }
 
+/**
+ * esd_connect_unix: make a local UNIX socket connection to ESD
+ * @host: Host to connect to - ignored, since UNIX sockets
+ * - FIXME - tidy up by removing this parameter.
+ *
+ * Attempts to make a connection to ESD using local UNIX sockets.
+ * Similar to esd_connect_tcpip().
+ *
+ * Return Value: -1 on error, else a socket number connected to ESD.
+ */
 static int
 esd_connect_unix(const char *host)
 {
@@ -474,8 +561,31 @@ esd_connect_unix(const char *host)
   return -1;
 }
 
-/*******************************************************************/
-/* initialize the socket to send data to the sound daemon */
+/**
+ * esd_open_sound: open a connection to ESD and get authorization
+ * @host: Specifies hostname and port to connect to as "hostname:port"
+ * Both parts are optional, the default being to connect to localhost on
+ * ESD_DEFAULT_PORT.  This default is used if host is NULL.
+ *
+ * Attempts to make a connection to ESD on specified host, or the
+ * host specified by the $ESPEAKER environment variable if @host is NULL,
+ * or localhost if ESPEAKER not set.
+ *
+ * Will attempt to connect by UNIX sockets if the host is localhost, and by
+ * TCPIP otherwise, or if UNIX sockets fail.
+ *
+ * If neither of these connection methods succeeds, and we are attempting to
+ * contact the localhost, will attempt to spawn a local copy of ESD (unless
+ * configured not to in esd.conf), and will then try to connect to that
+ * using UNIX sockets.
+ *
+ * Once a connection is created, attempts to give ESD the neccessary
+ * authorisation keys to do things - only if this succeeds will the socket
+ * be given to the caller.
+ *
+ * Return Value: -1 on error, else a socket number connected and authorized
+ * to ESD.
+ */
 int esd_open_sound( const char *host )
 {
   int connect_count;
@@ -557,8 +667,21 @@ int esd_open_sound( const char *host )
   return socket_out;
 }
 
-/*******************************************************************/
-/* open a socket for playing as a stream */
+/**
+ * esd_play_stream: get socket for playing a stream
+ * @format: data format for this stream
+ * @rate: sample rate for this stream
+ * @host: host to connect to, as for esd_open_sound().
+ * @name: name to identify this stream to ESD using.  (Use NULL if you don't
+ * care what name you're given - but its generally more useful to give
+ * something helpful, such as your process name and id.)
+ *
+ * Creates a new connection to ESD, using esd_open_sound(), and sets it up
+ * for playing a stream of audio data, at sample rate @rate, 
+ *
+ * Return Value: -1 on error, else an ESD socket number set up so that
+ * any data sent to the socket will be played by the ESD.
+ */
 int esd_play_stream( esd_format_t format, int rate, 
 		    const char *host, const char *name )
 {

@@ -1,3 +1,7 @@
+1999-06-19  Richard Boulton <rjb37@cam.ac.uk>
+
+	* esdlib.c: Add some gnome-doc style self documenting code comments.
+
 1999-06-17  Richard Boulton <rjb37@cam.ac.uk>
 
 	* esdlib.c: Fix compiler warning.
