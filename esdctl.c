@@ -1,7 +1,7 @@
-
 #include "esd.h"
 
 #include <stdio.h>
+#include <string.h>
 #include <getopt.h>
 
 void exit_usage( const char *who, int errcode, const char *why, const char *what )

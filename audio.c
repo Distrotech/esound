@@ -1,6 +1,13 @@
 #include "esd.h"
 #include "config.h"
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <sys/ioctl.h>
+#include <math.h>
+
 /*******************************************************************/
 /* globals */
 esd_format_t esd_audio_format = ESD_BITS16 | ESD_STEREO;

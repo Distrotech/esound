@@ -13,6 +13,7 @@
  */
 
 #include <stdio.h>
+#include <string.h>
 #include <getopt.h>
 #include <audiofile.h>
 #include <esd.h>
@@ -83,7 +84,7 @@ play_file (const char *filename)
 
   out_rate = (int) in_rate;
 
-  out_sock = esd_play_stream_fallback (out_format, out_rate, NULL, filename);
+  out_sock = esd_play_stream_fallback (out_format, out_rate, NULL, (char *) filename);
   if (out_sock <= 0)
     return 1;
 

@@ -1,6 +1,6 @@
-
 #include "esd.h"
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <dirent.h>
 #include <sys/stat.h>

@@ -1,3 +1,11 @@
+Fri Oct 16 02:48:26 PDT 1998 Manish Singh <yosh@gimp.org>
+
+	* esd.h: removed system includes so it doesn't "pollute"
+
+	* audio.c, esd-server.h, esd.h, esdcat.c esdctl.c, esdfilt.c,
+	esdloop.c, esdmon.c, esdplay.c, esdrec.c, esdsample.c: added
+	in specifc #includes so it compiles again
+
 1998-10-14  Yo Ric Dude  <ricdude@ix.netcom.com>
 
 	* Makefile.am: esdctl now uses getopt_long, and therefore needs

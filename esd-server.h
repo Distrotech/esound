@@ -2,8 +2,17 @@
 #define ESD_SERVER_H
 
 /* get public information from the public header file */
-#include <esd.h>
-#include <config.h>
+#include "esd.h"
+
+#include "config.h"
+
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <sys/ioctl.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
 #include <signal.h>

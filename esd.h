@@ -1,19 +1,6 @@
 #ifndef ESD_H
 #define ESD_H
 
-/* sound includes */
-#include <unistd.h>
-#include <fcntl.h>
-#include <sys/ioctl.h>
-
-/* for math functions */
-#include <math.h>
-
-/* generic stuff */
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
 /*************************************/
 /* what can we do to/with the EsounD */
 enum esd_proto { 
