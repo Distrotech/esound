@@ -1,5 +1,10 @@
 2003-08-01  Frederic Crozat  <fcrozat@mandrakesoft.com>
 
+	* NEWS:
+	* configure.in: Release 0.2.30
+
+2003-08-01  Frederic Crozat  <fcrozat@mandrakesoft.com>
+
 	* esd.c: Add missing prototype.
 
 2003-08-01  Frederic Crozat  <fcrozat@mandrakesoft.com>

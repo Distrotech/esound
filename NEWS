@@ -1,3 +1,18 @@
+===============
+Version 0.2.30
+===============
+	* IPv6 support (Archana Shah)
+	* Cygwin support (Masahiro Sakai)
+	* MacOS X CoreAudio support (Masanori Sekino)
+	* Always read esd config file, not only when auto-spawning (James Strandboge)
+	* Prevents drop-outs for hardware allowing low period_size (ALSA) (Stanislav)
+	* Man pages fixes (Stanislav)
+	* major code cleanup (Kjartan)
+	* ensure esd_open_audio succeed if interrupted (Arvind)
+	* allow 0 as auto-standby value (Mohammed Waleed Kadous)
+	* allow simultaneous play and record on Solaris (Balamurali)
+	* add support for session name to esdcat (j@thing.net)
+
 New Stuff in EsounD version 0.2.21:
 
 o  esd supports for multiple recording clients
