@@ -1,4 +1,8 @@
-2002-05-03  Frédéric Crozat  <fcrozat@mandrakesoft.com>
+2002-05-06  Frederic Crozat  <fcrozat@mandrakesoft.com>
+
+	* configure.in: Release 0.2.26
+
+2002-05-03  Frederic Crozat  <fcrozat@mandrakesoft.com>
 
 	* audio_alsa09.c: (initAlsa):
 	* clients.c:
@@ -15,13 +19,13 @@
 
 	* Makefile.am: Need to dist getopt*.c even when not needed for build
 	
-2002-04-29  Frédéric Crozat  <fcrozat@mandrakesoft.com>
+2002-04-29  Frederic Crozat  <fcrozat@mandrakesoft.com>
 
 	* audio_alsa09.c: (initAlsa), (esd_audio_open), (esd_audio_read),
 	(esd_audio_write): open sound device in non blocking mode, various 
 	cleanup (patch from Santiago Otero <siryurian@terra.es>)
 
-2002-04-27  Frédéric Crozat  <fred@crozat.net>
+2002-04-27  Frederic Crozat  <fred@crozat.net>
 
 	* mix.c: (mix_stereo_8u_to_stereo_32s_sv):
 	fix resampling from 44 to 48kHz (patch from Alexander Motin <mav@alkar.net>). Bug #79299
