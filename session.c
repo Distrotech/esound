@@ -107,9 +107,9 @@ callback_save_yourself(SmcConn smc_conn, SmPointer client_data,
 	vals.priority->length = 1;
 
 	/* This stuff MUST be kept in sync with esd.c: */
-	sprintf (port, "%9d", esd_port);
-	sprintf (rate, "%9d", esd_audio_rate);
-	sprintf (as, "%9d", esd_autostandby_secs);
+	sprintf (port, "%d", esd_port);
+	sprintf (rate, "%d", esd_audio_rate);
+	sprintf (as, "%d", esd_autostandby_secs);
 	
 	vals.restart[n++].value = command;
 	vals.restart[n++].value = "-port";
