@@ -34,7 +34,6 @@ static snd_pcm_t *alsa_capture_handle = NULL;
 static char *dev =  "hw:0,0"; 
 
 
-static int framesize = 4;
 
 static snd_output_t *output = NULL;
 
@@ -100,12 +99,13 @@ snd_pcm_t* initAlsa(char *dev, int format, int channels, int speed, int mode)
 	int err;
 	int periods;
   
-	err = snd_pcm_open(&handle, dev, mode, 0);
+	err = snd_pcm_open(&handle, dev, mode, SND_PCM_NONBLOCK);
 	if (err < 0) {
 		if (alsadbg)
 			fprintf(stderr, "%s\n", snd_strerror(err));
 		return NULL;
 	}
+	snd_pcm_nonblock(handle, 0);
 	snd_pcm_hw_params_alloca(&hwparams);
   
 	err = snd_pcm_hw_params_any(handle, hwparams);  
@@ -244,7 +244,6 @@ int esd_audio_open()
 			fprintf(stderr, "Device open for capture\n");
 
 	}
-	framesize = snd_pcm_format_physical_width(format) * channels /8;
 	esd_audio_fd = 0;
 	if (alsadbg)
 		print_state();
@@ -279,8 +278,9 @@ void esd_audio_pause()
 int esd_audio_read( void *buffer, int buf_size )
 {
 	int err;
-  
-	while ( ( err = snd_pcm_readi( alsa_capture_handle, buffer, buf_size/framesize)) < 0) {
+	
+	int len = snd_pcm_bytes_to_frames(alsa_capture_handle, buf_size);
+	while ( ( err = snd_pcm_readi( alsa_capture_handle, buffer, len)) < 0) {
 		if (alsadbg) {
 			fprintf(stderr, "esd_audio_read\n");
 			print_state();
@@ -320,7 +320,7 @@ int esd_audio_read( void *buffer, int buf_size )
 		}
 	}
   
-	return (err * framesize);
+	return ( snd_pcm_frames_to_bytes(alsa_capture_handle, err) );
 }
 
 
@@ -328,8 +328,9 @@ int esd_audio_read( void *buffer, int buf_size )
 int esd_audio_write( void *buffer, int buf_size )
 {
 	int err;
-  
-	while ( ( err = snd_pcm_writei( alsa_playback_handle, buffer, buf_size/framesize)) < 0) {
+
+	int len = snd_pcm_bytes_to_frames(alsa_playback_handle, buf_size);
+	while ( ( err = snd_pcm_writei( alsa_playback_handle, buffer, len)) < 0) {
 		if (alsadbg) {
 			fprintf(stderr, "esd_audio_write\n");
 			print_state();
@@ -356,15 +357,7 @@ int esd_audio_write( void *buffer, int buf_size )
 					return -1;
 			}
 			continue;
-		} else if (err == -EBADFD) {
-			err = snd_pcm_prepare(alsa_playback_handle) ;
-			if (err < 0) {
-				if (alsadbg)
-					fprintf(stderr, "%s\n", snd_strerror(err));
-				return -1;
-			}
-			continue;
-		}
+		} 
 		err = snd_pcm_prepare(alsa_playback_handle) ;
 		if (err < 0) {
 			if (alsadbg)
@@ -373,7 +366,7 @@ int esd_audio_write( void *buffer, int buf_size )
 		}
 	}
   
-	return ( err * framesize);
+	return ( snd_pcm_frames_to_bytes(alsa_playback_handle, err) );
 }
 
 #define ARCH_esd_audio_flush
