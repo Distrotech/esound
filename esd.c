@@ -479,8 +479,10 @@ int open_listen_socket(const char *hostname, int port )
 	  fprintf(stderr,"Unable to bind port %d\n", port );
 	  exit(1);
 	}
+#if defined (ENABLE_IPV6)
       if ( result )
 	  freeaddrinfo ( result );
+#endif
     }
     else
     {
