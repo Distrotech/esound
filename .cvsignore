@@ -10,3 +10,15 @@ Makefile.in
 aclocal.m4
 configure
 config.cache
+esdloop
+esdsample
+esdrec
+esdmon
+esdctl
+esdcat
+esd
+libesd.la
+.libs
+_libs
+.deps
+
