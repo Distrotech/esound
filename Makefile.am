@@ -33,6 +33,7 @@ esd.c 		\
 clients.c	\
 mix.c		\
 players.c	\
+proto.c		\
 samples.c	\
 esd-server.h
 

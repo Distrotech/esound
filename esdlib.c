@@ -260,7 +260,6 @@ int esd_play_stream( esd_format_t format, int rate, char *host, char *name )
 int esd_play_stream_fallback( esd_format_t format, int rate, char *host, char *name )
 {
     int socket_out;
-printf( "host is: %s\n", host );
     /* try to open a connection to the server */
     socket_out = esd_play_stream( format, rate, host, name );
     if ( socket_out >= 0 ) 
