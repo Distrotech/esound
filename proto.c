@@ -274,16 +274,15 @@ int esd_proto_stream_recorder( esd_client_t *client )
 /* manage the single monitoring client, return boolean ok */
 int esd_proto_stream_monitor( esd_client_t *client )
 {
-    /* if we're already monitoring, go away */
-    if ( esd_monitor ) {
-	return 0;
-    }
+    esd_player_t *monitor;
 
     /* sign up the new monitor client */
-    esd_monitor = new_stream_player( client );
-    if ( esd_monitor != NULL ) {
+    monitor = new_stream_player( client );
+    if ( monitor != NULL ) {
 	/* flesh out the monitor */
-	esd_monitor->parent = client;
+	monitor->parent = client;
+	monitor->next = esd_monitor_list;
+	esd_monitor_list = monitor;
 
 	if ( esdbg_trace )
 	    printf ( "(%02d) monitoring on client\n", client->fd );
@@ -302,10 +301,10 @@ int esd_proto_stream_filter( esd_client_t *client )
 {
     esd_player_t *filter;
     
-    /* sign up the new monitor client */
+    /* sign up the new filter client */
     filter = new_stream_player( client );
     if ( filter != NULL ) {
-	/* flesh out the monitor */
+	/* flesh out the filtermonitor */
 	filter->parent = client;
 	filter->next = esd_filter_list;
 	esd_filter_list = filter;
@@ -313,7 +312,7 @@ int esd_proto_stream_filter( esd_client_t *client )
 	if ( esdbg_trace )
 	    printf ( "(%02d) filter on client\n", client->fd );
     } else {
-	/* failed to initialize the recorder, kill its client */
+	/* failed to initialize the filter, kill its client */
 	return 0;
     }
 

@@ -314,29 +314,10 @@ int main ( int argc, char *argv[] )
 	/* if someone's monitoring the sound stream, send them data */
 	/* mix_players, above, forces buffer to zero if no players */
 	/* this clears out any leftovers from recording, below */
-	if ( esd_monitor && !esd_on_standby ) {
+	if ( esd_monitor_list && !esd_on_standby ) {
 	    /* TODO: maybe the last parameter here should be length? */
-	    if ( (esd_audio_format & ESD_MASK_BITS) == ESD_BITS16 ) {
-		length = mix_from_stereo_16s( esd_monitor->data_buffer, 
-					      esd_monitor->buffer_length, 
-					      esd_monitor->rate, 
-					      esd_monitor->format, 
-					      output_buffer, 
-					      length, 
-					      esd_audio_rate );
-	    }
-	    else {
-		length = mix_from_stereo_8u( esd_monitor->data_buffer, 
-					     esd_monitor->buffer_length, 
-					     esd_monitor->rate, 
-					     esd_monitor->format, 
-					     output_buffer, 
-					     length, 
-					     esd_audio_rate );
-	    }
-
 	    if( length )
-		monitor_write();
+		monitor_write( output_buffer );
 
 	}
 

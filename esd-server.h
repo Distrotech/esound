@@ -124,7 +124,7 @@ int poll_client_requests();
 /* players.c - manage the players, recorder, and monitor */
 extern esd_player_t *esd_players_list;
 extern esd_player_t *esd_recorder;
-extern esd_player_t *esd_monitor;
+extern esd_player_t *esd_monitor_list;
 
 /* filter.c - things with which to handle filters */
 extern esd_player_t *esd_filter_list;

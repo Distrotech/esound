@@ -5,7 +5,7 @@
 /* globals */
 esd_player_t *esd_players_list = NULL;
 esd_player_t *esd_recorder = NULL;
-esd_player_t *esd_monitor = NULL;
+esd_player_t *esd_monitor_list = NULL;
 
 /*******************************************************************/
 /* for debugging purposes, dump the list of the clients and data */
@@ -104,6 +104,43 @@ void erase_player( esd_player_t *player )
 
     /* hmm, we didn't find the desired player, just get on with life */
     if ( esdbg_trace ) printf( "-%02d- player not found\n", player->source_id );
+    return;
+}
+
+
+/*******************************************************************/
+/* erase a monitor from the monitor list */
+void erase_monitor( esd_player_t *monitor )
+{
+    esd_player_t *previous = NULL;
+    esd_player_t *current = esd_monitor_list;
+
+    /* iterate until we hit a NULL */
+    while ( current != NULL )
+    {
+	/* see if we hit the target monitor */
+	if ( current == monitor ) {
+	    if( previous != NULL ){
+		/* we are deleting in the middle of the list */
+		previous->next = current->next;
+	    } else { 
+		/* we are deleting the head of the list */
+		esd_monitor_list = current->next;
+	    }
+
+	    /* TODO: delete if needed */
+	    free_player( monitor );
+
+	    return;
+	}
+
+	/* iterate through the list */
+	previous = current;
+	current = current->next;
+    }
+
+    /* hmm, we didn't find the desired monitor, just get on with life */
+    if ( esdbg_trace ) printf( "-%02d- monitor not found\n", monitor->source_id );
     return;
 }
 
@@ -224,37 +261,61 @@ int read_player( esd_player_t *player )
 
 /*******************************************************************/
 /* send the players buffer to it's associated socket, erase if EOF */
-void monitor_write() {
+void monitor_write( void *output_buffer ) {
     fd_set wr_fds;
     int length, can_write;
     struct timeval timeout;
+    esd_player_t *monitor, *remove;
 
     /* make sure we have a monitor connected */
-    if ( !esd_monitor ) 
+    if ( !esd_monitor_list ) 
 	return;
 
-    /* see if we can write to the socket */
-    timeout.tv_sec = 0;
-    timeout.tv_usec = 0;
-    FD_ZERO( &wr_fds );
-    FD_SET( esd_monitor->source_id, &wr_fds );
-    can_write = select( esd_monitor->source_id + 1, NULL, &wr_fds, NULL, &timeout );
-    if ( !can_write ) 
-	return;
+    /* shuffle through the list of monitors */
+    monitor = esd_monitor_list;
+    while ( monitor != NULL ) {
 
-    /* write the data buffer to the socket */
-    ESD_WRITE_BIN( esd_monitor->source_id, esd_monitor->data_buffer, 
-		   esd_monitor->buffer_length, length, "mon wr" );
+	/* see if we can write to the socket */
+	timeout.tv_sec = 0;
+	timeout.tv_usec = 0;
+	FD_ZERO( &wr_fds );
+	FD_SET( monitor->source_id, &wr_fds );
+	can_write = select( monitor->source_id + 1, NULL, &wr_fds, NULL, &timeout );
+	if ( !can_write ) 
+	    break;
 
-    if ( length < 0 ) {
-	/* error on write, close it down */
-	if ( esdbg_trace ) 
-	    printf( "(%02d) closing monitor\n", esd_monitor->source_id );
-	erase_client( esd_monitor->parent );
-	free_player( esd_monitor );
-	esd_monitor = NULL;
+	/* mix down the monitor's buffer */
+	if ( (esd_audio_format & ESD_MASK_BITS) == ESD_BITS16 ) {
+	    length = mix_from_stereo_16s( monitor->data_buffer, monitor->buffer_length,
+					  monitor->rate, monitor->format, 
+					  output_buffer, length, esd_audio_rate );
+	}
+	else {
+	    length = mix_from_stereo_8u( monitor->data_buffer, monitor->buffer_length,
+					 monitor->rate, monitor->format, 
+					 output_buffer, length, esd_audio_rate );
+	}
+
+	/* write the data buffer to the socket */
+	ESD_WRITE_BIN( monitor->source_id, monitor->data_buffer, 
+		       monitor->buffer_length, length, "mon wr" );
+
+	if ( length < 0 ) {
+	    /* error on write, close it down */
+	    if ( esdbg_trace ) 
+		printf( "(%02d) closing monitor\n", monitor->source_id );
+	    remove = monitor;
+	}
+
+	monitor = monitor->next;
+
+	if ( remove ) {
+	    erase_client( remove->parent );
+	    erase_monitor( remove );
+	    remove = NULL;
+	}
     }
-
+    
     return;
 }
 

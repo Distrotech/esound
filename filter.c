@@ -37,7 +37,8 @@ int filter_write( void *buffer, int size, esd_format_t format, int rate )
 
 	while( total_data < data_size )
 	{
-	    ESD_WRITE_BIN( filter->source_id, filter->data_buffer + total_data, data_size - total_data, actual, "mod wr" );
+	    ESD_WRITE_BIN( filter->source_id, filter->data_buffer + total_data, 
+			   data_size - total_data, actual, "flt wr" );
 	    
 	    if ( actual <= 0 ) {
 		erase = filter;
@@ -128,5 +129,4 @@ void erase_filter( esd_player_t *filter )
     if ( esdbg_trace ) printf( "-%02d- filter not found\n", filter->source_id );
     return;
 }
-
 

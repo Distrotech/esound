@@ -1,3 +1,8 @@
+1998-10-16  Yo Ric Dude  <ricdude@ix.netcom.com>
+
+	* esd-server.h, esd.c, filter.c, players.c, proto.c: added support 
+	for multiple simultaneous monitor streams.
+
 Fri Oct 16 02:48:26 PDT 1998 Manish Singh <yosh@gimp.org>
 
 	* esd.h: removed system includes so it doesn't "pollute"
