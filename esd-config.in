@@ -64,7 +64,7 @@ while test $# -gt 0; do
           fi
         fi
       done
-      echo $libdirs -lesd $my_audiofile_libs -lm
+      echo $libdirs -lesd $my_audiofile_libs @LIBS@
       ;;
     *)
       echo "${usage}" 1>&2
@@ -73,4 +73,3 @@ while test $# -gt 0; do
   esac
   shift
 done
-
