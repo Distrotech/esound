@@ -1,3 +1,7 @@
+1999-01-31  Yo Ric Dude  <ericmit@ix.netcom.com>
+
+	* LICENSE, COPYING.LIB: Make some effort at license term disclosure.
+
 1999-01-30  Yo Ric Dude  <ericmit@ix.netcom.com>
 
 	* proto.c: corrected stream play/record/monitor protocol data lengths
