@@ -1,4 +1,9 @@
+Mon Nov 23 06:34:43 PST 1998 Manish Singh <yosh@gimp.org>
+
+	* configure.in: allow manual enable/disabling of alsa support
+
 1998-10-21 Bertrand Guiheneuf <Bertrand.Guiheneuf@inria.fr>
+
         * use the audiofile.m4 macro to detect libaudiofile
 
 1998-11-09  Yo Ric Dude  <ricdude@ix.netcom.com>
