@@ -8,6 +8,7 @@
 
 ALport audioport;
 
+#define ARCH_esd_audio_open
 int esd_audio_open()
 {
     ALport audioport;
@@ -83,6 +84,7 @@ int esd_audio_open()
     return esd_audio_fd;
 }
 
+#define ARCH_esd_audio_close
 void esd_audio_close()
 {
     if (esd_audio_fd >= 0) {
@@ -97,6 +99,7 @@ void esd_audio_close()
     ALcloseport(audioport);
 }
 
+#define ARCH_esd_audio_write
 int esd_audio_write(void *buffer, int buf_size)
 {
     if (ALwritesamps(audioport, buffer, buf_size / 2) == 0) {
@@ -107,6 +110,7 @@ int esd_audio_write(void *buffer, int buf_size)
 	return 0;    
 }
 
+#define ARCH_esd_audio_read
 int esd_audio_read(void *buffer, int buf_size)
 {
     if (ALreadsamps(audioport, buffer, buf_size / 2) == 0) {
@@ -117,6 +121,7 @@ int esd_audio_read(void *buffer, int buf_size)
 	return 0;
 }
 
+#define ARCH_esd_audio_flush
 void esd_audio_flush()
 {
 }

@@ -5,6 +5,7 @@
 
 #include <sys/audio.h>
 
+#define ARCH_esd_audio_open
 int esd_audio_open()
 {
    audio_init a_init;

@@ -1,3 +1,19 @@
+1998-05-27  Raja R Harinath  <harinath@cs.umn.edu>
+
+	Nearly working on Solaris.
+	* audio_solaris.c (esd_audio_open): Clean up.  Make clear that
+	this file only knows about CS4231 devices.
+
+	* configure.in: Add checks for connect, gethostbyname and
+	inet_aton. 
+
+	* audio.c, audio_*.c: Arch dependent files define
+	ARCH_esd_audio_foo if they contain the function `esd_audio_foo'.
+	Otherwise, `audio.c' provides a generic function `esd_audio_foo'.
+	(Tested only for solaris.) 
+
+	* Makefile.am: Remove building of library without `libtool'.
+
 1998-05-24  Yo 'Ric Dude  <ericmit@ix.netcom.com>
 
 	* clients.c, esd.c, esdlib.c: 

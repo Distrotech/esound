@@ -28,7 +28,7 @@ static int esd_audio_fd = -1;
 
 /*******************************************************************/
 /* close the audio device */
-#ifndef DRIVER_IRIX
+#ifndef ARCH_esd_audio_close
 void esd_audio_close()
 {
     close( esd_audio_fd );
@@ -37,30 +37,32 @@ void esd_audio_close()
 #endif
 /*******************************************************************/
 /* make the sound device quiet for a while */
+#ifndef ARCH_esd_audio_pause
 void esd_audio_pause()
 {
-    /* per oss specs */
-#ifdef DRIVER_OSS	
-    ioctl( esd_audio_fd, SNDCTL_DSP_POST, 0 );
-#endif    
     return;
 }
+#endif
 
-#ifndef DRIVER_IRIX
+#ifndef ARCH_esd_audio_write
 /*******************************************************************/
 /* dump a buffer to the sound device */
 int esd_audio_write( void *buffer, int buf_size )
 {
     return write( esd_audio_fd, buffer, buf_size );
 }
+#endif
 
+#ifndef ARCH_esd_audio_read
 /*******************************************************************/
 /* read a chunk from the sound device */
 int esd_audio_read( void *buffer, int buf_size )
 {
     return read( esd_audio_fd, buffer, buf_size );
 }
+#endif
 
+#ifndef ARCH_esd_audio_flush
 /*******************************************************************/
 /* flush the audio buffer */
 void esd_audio_flush()

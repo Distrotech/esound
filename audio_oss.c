@@ -4,6 +4,7 @@
 #include <sys/soundcard.h>
 #endif
 
+#define ARCH_esd_audio_open
 int esd_audio_open()
 {
     const char *device = "/dev/dsp";
@@ -101,3 +102,10 @@ int esd_audio_open()
     return afd;
 }
 
+#define ARCH_esd_audio_pause
+void esd_audio_pause()
+{
+    /* per oss specs */
+    ioctl( esd_audio_fd, SNDCTL_DSP_POST, 0 );
+    return;
+}

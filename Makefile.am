@@ -16,12 +16,6 @@ audio_none.c	\
 audio_oss.c	\
 audio_solaris.c	
 
-noinst_LIBRARIES = libesd.a
-
-libesd_a_SOURCES = \
-esdlib.c	\
-audio.c
-
 include_HEADERS = \
 esd.h
 
@@ -73,5 +67,5 @@ esdloop.c
 
 #esdloop_LDADD = libesd.la
 
-LDADD = -lm .libs/libesd.so
+LDADD = -lm libesd.la
 

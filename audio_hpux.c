@@ -7,6 +7,7 @@
 
 #include <sys/audio.h>
 
+#define ARCH_esd_audio_open
 int esd_audio_open()
 {
     const char *device = "/dev/audio";
@@ -124,6 +125,4 @@ int esd_audio_open()
     esd_audio_fd = afd;
     return afd;
 }
-	   
-    
-}
+

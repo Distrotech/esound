@@ -39,5 +39,10 @@ if test "${ac_cv_header_dmedia_audio_h}" = "yes"; then
    esac
 fi
 
+AC_CHECK_FUNC(connect,,[AC_CHECK_LIB(socket,connect)])
+AC_CHECK_FUNC(gethostbyname,,[AC_CHECK_LIB(nsl,gethostbyname)])
+AC_CHECK_FUNC(inet_aton,,[AC_CHECK_LIB(resolv,inet_aton)])
+
 AC_PROG_MAKE_SET
+
 AC_OUTPUT(Makefile)
