@@ -22,6 +22,15 @@ void *handle;
 #  define ALSADEVICE 0
 #endif
 
+/* some identifiers changed names */
+#ifndef SND_PCM_OPEN_RECORD
+#define SND_PCM_OPEN_RECORD SND_PCM_OPEN_CAPTURE
+#endif
+
+#ifndef snd_pcm_record_format
+#define snd_pcm_record_format snd_pcm_capture_format
+#endif
+
 #define ARCH_esd_audio_open
 static void
 alsa_print_error (int code, int card, int device) {

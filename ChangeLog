@@ -1,8 +1,13 @@
 1999-09-03  Yo Ric Dude  <ericmit@ix.netcom.com>
 
+	* audio_alsa.c: evil macro hacks to map the new alsa names, 
+	SND_PCM_OPEN_CAPTURE and snd_pcm_capture_format, to the old names, 
+	SND_PCM_OPEN_RECORD and snd_pcm_record_format.  Why alsa doesn't
+	do this itself...
+
 	* esdlib.c: (esd_open_sound): if no ESPEAKER is set, but DISPLAY
- 	is, try to connect to the default port on that host. Thanks to 
-	Charles Galambos <ees1cg@ee.surrey.ac.uk>.
+ 	is, try to connect to the default port on that host. Thanks to
+ 	Charles Galambos <ees1cg@ee.surrey.ac.uk>.
 
 1999-08-20  Elliot Lee  <sopwith@redhat.com>
 	* *.c, esd-server.h: Fix warnings, bump version to 0.2.13.
