@@ -23,7 +23,8 @@
 
 /* Debug flag */
 int alsadbg = 0;
-
+/* Error flag */
+int alsaerr = 0;
 #include <alsa/asoundlib.h>
 
 /* FULL DUPLEX => two handlers */
@@ -102,6 +103,7 @@ snd_pcm_t* initAlsa(char *dev, int format, int channels, int speed, int mode)
 	if (err < 0) {
 		if (alsadbg)
 			fprintf(stderr, "%s\n", snd_strerror(err));
+		alsaerr = -2;
 		return NULL;
 	}
 	snd_pcm_nonblock(handle, 0);
@@ -111,6 +113,7 @@ snd_pcm_t* initAlsa(char *dev, int format, int channels, int speed, int mode)
 	if (err < 0) {
 		if (alsadbg)
 			fprintf(stderr, "%s\n", snd_strerror(err));
+		alsaerr = -1;
 		return NULL;
 	}
   
@@ -118,7 +121,7 @@ snd_pcm_t* initAlsa(char *dev, int format, int channels, int speed, int mode)
 	if (err < 0) {
 		if (alsadbg)
 			fprintf(stderr, "%s\n", snd_strerror(err));
-
+		alsaerr = -1;
 		return NULL;
 	}
   
@@ -126,7 +129,7 @@ snd_pcm_t* initAlsa(char *dev, int format, int channels, int speed, int mode)
 	if (err < 0) {
 		if (alsadbg)
 			fprintf(stderr, "%s\n", snd_strerror(err));
-
+		alsaerr = -1;
 		return NULL;
 	}
   
@@ -134,7 +137,7 @@ snd_pcm_t* initAlsa(char *dev, int format, int channels, int speed, int mode)
 	if (err < 0) {
 		if (alsadbg)
 			fprintf(stderr, "%s\n", snd_strerror(err));
-
+		alsaerr = -1;
 		return NULL;
 	}
   
@@ -142,13 +145,13 @@ snd_pcm_t* initAlsa(char *dev, int format, int channels, int speed, int mode)
 	if (err < 0) {
 		if (alsadbg)
 			fprintf(stderr, "%s\n", snd_strerror(err));
-
+		alsaerr = -1;
 		return NULL;
 	}
 	if (err != speed) {
 		if (alsadbg)
 			fprintf(stderr, "Rate not avaliable %i != %i\n", speed, err);
-
+		alsaerr = -1;
 		return NULL;
 	}
   
@@ -156,7 +159,7 @@ snd_pcm_t* initAlsa(char *dev, int format, int channels, int speed, int mode)
 	if (err < 0) {
 		if (alsadbg)
 			fprintf(stderr, "%s\n", snd_strerror(err));
-
+		alsaerr = -1;
 		return NULL;
 	}
   
@@ -165,7 +168,7 @@ snd_pcm_t* initAlsa(char *dev, int format, int channels, int speed, int mode)
 	if (err < 0) {
 		if (alsadbg)
 			fprintf(stderr, "%s\n", snd_strerror(err));
-
+		alsaerr = -1;
 		return NULL;
 	}
   
@@ -174,19 +177,19 @@ snd_pcm_t* initAlsa(char *dev, int format, int channels, int speed, int mode)
 	if (err < 0) { 
 		if (alsadbg)
 			fprintf(stderr, "Buffersize:%s\n", snd_strerror(err)); 
-
+		alsaerr = -1;
 		return NULL; 
 	} 
 	err = snd_pcm_hw_params(handle, hwparams); 
 	if (err < 0) { 
 		if (alsadbg)
 			fprintf(stderr, "%s\n", snd_strerror(err));
-
+		alsaerr = -1;
 		return NULL;
 	}
 	if (alsadbg)
 		snd_pcm_dump(handle, output);
-
+	alsaerr = 0;
 	return handle;
 }
 
@@ -222,7 +225,7 @@ int esd_audio_open()
 			fprintf(stderr, "Error opening device for playback\n");
 
 		esd_audio_fd = -1;
-		return -1;
+		return alsaerr;
 	}
 	if (alsadbg)
 		fprintf(stderr, "Device open for playback\n");
@@ -236,7 +239,7 @@ int esd_audio_open()
 
 			snd_pcm_close(alsa_playback_handle);
 			esd_audio_fd = -1;
-			return -1;
+			return alsaerr;
 		}
 
 		if (alsadbg)
@@ -377,7 +380,8 @@ void esd_audio_flush()
 		print_state();
 	}
 
-	snd_pcm_drain( alsa_playback_handle );
+	if (alsa_playback_handle != NULL)
+		snd_pcm_drain( alsa_playback_handle );
   
 	if (alsadbg) 
 		print_state();

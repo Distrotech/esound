@@ -1,5 +1,11 @@
 2002-06-19  Frederic Crozat  <fcrozat@mandrakesoft.com>
 
+        * audio_alsa09.c: (initAlsa), (esd_audio_open), (esd_audio_flush):
+        Add more check before doing ALSA calls (Santiago Otero)
+	
+
+2002-06-19  Frederic Crozat  <fcrozat@mandrakesoft.com>
+
         * players.c: (read_player): revert locking of audio stream patch, this
 	patch breaks esd when used in TCP mode on localhost (Santiago Otero)
 	
