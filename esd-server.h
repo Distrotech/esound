@@ -18,6 +18,7 @@
 /* a client may be in one of several states */
 enum esd_client_state {
     ESD_NEEDS_VALIDATION,	/* need to validate this client/request */
+    ESD_NEEDS_ENDCHECK, 	/* need to validate this client/request */
     ESD_STREAMING_DATA,		/* data from here on is streamed data */
     ESD_CACHING_SAMPLE,		/* midway through caching a sample */
     ESD_NEXT_REQUEST,		/* proceed to next request */

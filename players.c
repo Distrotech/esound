@@ -130,9 +130,8 @@ int read_player( esd_player_t *player )
 			   &rd_fds, NULL, NULL, &timeout ) ;
 	if ( can_read > 0 )
 	{
-	    actual = read( player->source_id, 
-			   player->data_buffer, 
-			   player->buffer_length );
+	    ESD_READ_BIN( player->source_id, player->data_buffer, 
+			  player->buffer_length, actual, "str rd" );
 
 	    /* check for end of stream */
 	    if ( actual == 0 ) 
@@ -244,9 +243,8 @@ void monitor_write() {
 	return;
 
     /* write the data buffer to the socket */
-    length = write ( esd_monitor->source_id, 
-		     esd_monitor->data_buffer, 
-		     esd_monitor->buffer_length );
+    ESD_WRITE_BIN( esd_monitor->source_id, esd_monitor->data_buffer, 
+		   esd_monitor->buffer_length, length, "mon wr" );
 
     if ( length < 0 ) {
 	/* error on write, close it down */
@@ -279,9 +277,8 @@ void recorder_write() {
 	return;
 
     /* write the data buffer to the socket */
-    length = write ( esd_recorder->source_id, 
-		     esd_recorder->data_buffer, 
-		     esd_recorder->buffer_length );
+    ESD_WRITE_BIN( esd_recorder->source_id, esd_recorder->data_buffer, 
+		   esd_recorder->buffer_length, length, "rec wr" );
 
     if ( length < 0 ) {
 	/* couldn't send anything, close it down */
@@ -307,6 +304,7 @@ void recorder_write() {
 esd_player_t *new_stream_player( esd_client_t *client )
 {
     esd_player_t *player;
+    int actual;
 
     /* make sure we have the memory to save the client... */
     player = (esd_player_t*) malloc( sizeof(esd_player_t) );
@@ -318,17 +316,21 @@ esd_player_t *new_stream_player( esd_client_t *client )
     player->next = NULL;
     player->parent = NULL;
 
-    read( client->fd, &player->format, sizeof(player->format) );
+    ESD_READ_INT( client->fd, &player->format, sizeof(player->format), 
+		  actual, "newstr fmt" );
     if ( client->swap_byte_order )
 	player->format = swap_endian_32( player->format );
 
     player->format &= ~ESD_MASK_MODE; /* force to ESD_STREAM */
-    read( client->fd, &player->rate, sizeof(player->rate) );
+    ESD_READ_INT( client->fd, &player->rate, sizeof(player->rate), 
+		  actual, "newstr rat" );
     if ( client->swap_byte_order )
 	player->rate = swap_endian_32( player->rate );
 
     player->source_id = client->fd;
-    read( client->fd, player->name, ESD_NAME_MAX );
+    ESD_READ_BIN( client->fd, player->name, ESD_NAME_MAX, 
+		  actual, "newstr nam" );
+
     player->name[ ESD_NAME_MAX - 1 ] = '\0';
 
     if ( esdbg_trace ) 

@@ -1,3 +1,10 @@
+1998-07-15  Yo Ric Dude  <ericmit@ix.netcom.com>
+
+	* esd-server.h, players.c, proto.c: finally got the client state
+	code to track endian status correctly, on linux and irix.  gross
+	macros to track communication protocol level data. need to filter
+	those out via cmd line macro at some point...
+
 1998-07-13  Yo Ric Dude  <ericmit@ix.netcom.com>
 
 	* clients.c, esd-server.h, esd.h, players.c, proto.c:

@@ -36,11 +36,39 @@ void clear_auth( int signum )
 }
 
 /*******************************************************************/
-/* checks for authorization to use the sound daemon */
+/* checks for authorization to use the sound daemon, and endianness */
+int check_endian( esd_client_t *client )
+{
+    int endian, actual;
+
+    ESD_READ_INT( client->fd, &endian, sizeof(endian), actual, "endian" );
+    if ( sizeof(endian) != actual ) {
+	/* not even enough bytes available? shut it down */
+	return 0;
+    }
+
+    if ( endian == ESD_ENDIAN_KEY ) {
+	/* printf( "same endian order.\n" ); */
+	client->swap_byte_order = 0;
+    } else if ( endian == ESD_SWAP_ENDIAN_KEY ) {
+	/* printf( "different endian order!\n" ); */
+	client->swap_byte_order = 1;
+    } else {
+	if ( esdbg_trace ) 
+	    printf( "(%02d) unknown endian key: 0x%08x (same = 0x%08x, diff = 0x%08x)\n",
+		    client->fd, endian, ESD_ENDIAN_KEY, ESD_SWAP_ENDIAN_KEY );
+	
+	return -1;
+    }
+
+    /* now we're done */
+    return 1;
+}
+
 int validate_source( esd_client_t *client, struct sockaddr_in source, int owner_only )
 {
+    int actual;
     char submitted_key[ESD_KEY_LEN];
-    int actual, endian;
 
     ESD_READ_BIN( client->fd, submitted_key, ESD_KEY_LEN, actual, "key" );
     if ( ESD_KEY_LEN != actual ) {
@@ -81,25 +109,11 @@ int validate_source( esd_client_t *client, struct sockaddr_in source, int owner_
     return 0;
 
  check_endian:
-    
-    ESD_READ_INT( client->fd, &endian, sizeof(endian), actual, "endian" );
-    if ( sizeof(endian) != actual ) {
-	/* not enough bytes available? shut it down */
-	return 0;
-    }
-
-    if ( endian == ESD_ENDIAN_KEY ) {
-	/* printf( "same endian order.\n" ); */
-	client->swap_byte_order = 0;
-    } else if ( endian == ESD_SWAP_ENDIAN_KEY ) {
-	/* printf( "different endian order!\n" ); */
-	client->swap_byte_order = 1;
-    } else {
-	if ( esdbg_trace ) 
-	    printf( "(%02d) unknown endian key: 0x%08x (same = 0x%08x, diff = 0x%08x)\n",
-		    endian, ESD_ENDIAN_KEY, ESD_SWAP_ENDIAN_KEY );
-	
-	return 0;
+    if ( check_endian( client ) <= 0 ) { 
+	/* irix is weird, may return -1, instead of EAGAIN, try again anyway */
+	if ( esdbg_trace ) printf( "will check for endian key next trip\n" );
+	client->state = ESD_NEEDS_ENDCHECK;
+	return 1;
     }
 
     /* now we're done */
@@ -475,10 +489,7 @@ int poll_client_requests()
     {
 	/* if it's a streaming client connection, just skip it */
 	/* data will be read (if available) during the mix process */
-	/* TODO: if ( client->state == ESD_STREAMING_DATA ) */
-	if ( client->request == ESD_PROTO_STREAM_PLAY
-	     || client->request == ESD_PROTO_STREAM_REC
-	     || client->request == ESD_PROTO_STREAM_MON ) {
+	if ( client->state == ESD_STREAMING_DATA ) {
 	    client = client->next;
 	    continue;
 	}
@@ -498,10 +509,15 @@ int poll_client_requests()
  	    /* validate client */
  	    is_ok = validate_source( client, client->source, 0 );
  
- 	    if ( is_ok ) {
+ 	    if ( is_ok && !(client->state == ESD_NEEDS_ENDCHECK) ) {
  		is_ok = do_validated_action( client );
  	        client->state = ESD_NEXT_REQUEST;
  	    }
+ 	    else if ( client->state == ESD_NEEDS_ENDCHECK ) {
+		/* wait for next trip through */
+		if ( esdbg_trace )
+		    printf( "waiting to check for endian key next trip\n" );
+	    } 
  	    else if ( client->request != ESD_PROTO_INVALID ) {
  	        /* send failure code to client */
  	        fprintf( stderr, 
@@ -511,6 +527,15 @@ int poll_client_requests()
 		fsync( client->fd );
  	    }
  	}
+	else if ( client->state == ESD_NEEDS_ENDCHECK ) {
+	    is_ok = check_endian( client );
+	    printf( "rechecking for endian key\n" );
+
+	    /* check_endian() return vals don't exactly match is_ok's meaning */
+	    if ( is_ok < 0 ) is_ok = 0;		/* socket error */
+	    else if ( is_ok == 0 ) is_ok = 1; 	/* try next time */
+	    else client->state = ESD_NEXT_REQUEST;
+	}
  	else {
  
  	    /* make sure there's a request as EOF may return as readable */
