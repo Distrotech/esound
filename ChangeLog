@@ -1,3 +1,8 @@
+Wed Sep 23 13:05:11 CDT 1998  mej <mej@mw.3com.com>
+
+	* clients.c, configure.in - Fixes needed to find FIONBIO macro,
+	  at least on Solaris
+	
 1998-09-23  Kimball Thurston <kimball@sgrail.com>
 
 	* clients.c - Make sure that the socket when connected is marked

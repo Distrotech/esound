@@ -21,6 +21,9 @@ AC_CHECK_FUNC(connect,,[AC_CHECK_LIB(socket,connect)])
 AC_CHECK_FUNC(gethostbyname,,[AC_CHECK_LIB(nsl,gethostbyname)])
 AC_CHECK_FUNC(inet_aton,,[AC_CHECK_LIB(resolv,inet_aton)])
 
+dnl Needed for FIONBIO on Solaris at least
+AC_CHECK_HEADERS(sys/filio.h sys/ioctl.h)
+
 dnl Check for audio header files needed
 
 echo "---------------------------------------------------------------------"
