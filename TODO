@@ -12,6 +12,9 @@ BUGS
 Planned for 0.2.7:
 ==================
 
+* factor out monitor_write internals, and recorder_write, and filter_write
+  into a write_player, and conditionally swap data on those writes.
+
 * function pointers in mix.c for mix_in (add) and translate (copy):
   mix_funcs[MAX] = { mix_to_format, mix_from_format, clip_format, ... };
   set function when creating player. update if a filter is added or removed

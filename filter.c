@@ -13,15 +13,20 @@ int filter_write( void *buffer, int size, esd_format_t format, int rate )
     esd_player_t *filter=esd_filter_list, *erase=NULL;
     esd_format_t data_format;
 
-    data_size = size;
-    data_buffer = buffer;
-    data_format = format;
-    data_rate = rate;
-
     /* if no filters, skip it */
     if( !esd_filter_list ) {
 	return size;
     }
+
+    /* translate into the first filter buffer */
+    data_size = esd_first_filter_func( filter->data_buffer, 
+				       filter->buffer_length, 
+				       filter->rate, 
+				       filter->format, 
+				       buffer, 
+				       size, 
+				       rate, 
+				       format );
 
     /* hop through the list of filters */
     while( filter ) {
@@ -37,20 +42,6 @@ int filter_write( void *buffer, int size, esd_format_t format, int rate )
 	 * Maybe by using fread and fwrite, to buffer the stuff, but in the 
 	 * end, all the data still has to be written from here to the buffer.
 	 */
-/*	data_size = mix_and_copy( filter->data_buffer, 
-				filter->buffer_length, filter->rate, 
-				filter->format, data_buffer, data_size, 
-				data_rate, data_format );
-*/
-	data_size = filter->translate_func( filter->data_buffer, 
-					    filter->buffer_length, 
-					    filter->rate, 
-					    filter->format, 
-					    data_buffer, 
-					    data_size, 
-					    data_rate, 
-					    data_format );
-
 	while( total_data < data_size )
 	{
 	    ESD_WRITE_BIN( filter->source_id, filter->data_buffer + total_data, 
@@ -65,31 +56,35 @@ int filter_write( void *buffer, int size, esd_format_t format, int rate )
 	    /* fprintf( stderr, "filter_write: just wrote %d bytes\n", actual ); */
 	}
 	
-	if( erase == NULL ) {
-	    /* read the client sound data */
+	/* make sure the filter is still alive before we read from it */
+	if ( !erase ) {
 	    actual = read_player( filter );
+	}
 
-	    /* read_player(): >0 = data, ==0 = no data, <0 = erase it */
-	    if ( actual > 0  ) {
-		/* printf( "received: %d bytes from %d\n", 
-		    actual, filter->source_id ); */
-		data_buffer = filter->data_buffer;
-		data_size = filter->actual_length;
-		data_format = filter->format;
-		data_rate = filter->rate;
-	    } else if ( actual == 0 ) {
-		ESDBG_TRACE( printf( "-%02d- no data available from filter [%p]\n", 
-				     filter->source_id, filter ); );
-		data_buffer = filter->data_buffer;
-		data_size = 0;
-		data_format = filter->format;
-		data_rate = filter->rate;
-	    } else {
-		/* actual < 0 means erase the player */
-		erase = filter;
-	    }
+	/* translate data to next filter whether current one is alive or not */
+	if ( filter->next ) {
+	    /* translate to next filter */
+	    data_size = filter->translate_func( filter->next->data_buffer, 
+						filter->next->buffer_length, 
+						filter->next->rate, 
+						filter->next->format, 
+						filter->data_buffer, 
+						filter->buffer_length, 
+						filter->rate, 
+						filter->format );
+	} else {
+	    /* translate to audio buffer */
+	    data_size = filter->translate_func( buffer, 
+						size, 
+						rate, 
+						format, 
+						filter->data_buffer, 
+						filter->buffer_length, 
+						filter->rate, 
+						filter->format );
 	}
 	
+	/* next filter... */
 	filter = filter->next;
 	
 	/* clean up any finished filters */
@@ -99,17 +94,7 @@ int filter_write( void *buffer, int size, esd_format_t format, int rate )
 	}
     }
     
-    /* mix it down */
-/*    return mix_and_copy( buffer, size, rate, format, 
-			 data_buffer, data_size, data_rate, data_format );
-*/
-    if ( esd_filter_list ) 
-	return esd_filter_list->translate_func( buffer, size, 
-						rate, format, 
-						data_buffer, data_size, 
-						data_rate, data_format );
-    else
-	return 0;
+    return data_size;
 }
 
 /*******************************************************************/

@@ -312,26 +312,7 @@ void monitor_write( void *output_buffer, int length ) {
 					  length, 
 					  esd_audio_rate,
 					  esd_audio_format );
-/*
-	if ( (esd_audio_format & ESD_MASK_BITS) == ESD_BIT1S16 ) {
-	    length = mix_from_stereo_16s( monitor->data_buffer, 
-					  monitor->buffer_length,
-					  monitor->rate, 
-					  monitor->format, 
-					  output_buffer, 
-					  length, 
-					  esd_audio_rate );
-	}
-	else {
-	    length = mix_from_stereo_8u( monitor->data_buffer, 
-					 monitor->buffer_length,
-					 monitor->rate, 
-					 monitor->format, 
-					 output_buffer, 
-					 length, 
-					 esd_audio_rate );
-	}
-*/
+
 	/* write the data buffer to the socket */
 	ESD_WRITE_BIN( monitor->source_id, monitor->data_buffer, 
 		       monitor->buffer_length, length, "mon wr" );

@@ -1,5 +1,11 @@
 1999-01-24  Yo Ric Dude  <ericmit@ix.netcom.com>
 
+	* filter.c, players.c: fix filters to work with the translation
+ 	function pointers.
+
+	* esdfilt.c: add some processing (double or halve the audio
+ 	signal) so we can tell if the filter is doing anything useful.
+
 	* clients.c, esd-server.h, esdlib.c, players.c, stamp-h.in:
  	factored into a function the setsockopt calls for setting the
  	socket options for the socket buffer sizes in the court of king
