@@ -76,8 +76,8 @@ mmePrintError(int in, UINT uError)
     fprintf(stderr, "esd: %s\n", lpText);
     mmeFreeMem(lpText);
 }
-#define mmePrintInError(x)	_mmePrintError(1,x)
-#define mmePrintOutError(x)	_mmePrintError(0,x)
+#define mmePrintInError(x)	mmePrintError(1,x)
+#define mmePrintOutError(x)	mmePrintError(0,x)
 
 void *
 _mmeAllocMem(size_t size)

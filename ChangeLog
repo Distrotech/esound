@@ -1,5 +1,10 @@
 2004-01-14  Frederic Crozat  <fcrozat@mandrakesoft.com>
 
+	* audio_osf.c: Fix build on OSF. Patch from 
+	Albert Chin-A-Young <china@thewrittenword.com>.
+
+2004-01-14  Frederic Crozat  <fcrozat@mandrakesoft.com>
+
 	* autogen.sh:
 	Don't force automake 1.4, now that we support 1.7.
 	Fix url for various tools.
