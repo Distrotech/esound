@@ -3,31 +3,24 @@ SUBDIRS = docs
 
 SPEC_FILE = esound.spec
 
-AUDIOFILE_LIBS = @AUDIOFILE_LIBS@
-LIBESDDSP = @LIBESDDSP@
-SOUND_LIBS= @SOUND_LIBS@
+INCLUDES = $(AUDIOFILE_CFLAGS) -DSYSCONFDIR=\"$(sysconfdir)\"
 
-INCLUDES = @AUDIOFILE_CFLAGS@ -DSYSCONFDIR="\"$(sysconfdir)\""
+if BUILD_ESDDSP
+esddsp = esddsp
+libesddsp_la = libesddsp.la
+endif
+if BUILD_ESDPLAY
+esdplay = esdplay
+endif
 
 bin_SCRIPTS = \
-	@ESDDSP@	\
+	$(esddsp)	\
 	esd-config
 
-EXTRA_SCRIPTS = esddsp
+lib_LTLIBRARIES = libesd.la $(libesddsp_la)
 
-EXTRA_DIST = \
-	esound.pc.in	\
-	esound.spec.in	\
-	esd-config.in	\
-        esd.conf        \
-	esd.m4 		\
-	TIPS 		\
-	test-script 	\
-	test.wav 	\
-	getopt.h 	\
-	TODO
-
-lib_LTLIBRARIES = libesd.la @LIBESDDSP@
+libesd_la_LDFLAGS = -version-info $(ESD_VERSION_INFO)
+libesd_la_LIBADD = $(AUDIOFILE_LIBS) $(SOUND_LIBS)
 
 libesd_la_SOURCES = \
 	esdlib.c	\
@@ -38,21 +31,8 @@ libesd_la_SOURCES = \
 	genrand.c	\
 	genrand.h
 
-libesd_la_LDFLAGS = -version-info @ESD_VERSION_INFO@
-
-libesd_la_LIBADD = @AUDIOFILE_LIBS@ @SOUND_LIBS@
-
-EXTRA_LTLIBRARIES = \
-	libesddsp.la
-
-libesddsp_la_LDFLAGS = -rpath $(libdir) -version-info @ESD_VERSION_INFO@
-
-libesddsp_la_LIBADD = @DL_LIB@ -lm
-
-libesddsp_la_SOURCES = \
-	esddsp.c
-
-EXTRA_libesd_la_SOURCES = \
+# one of these gets included by audio.c
+AUDIO_BACKENDS = \
 	audio_aix.c	\
 	audio_alsa.c	\
 	audio_hpux.c	\
@@ -61,6 +41,13 @@ EXTRA_libesd_la_SOURCES = \
 	audio_oss.c	\
 	audio_mklinux.c	\
 	audio_solaris.c	
+
+libesddsp_la_LDFLAGS = -version-info $(ESD_VERSION_INFO)
+libesddsp_la_LIBADD = $(DL_LIB) -lm
+
+libesddsp_la_SOURCES = \
+	esddsp.c
+
 
 include_HEADERS = \
 	esd.h
@@ -74,10 +61,7 @@ bin_PROGRAMS = \
 	esdrec		\
 	esdsample	\
 	esdloop		\
-	@ESDPLAY@
-
-EXTRA_PROGRAMS = \
-	esdplay
+	$(esdplay)
 
 esd_SOURCES = 	\
 	esd.c 		\
@@ -115,11 +99,9 @@ EXTRA_esdplay_SOURCES = \
 
 LDADD = libesd.la $(AUDIOFILE_LIBS)
 
-LIBOBJS = @LIBOBJS@
-
-esd_LDADD = $(LIBOBJS) $(WRAP_LIB) $(LDADD)
-esdctl_LDADD = $(LIBOBJS) $(LDADD)
-esdplay_LDADD = $(LIBOBJS) $(LDADD)
+esd_LDADD = $(GETOPT_OBJS) $(WRAP_LIB) $(LDADD)
+esdctl_LDADD = $(GETOPT_OBJS) $(LDADD)
+esdplay_LDADD = $(GETOPT_OBJS) $(LDADD)
 
 m4datadir = $(datadir)/aclocal
 m4data_DATA = esd.m4
@@ -140,14 +122,25 @@ doc:
 
 
 dist-hook: doc esound.spec
-	cp $(SPEC_FILE) $(distdir)
 	test -d $(distdir)/docs || mkdir $(distdir)/docs 
 	cp $(srcdir)/docs/esound.sgml $(distdir)/docs
 	cp -r $(srcdir)/docs/esound $(distdir)/docs/html
 	cp $(srcdir)/docs/esound.ps $(distdir)/docs
 
-CLEANFILES=esound.spec esound.pc
-
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = esound.pc
 
+EXTRA_DIST = \
+	esddsp		\
+	esound.pc.in	\
+	esound.spec	\
+	esound.spec.in	\
+	esd-config.in	\
+        esd.conf        \
+	esd.m4 		\
+	TIPS 		\
+	test-script 	\
+	test.wav 	\
+	getopt.h 	\
+	TODO		\
+	$(AUDIO_BACKENDS)

@@ -5,6 +5,8 @@ config.log
 config.h
 config.h.in
 libtool
+ltmain.sh
+ltconfig
 config.status
 stamp-h
 Makefile

@@ -2,6 +2,8 @@ dnl Initialize the autoconf settings
 
 AC_INIT(esd.h)
 
+AM_CONFIG_HEADER(config.h)
+
 ESD_MAJOR_VERSION=0
 ESD_MINOR_VERSION=2
 ESD_MICRO_VERSION=24
@@ -16,23 +18,20 @@ AC_SUBST(ESD_MICRO_VERSION)
 AC_SUBST(ESD_VERSION)
 AC_SUBST(ESD_VERSION_INFO)
 
-VERSION=$ESD_VERSION
-PACKAGE=esound
-
-AM_INIT_AUTOMAKE($PACKAGE, $VERSION)
-
-AM_CONFIG_HEADER(config.h)
+AM_INIT_AUTOMAKE(esound, $ESD_VERSION)
 
 AM_MAINTAINER_MODE
+
+AC_PROG_CC
+AC_PROG_CPP
+AM_PROG_LIBTOOL
+
 
 dnl Check for tools
 
 AC_CANONICAL_HOST
 AC_PROG_MAKE_SET
-AC_PROG_CC
-AC_PROG_CPP
 
-AM_PROG_LIBTOOL
 AC_PROG_INSTALL
 
 dnl Check for compiler environment
@@ -81,8 +80,8 @@ AC_TRY_LINK([
 
 dnl check for getopt_long, substitute the distributed versions if not
 
-AC_CHECK_FUNC(getopt_long,,[LIBOBJS="$LIBOBJS getopt.o getopt1.o"])
-AC_SUBST(LIBOBJS)
+AC_CHECK_FUNC(getopt_long,,[GETOPT_OBJS="getopt.o getopt1.o"])
+AC_SUBST(GETOPT_OBJS)
 
 dnl Needed for FIONBIO on Solaris at least
 
@@ -212,8 +211,7 @@ fi
 
 dnl make sure we have the library, -laudiofile
 
-ESDPLAY=
-
+build_esdplay=false
 AC_ARG_WITH(audiofile,
 [  --with-audiofile        include support for audiofile related utilities and functions
                               ARG = { yes | no | check } [default=check]])
@@ -225,7 +223,7 @@ echo "--- REQUIRED from proper compilation of the esound package."
 
 AM_PATH_AUDIOFILE(0.1.5, [
 
-ESDPLAY=esdplay
+build_esdplay=true
 echo "--- libaudiofile found. Building esound with audiofile support"
 ],[
 
@@ -249,6 +247,8 @@ else
    echo "--- NOTE: The audiofile library is now REQUIRED for esound."
 
 fi
+
+AM_CONDITIONAL(BUILD_ESDPLAY, $build_esdplay)
 
 echo "---------------------------------------------------------------------"
 echo "--- Checking for the documentation generation tools.  NOTE: These "
@@ -312,7 +312,7 @@ fi
 
 dnl build the esddsp wrapper for systems, 
 dnl that support LD_PRELOAD and RTLD_NEXT only
-dsp_ok=no ESDDSP= LIBESDDSP= DL_LIB=
+dsp_ok=no DL_LIB=
 
 AC_MSG_CHECKING([if your platform supports esddsp])
 case "$host_os" in
@@ -322,21 +322,19 @@ case "$host_os" in
 esac
 AC_MSG_RESULT($dsp_ok)
 
-if test "$dsp_ok" = "yes"; then
+if test "x$dsp_ok" = xyes; then
    AC_CHECK_FUNC(dlopen, dsp_ok=yes,
       AC_CHECK_LIB(dl, dlopen, dsp_ok=yes DL_LIB=-ldl))
    ESDDSP=esddsp
    LIBESDDSP=libesddsp.la
 fi
+AM_CONDITIONAL(BUILD_ESDDSP, test "x$dsp_ok" = xyes)
 
 # set | sort; # just for double checking the script...
 
 AC_SUBST(WRAP_LIB)
 AC_SUBST(SOUND_LIBS)
 AC_SUBST(AUDIOFILE_LIBS)
-AC_SUBST(ESDPLAY)
-AC_SUBST(LIBESDDSP)
-AC_SUBST(ESDDSP)
 AC_SUBST(DL_LIB)
 AC_SUBST(DOCS)
 AC_SUBST(DISTDOCS)

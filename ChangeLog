@@ -1,3 +1,20 @@
+2002-03-11  James Henstridge  <james@daa.com.au>
+
+	* autogen.sh: call libtoolize.
+
+	* acinclude.m4, ltconfig, ltmain.sh: remove this file -- get
+	libtool from aclocal and libtoolize (it is currently using
+	libtool-1.2f, which is ancient).
+
+	* configure.in: use an automake conditional to say whether we are
+	building esddsp and esdplay.
+	(GETOPT_OBJS): esound's configure wasn't using LIBOBJS subtitution
+	correctly, which causes build problems with autoconf-2.53.  So
+	just use another env var.
+
+	* Makefile.am (INCLUDES): get rid of extra variable declarations
+	that automake would automatically add.
+
 2002-03-01  Havoc Pennington  <hp@redhat.com>
 
 	* configure.in: 0.2.24

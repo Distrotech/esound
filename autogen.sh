@@ -37,6 +37,7 @@ fi
 THEDIR="`pwd`"
 cd $srcdir
 aclocal $ACLOCAL_FLAGS
+libtoolize --force
 autoheader
 autoconf
 automake --gnu --add-missing
