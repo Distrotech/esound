@@ -1,3 +1,8 @@
+2002-07-19  Frederic Crozat  <fcrozat@mandrakesoft.com>
+
+	* esdctl.c: (main): fix segfault when using -s (Debian)
+	* esddsp.in: No longer use LD_PRELOAD_PATH  (Debian)
+
 2002-07-09  Brian Cameron  <Brian.Cameron@sun.com>
 
 	* configure.in: Added -with-esd-dir option.

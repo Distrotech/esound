@@ -80,7 +80,7 @@ int main(int argc, char **argv)
     /* check the command line areguments */
     do
     {
-	arg = getopt_long(argc, argv, "sp:hv", opts, &option_index);
+	arg = getopt_long(argc, argv, "s:p:hv", opts, &option_index);
 
 	switch (arg)
 	{
