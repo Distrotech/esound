@@ -158,7 +158,7 @@ esd [options]
 \&  -tcp          use tcp/ip sockets instead of unix domain
 \&  -public       make tcp/ip access public (other than localhost)
 \&  -promiscuous  start unlocked and owned (disable authenticaton) NOT RECOMMENDED
-\&  -terminate    terminate esd daemone after last client exits
+\&  -terminate    terminate esd daemon after last client exits
 \&  -nobeeps      disable startup beeps
 \&  -trust        start esd even if use of /tmp/.esd can be insecure
 \&  -port PORT    listen for connections at PORT (only for tcp/ip)
