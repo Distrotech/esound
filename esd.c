@@ -348,6 +348,15 @@ int main ( int argc, char *argv[] )
 	}
 
 	if ( esd_on_standby || do_sleep ) {
+#ifdef HAVE_NANOSLEEP
+	    struct timespec restrain;
+	    restrain.tv_sec = 0;
+	    /* funky math to make sure a long can hold it all, calulate in ms */
+	    restrain.tv_nsec = (long) esd_buf_size_samples * 1000L
+		/ (long) esd_audio_rate / 4L;   /* divide by two for stereo */
+	    restrain.tv_nsec *= 1000000L;       /* convert to nanoseconds */
+	    nanosleep( &restrain, NULL );
+#else
 	    struct timeval restrain;
 	    restrain.tv_sec = 0;
 	    /* funky math to make sure a long can hold it all, calulate in ms */
@@ -355,6 +364,7 @@ int main ( int argc, char *argv[] )
 		/ (long) esd_audio_rate / 4L; 	/* divide by two for stereo */
 	    restrain.tv_usec *= 1000L; 		/* convert to microseconds */
 	    select( 0, 0, 0, 0, &restrain );
+#endif
 	}
 
     } /* while ( 1 ) */
