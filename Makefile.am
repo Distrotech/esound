@@ -77,6 +77,7 @@ esd_SOURCES = 	\
 	players.c	\
 	proto.c		\
 	samples.c	\
+	session.c	\
 	esd-server.h
 
 esdcat_SOURCES = \
