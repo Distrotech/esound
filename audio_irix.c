@@ -14,12 +14,17 @@
 ALport outaudioport;
 ALport inaudioport;
 
+long rate_params[] = { AL_OUTPUT_RATE, 0, AL_INPUT_RATE, 0 };
+      
 #define ARCH_esd_audio_open
 int esd_audio_open()
 {
     ALconfig audioconfig;
     audioconfig = ALnewconfig();
   
+	rate_params[1] = esd_audio_rate;
+	rate_params[3] = esd_audio_rate;
+
     if (!audioconfig) {
 	printf( "Couldn't initialize new audio config\n" );
 	esd_audio_fd = -1;
@@ -36,10 +41,7 @@ int esd_audio_open()
 	    }
     
 	if (pvbuf[1] == 0 && pvbuf[3] == AL_MONITOR_OFF) {
-	    long al_params[] = { AL_OUTPUT_RATE, 0};
-      
-	    al_params[1] = esd_audio_rate;
-	    ALsetparams(AL_DEFAULT_DEVICE, al_params, 2);
+	    ALsetparams(AL_DEFAULT_DEVICE, rate_params, 2);
 	} else
 	    if (pvbuf[5] != esd_audio_rate) {
 		printf("audio device is already in use with wrong sample output rate\n");
@@ -119,6 +121,7 @@ int esd_audio_open()
 		return esd_audio_fd;
 	    }
 	    ALsetfillpoint(inaudioport, ESD_BUF_SIZE);
+	    ALsetparams(AL_DEFAULT_DEVICE, (rate_params + 2), 2);
 
 	    esd_audio_fd = ALgetfd(inaudioport);
 	}
@@ -153,6 +156,7 @@ void esd_audio_close()
 #define ARCH_esd_audio_write
 int esd_audio_write(void *buffer, int buf_size)
 {
+	ALsetparams(AL_DEFAULT_DEVICE, rate_params, 2);
     if (ALwritesamps(outaudioport, buffer, buf_size / 2) == 0) {
 	ALsetfillpoint(outaudioport, ESD_BUF_SIZE);
 	return buf_size;
@@ -164,6 +168,7 @@ int esd_audio_write(void *buffer, int buf_size)
 #define ARCH_esd_audio_read
 int esd_audio_read(void *buffer, int buf_size)
 {
+	ALsetparams(AL_DEFAULT_DEVICE, (rate_params + 2), 2);
     if (ALreadsamps(inaudioport, buffer, buf_size / 2) == 0) {
 	ALsetfillpoint(inaudioport, ESD_BUF_SIZE);
 	return buf_size;

@@ -96,7 +96,7 @@ void erase_client( esd_client_t *client )
 /* checks for new connections at listener - zero when done */
 int get_new_clients( int listen )
 {
-    int fd;
+    int fd, nbl;
     struct sockaddr_in incoming;
     size_t size_in = sizeof(struct sockaddr_in);
     esd_client_t *new_client = NULL;
@@ -129,6 +129,18 @@ int get_new_clients( int listen )
 
 	    /* fill in the new_client structure - sockaddr = works!? */
 	    /* request = ..._INVALID forces polling client next time */
+
+		/* It appears that not all systems construct the new socket in
+		 * a blocking mode, if the listening socket is non-blocking, so
+		 * let's set that here...
+		 */
+		nbl = 0;
+		if ( ioctl( fd, FIONBIO, &nbl ) < 0 )
+		{
+			fprintf( stderr, "Couldn't turn on blocking for client\n" );
+			close( fd );
+			return -1;
+		}
 	    new_client->next = NULL;
 	    new_client->state = ESD_NEEDS_VALIDATION;
 	    new_client->request = ESD_PROTO_INVALID;
