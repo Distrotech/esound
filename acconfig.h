@@ -16,3 +16,4 @@
 #undef ESDBG 
 
 #undef INADDR_LOOPBACK
+#undef SUN_LEN

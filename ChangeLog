@@ -1,3 +1,13 @@
+Mon Jun 28 18:34:10 1999 Timur Bakeyev <mc@bat.ru>
+
+    * acconfig.h, configure.in: Fix checkes against INADDR_LOOPBACK and SUN_LEN.
+    
+    * esd.h: Fix problem with mkdir() - if directory name containes "/" as a last
+    symbol, it'll not be created...
+    
+    * esd.c,esdlib.c: Introduced usage of SUN_LEN instead of direct calculation.
+    Move inline defenition of SUN_LEN to config.h.
+
 1999-06-22  Richard Boulton <rjb37@cam.ac.uk>
 
 	* esdlib.c: More self documenting code comments.  Nearly done this

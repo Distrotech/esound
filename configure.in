@@ -58,11 +58,25 @@ else
   AC_DEFINE(HAVE_INET_ATON)
 fi
 
-dnl Check for INADDR_LOOPBACK exists
-
-AC_EGREP_HEADER(INADDR_LOOPBACK, netinet/in.h,,
-    [AC_DEFINE(INADDR_LOOPBACK, (u_long)0x7f000001)])
+dnl Check if INADDR_LOOPBACK exists
   
+AC_TRY_COMPILE([
+    #include<sys/types.h>
+    #include<netinet/in.h>],
+    [unsigned long ul = INADDR_LOOPBACK;],,
+    [AC_DEFINE(INADDR_LOOPBACK, (u_long)0x7f000001)])
+    
+
+dnl Check if SUN_LEN exists
+
+AC_TRY_COMPILE([
+    #include<sys/types.h>
+    #include<sys/un.h>], 
+    [struct sockaddr_un su; int i = SUN_LEN(&su);],,
+    [AC_DEFINE(SUN_LEN,
+	[(ptr)	((size_t)(((struct sockaddr_un *) 0)->sun_path) + strlen ((ptr)->sun_path))])
+    ])
+
 dnl check for getopt_long, substitute the distributed versions if not
 
 AC_CHECK_FUNC(getopt_long,,[LIBOBJS="$LIBOBJS getopt.o getopt1.o"])

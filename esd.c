@@ -189,8 +189,7 @@ esd_connect_unix(void)
   socket_unix.sun_family = AF_UNIX;
   strncpy(socket_unix.sun_path, ESD_UNIX_SOCKET_NAME, sizeof(socket_unix.sun_path));  
   if ( connect( socket_out,
-	       (struct sockaddr *) &socket_unix,
-	       sizeof(struct sockaddr_un) ) < 0 )
+	       (struct sockaddr *) &socket_unix, SUN_LEN(&socket_unix) ) < 0 )
     return -1;  
   return socket_out;
 }
@@ -302,8 +301,7 @@ int open_listen_socket( int port )
       socket_unix.sun_family=AF_UNIX;
       strncpy(socket_unix.sun_path, ESD_UNIX_SOCKET_NAME, sizeof(socket_unix.sun_path));
       if ( bind( socket_listen,
-		(struct sockaddr *) &socket_unix,
-		sizeof(struct sockaddr_un)) < 0 )
+		(struct sockaddr *) &socket_unix, SUN_LEN(&socket_unix) ) < 0 )
 	{
 	  fprintf(stderr,"Unable to connect to UNIX socket %s\n", ESD_UNIX_SOCKET_NAME);
 	  if (!esd_use_tcpip)

@@ -19,11 +19,6 @@
 #include <sys/wait.h>
 
 #include <sys/un.h>
-#ifndef SUN_LEN
-/* Evaluate to actual length of the `sockaddr_un' structure.  */
-#define SUN_LEN(ptr) ((size_t) (((struct sockaddr_un *) 0)->sun_path)         \
-                      + strlen ((ptr)->sun_path))
-#endif
 
 /*******************************************************************/
 /* prototypes */
@@ -551,7 +546,7 @@ esd_connect_unix(const char *host)
   strncpy(socket_unix.sun_path, ESD_UNIX_SOCKET_NAME, sizeof(socket_unix.sun_path));
   
   if ( connect( socket_out,
-	       (struct sockaddr *) &socket_unix, SUN_LEN(&socket_unix)) < 0 )
+	       (struct sockaddr *) &socket_unix, SUN_LEN(&socket_unix) ) < 0 )
     goto error_out;
   
   return socket_out;
