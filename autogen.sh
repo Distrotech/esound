@@ -31,6 +31,11 @@ if test "$DIE" -eq 1; then
 	exit 1
 fi
 
+aclocal $ACLOCAL_FLAGS
+autoheader
+autoconf
+automake --gnu --add-missing
+
 if test -z "$*"; then
 	echo "I am going to run ./configure with no arguments - if you wish "
         echo "to pass any to it, please specify them on the $0 command line."
