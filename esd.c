@@ -543,6 +543,14 @@ int main ( int argc, char *argv[] )
     ESD_AUDIO_STUFF;
     if ( esd_audio_open() < 0 ) {
       fprintf(stderr, "Audio device open for 44.1Khz, stereo, 8bit failed\n"
+
+	    "Trying 48Khz, 16bit stereo.\n");
+    /* cant do defaults ... try 48 kkz 16bit stereo */
+    esd_audio_format = ESD_BITS16 | ESD_STEREO;
+    esd_audio_rate = 48000;
+    ESD_AUDIO_STUFF;
+    if ( esd_audio_open() < 0 ) {
+      fprintf(stderr, "Audio device open for 44.1Khz, stereo, 8bit failed\n"
 	      "Trying 22.05Khz, 8bit stereo.\n");
       /* cant do defaults ... try 22.05 kkz 8bit stereo */
       esd_audio_format = ESD_BITS8 | ESD_STEREO;
@@ -609,6 +617,7 @@ int main ( int argc, char *argv[] )
 	}
       }
     }
+   }
   }
 
     /* allocate and zero out buffer */
