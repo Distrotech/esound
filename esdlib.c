@@ -485,7 +485,7 @@ int esd_open_sound( const char *host )
   if (! host) host = getenv("ESPEAKER");
 
   if (! host) {
-    if (access("/tmp/.esd/socket", R_OK | W_OK) == -1)
+    if (access(ESD_UNIX_SOCKET_NAME, R_OK | W_OK) == -1)
       use_unix = 0;
     else
       use_unix = 1;
