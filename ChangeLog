@@ -1,5 +1,10 @@
 1998-06-06  Yo Ric Dude  <ericmit@ix.netcom.com>
 
+	* samples.c, players.c, clients.c: rigged up the sample freeing
+	routines to check reference counts before deleting the samples.
+
+1998-06-06  Yo Ric Dude  <ericmit@ix.netcom.com>
+
 	* esd.h, esd-server.h: moved some server stuff to esd-server.h.
 	also added placeholders for an ADPCM mode, and endian issues.
 

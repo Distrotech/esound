@@ -32,6 +32,7 @@ void free_sample( esd_sample_t *sample )
 
     /* free the sample memory itself */
     free( sample );
+    printf( "freed sample: [0x%p]\n", sample );
     return;
 }
 
@@ -47,17 +48,29 @@ void add_sample( esd_sample_t *new_sample )
 
 /*******************************************************************/
 /* erase a sample from the sample list */
+/* TODO: add "force kill" boolean option */
 void erase_sample( int id )
 {
     esd_sample_t *previous = NULL;
     esd_sample_t *current = esd_samples_list;
+
+    printf( "erasing sample (%d)\n", id );
 
     /* iterate until we hit a NULL */
     while ( current != NULL )
     {
 	/* see if we hit the target sample */
 	if ( current->sample_id == id ) {
-	    if( previous != NULL ){
+
+	    /* if the ref count is non-zero, just flag it for deletion */
+	    if ( current->ref_count ) {
+		printf( "erasing sample (%d) - deferred\n", id );
+		current->erase_when_done = 1;
+		return;
+	    }
+
+	    /* ref_count is zero, get rid of it */
+	    if ( previous != NULL ){
 		/* we are deleting in the middle of the list */
 		previous->next = current->next;
 	    } else { 
@@ -66,7 +79,6 @@ void erase_sample( int id )
 	    }
 
 	    /* erase last traces of sample from existence */
-	    /* TODO: check ref_count */
 	    free_sample( current );
 
 	    return;

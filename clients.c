@@ -319,7 +319,7 @@ int esd_proto_sample_cache( esd_client_t *client )
 {
     esd_sample_t *sample;
     int length;
-    printf( "caching sample (%d)\n", client->fd );
+    printf( "proto: caching sample (%d)\n", client->fd );
 
     sample = new_sample( client->fd );
     /* add to the list of sample */
@@ -350,7 +350,7 @@ int esd_proto_sample_free( esd_client_t *client )
 	 != sizeof( sample_id ) )
 	return 0;
 
-    printf( "freeing sample (%d)\n", sample_id );
+    printf( "proto: erasing sample (%d)\n", sample_id );
     erase_sample( sample_id );
 
     if ( write( client->fd, &sample_id, sizeof(sample_id) ) 

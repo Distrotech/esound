@@ -36,6 +36,11 @@ void free_player( esd_player_t *player )
 	sample->ref_count--;
 	printf( "free player: (%d, #%d) [0x%p]\n", 
 		player->source_id, sample->ref_count, player );
+
+	if ( sample->erase_when_done && !sample->ref_count ) {
+	    printf( "free_player: erasing sample (%d)\n", sample->sample_id );
+	    erase_sample( sample->sample_id );
+	}
     }
 
     /* free any memory allocated with the player */
