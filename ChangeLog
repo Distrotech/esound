@@ -1,5 +1,9 @@
 2002-03-01  Havoc Pennington  <hp@redhat.com>
 
+	* configure.in: 0.2.24
+
+2002-03-01  Havoc Pennington  <hp@redhat.com>
+
 	* players.c (read_player): Apply patch from
 	mchapman@student.usyd.edu.au to reduce choppiness; see 
 	https://bugzilla.redhat.com/bugzilla/show_bug.cgi?id=55877
