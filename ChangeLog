@@ -4,6 +4,7 @@
 	* Makefile.am, esd-server.h, esd.h, esdctl.c, proto.c, esdmgr.c: 
 	add initial framework for remote management of server, filter out
 	diagnostic/debugging information from binary if we don't want it.
+	also inlcude esound.spec file in distribution.
 
 Sat Oct 31 21:36:07 PST 1998 Manish Singh <yosh@gimp.org>
 

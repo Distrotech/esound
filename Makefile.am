@@ -14,7 +14,8 @@ EXTRA_DIST = \
 	test-script 	\
 	test.wav 	\
 	getopt.h 	\
-	TODO
+	TODO		\
+	esound.spec
 
 lib_LTLIBRARIES = libesd.la @LIBESDDSP@
 
