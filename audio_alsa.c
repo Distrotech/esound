@@ -20,13 +20,31 @@ void *handle;
 #endif
 
 #define ARCH_esd_audio_open
+static void
+alsa_print_error (int code, int card, int device) {
+    if( driver_trace ) { 
+	perror( "snd_ctl_open" );
+
+	if( device >= 0 ) {
+	    fprintf (stderr, "card %d pcm device %d open failed: %s\n",
+	    	     card, device, snd_strerror( code ) );
+	}
+	else {
+	    fprintf( stderr, "card %d open failed: %s\n", 
+	  	     card, snd_strerror( code ) );
+	}
+    }    
+}
+
 int esd_audio_open()
 {
     snd_pcm_format_t format;
     snd_pcm_playback_params_t params;
     int ret, mode = SND_PCM_OPEN_PLAYBACK;
-    int mask=0, card=ALSACARD, device=ALSADEVICE, err=0;
+    int mask, card=ALSACARD, device=ALSADEVICE;
     char buf[256];
+    void *ctl_handle;
+    struct snd_ctl_hw_info hw_info;
   
     /* if recording, set for full duplex mode */
     if ( (esd_audio_format & ESD_MASK_FUNC) == ESD_RECORD )
@@ -52,30 +70,57 @@ int esd_audio_open()
     }
 
     handle = NULL;
-    for( card=0; (card < SND_CARDS) && (handle == NULL); card++ ) {
-	if( mask & (1 << card) ) {
-	    err = snd_pcm_open( &handle, card, device, mode );
-	    if( ret < 0 ) {
-		if( driver_trace ) {
-		    perror( "snd_pcm_open" );
-		    fprintf( stderr, "card %d open failed: %s\n", 
-			     card, snd_strerror( err ) );
-		}
-		handle = NULL;
+    for ( card=0; ( card < SND_CARDS ) && (handle == NULL); card++ ) {
+	if ( mask & (1 << card) ) {
+	    /* open sound card */
+	    ret = snd_ctl_open( &ctl_handle, card );
+
+	    if ( ret < 0 ) {
+		alsa_print_error( ret, card, -1 );
+		continue;
 	    }
-	    else {
-		if( driver_trace ) {
-		    fprintf( stderr, "opened alsa card %d\n", card );
+	    
+	    if ( driver_trace ) {
+		fprintf( stderr, "opened alsa card %d\n", card );
+	    }
+	   
+	    /* get info on sound card */
+	    ret = snd_ctl_hw_info( ctl_handle, &hw_info );
+	    if ( ret < 0 ) {
+		alsa_print_error( ret, card, -1 );
+		continue;
+	    }
+	    ret = snd_ctl_close( ctl_handle );
+	    if ( ret < 0 ) {
+		alsa_print_error( ret, card, -1 );
+		continue;
+	    }
+
+	    /* search for available pcm device on card */
+	    for ( device=0; (device < hw_info.pcmdevs) && (handle == NULL);
+	    	 device++ ) {
+		ret = snd_pcm_open( &handle, card, device, mode );
+		if ( ret < 0 ) {
+		    alsa_print_error( ret, card, device );
+		    handle = NULL;
+		    continue;
 		}
+	    }
+	    device--;
+	    
+	    if ( (handle != NULL) && driver_trace ) {
+	       fprintf( stderr, "opened alsa card %d pcm device %d\n",
+		      card, device );
 	    }
 	}
     }
+    card--;
   
     if ( handle == NULL ) {
 	fprintf( stderr, "Couldn't open any alsa card! Last card tried was %d\n", 
 		 card );
 	fprintf( stderr, "Error opening card %d: %s\n", 
-		 card, snd_strerror( err ) );  
+		 card, snd_strerror( ret ) );  
 	
 	esd_audio_close();
 	esd_audio_fd = -1;
@@ -104,10 +149,16 @@ int esd_audio_open()
     if ( ret ) {
 	printf( "error: %s: in snd_pcm_playback_params\n", snd_strerror(ret) );
     }
-    
+
+/* shouldn't use non-blocking mode, because you have to sit in a loop rewriting
+   data until success (eating cpu time in the process).  This wasn't being done,
+   and didn't work on my machine.  Or you could use select(man page 2), I guess.
+*/
+#if 0
     ret = snd_pcm_block_mode( handle, 1 );
     if ( ret )
 	printf( "error: %s: in snd_pcm_block_mode\n", snd_strerror(ret));
+#endif
 
     if ( format.rate != esd_audio_rate || format.channels != 2 
 	 || format.format != SND_PCM_SFMT_S16_LE )

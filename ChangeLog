@@ -1,3 +1,8 @@
+1998-10-24  Yo Ric Dude  <ricdude@ix.netcom.com>
+
+	* audio_alsa.c: reworked alsa card detection per patch from 
+	Andrew Clausen <clausen@alphalink.com.au>
+
 Wed Oct 21 23:57:11 1998  Raph Levien  <raph@gimp.org>
 
 	* esdplay.c (play_file): The computation of bytes_per_frame was
