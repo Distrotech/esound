@@ -1,3 +1,9 @@
+1998-11-30  Jeff Garzik  <jgarzik@pobox.com>
+
+	* configure.in:
+	Don't dump environment to stdout.  Every user doesn't need to
+	see this data, just a few hackers.
+
 1998-11-28  Yo Ric Dude  <ricdude@ix.netcom.com>
 
 	* players.c, samples.c: swap 16 bit audio data if the server and
