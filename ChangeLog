@@ -1,3 +1,11 @@
+1999-06-30 Scott Heavner  <sdh@po.cwru.edu>
+
+	* configure.in/acconfig.h: Change SUN_LEN test to use AC_TRY_LINK.
+	Then change it more.  Are #ifdef's allowed in acconfig.h?  Seems
+	like cheating, but it works here (autoconf v2.13).  The previous
+	incarnation was using AC_DEFINE to setup a macro and wasn't
+	working at all.
+
 Mon Jun 28 18:34:10 1999 Timur Bakeyev <mc@bat.ru>
 
     * acconfig.h, configure.in: Fix checkes against INADDR_LOOPBACK and SUN_LEN.

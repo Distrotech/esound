@@ -16,4 +16,9 @@
 #undef ESDBG 
 
 #undef INADDR_LOOPBACK
-#undef SUN_LEN
+#undef HAVE_SUN_LEN
+
+/* Completely cheap & sucky, but it works better than what was here */
+#ifndef HAVE_SUN_LEN
+#define SUN_LEN(ptr) ((size_t)(((struct sockaddr_un *) 0)->sun_path) + strlen ((ptr)->sun_path))
+#endif
