@@ -1,3 +1,9 @@
+1998-10-17  Yo Ric Dude  <ricdude@ix.netcom.com>
+
+	* esddsp.c: added Yosh's slick trick for transparently
+	rerouting /dev/dsp to esd.  Only tested with Linux and
+	x11amp.  Directions are in the source file for the brave.
+
 Sat Oct 17 02:20:42 PDT 1998 Manish Singh <yosh@gimp.org>
 
 	* esd.c, acconfig.h, configure.in: emulated nanosleep with select
@@ -19,7 +25,7 @@ Fri Oct 16 02:48:26 PDT 1998 Manish Singh <yosh@gimp.org>
 
 	* esd.h: removed system includes so it doesn't "pollute"
 
-	* audio.c, esd-server.h, esd.h, esdcat.c esdctl.c, esdfilt.c,
+	* audio.c, esd-server.h, esd.h, essrldcat.c esdctl.c, esdfilt.c,
 	esdloop.c, esdmon.c, esdplay.c, esdrec.c, esdsample.c: added
 	in specifc #includes so it compiles again
 
