@@ -39,6 +39,7 @@
  */
 /* #define MULTIPLE_X11AMP */
 
+#include <stdlib.h>
 #include <string.h>
 #include <sys/types.h>
 #include <sys/soundcard.h>
@@ -129,8 +130,8 @@ int ioctl (int fd, int request, void *argp)
 	{
 	  int proto = ESD_PROTO_STREAM_PLAY;
 	  char buf[ESD_NAME_MAX];
-	  strncpy( buf, /* use environment variable for alternate name */
-		   ( getenv("ESDDSP_NAME") ? getenv("ESDDSP_NAME") : "esddsp" ), 
+	  strncpy (buf, /* use environment variable for alternate name */
+		   (getenv ("ESDDSP_NAME") ? getenv ("ESDDSP_NAME") : "esddsp"), 
 		   ESD_NAME_MAX );
 
 	  done = 1;
@@ -158,7 +159,6 @@ int ioctl (int fd, int request, void *argp)
 
 #ifdef MULTIPLE_X11AMP
 
-#include <stdlib.h>
 #include <socketbits.h>
 #include <sys/param.h>
 #include <sys/un.h>
