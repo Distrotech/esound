@@ -40,9 +40,10 @@ void clear_auth( int signum )
 int validate_source( esd_client_t *client, struct sockaddr_in source, int owner_only )
 {
     char submitted_key[ESD_KEY_LEN];
-    int endian;
+    int actual, endian;
 
-    if ( ESD_KEY_LEN != read( client->fd, submitted_key, ESD_KEY_LEN ) ) {
+    ESD_READ_BIN( client->fd, submitted_key, ESD_KEY_LEN, actual, "key" );
+    if ( ESD_KEY_LEN != actual ) {
 	/* not even ESD_KEY_LEN bytes available? shut it down */
 	return 0;
     }
@@ -80,7 +81,9 @@ int validate_source( esd_client_t *client, struct sockaddr_in source, int owner_
     return 0;
 
  check_endian:
-    if ( sizeof(endian) != read( client->fd, &endian, sizeof(endian) ) ) {
+    
+    ESD_READ_INT( client->fd, &endian, sizeof(endian), actual, "endian" );
+    if ( sizeof(endian) != actual ) {
 	/* not enough bytes available? shut it down */
 	return 0;
     }
@@ -107,14 +110,14 @@ int validate_source( esd_client_t *client, struct sockaddr_in source, int owner_
 /* daemon rejects untrusted clients, return boolean ok */
 int esd_proto_lock( esd_client_t *client )
 {
-    int ok = 1;		/* already validated, can't fail */
+    int ok = 1, actual;		/* already validated, can't fail */
     int client_ok = maybe_swap_32( client->swap_byte_order, ok );
 
     if ( esdbg_trace )
 	printf( "(%02d) locking sound daemon\n", client->fd );
     esd_is_locked = 1;
 
-    write( client->fd, &client_ok, sizeof(client_ok) );
+    ESD_WRITE_INT( client->fd, &client_ok, sizeof(client_ok), actual, "lock ok" );
     fsync( client->fd );
 
     client->state = ESD_NEXT_REQUEST;
@@ -125,14 +128,14 @@ int esd_proto_lock( esd_client_t *client )
 /* allows anyone to connect to the sound daemon, return boolean ok */
 int esd_proto_unlock( esd_client_t *client )
 {
-    int ok = 1;		/* already validated, can't fail */
+    int ok = 1, actual;		/* already validated, can't fail */
     int client_ok = maybe_swap_32( client->swap_byte_order, ok );
 
     if ( esdbg_trace )
 	printf( "(%02d) unlocking sound daemon\n", client->fd );
     esd_is_locked = 0;
 
-    write( client->fd, &client_ok, sizeof(client_ok) );
+    ESD_WRITE_INT( client->fd, &client_ok, sizeof(client_ok), actual, "unlck ok" );
     fsync( client->fd );
 
     client->state = ESD_NEXT_REQUEST;
@@ -143,12 +146,12 @@ int esd_proto_unlock( esd_client_t *client )
 /* daemon eats sound data, without playing anything, return boolean ok */
 int esd_proto_standby( esd_client_t *client )
 {
-    int ok = 1;		/* already validated, can't fail */
+    int ok = 1, actual;		/* already validated, can't fail */
     int client_ok = maybe_swap_32( client->swap_byte_order, ok );
 
     /* we're already on standby, no problem */
     if ( esd_on_standby ) {
-	write( client->fd, &client_ok, sizeof(client_ok) );
+	ESD_WRITE_INT( client->fd, &client_ok, sizeof(client_ok), actual, "stdby ok" );
 	fsync( client->fd );
 
 	client->state = ESD_NEXT_REQUEST;
@@ -162,7 +165,7 @@ int esd_proto_standby( esd_client_t *client )
     /* TODO: close down any recorders, too */
     esd_audio_close();
 
-    write( client->fd, &client_ok, sizeof(client_ok) );
+    ESD_WRITE_INT( client->fd, &client_ok, sizeof(client_ok), actual, "stdby ok" );
     fsync( client->fd );
 
     client->state = ESD_NEXT_REQUEST;
@@ -173,12 +176,12 @@ int esd_proto_standby( esd_client_t *client )
 /* daemon eats sound data, without playing anything, return boolean ok */
 int esd_proto_resume( esd_client_t *client )
 {
-    int ok = 1;		/* already validated, can't fail */
+    int ok = 1, actual;		/* already validated, can't fail */
     int client_ok = maybe_swap_32( client->swap_byte_order, ok );
 
     /* we're already not on standby, no problem */
     if ( !esd_on_standby ) {
-	write( client->fd, &client_ok, sizeof(client_ok) );
+	ESD_WRITE_INT( client->fd, &client_ok, sizeof(client_ok), actual, "resum ok" );
 	fsync( client->fd );
 
 	client->state = ESD_NEXT_REQUEST;
@@ -191,7 +194,7 @@ int esd_proto_resume( esd_client_t *client )
     esd_audio_open();
     esd_on_standby = 0;
 
-    write( client->fd, &client_ok, sizeof(client_ok) );
+    ESD_WRITE_INT( client->fd, &client_ok, sizeof(client_ok), actual, "resum ok" );
     fsync( client->fd );
 
     client->state = ESD_NEXT_REQUEST;
@@ -306,7 +309,7 @@ int esd_proto_sample_cache( esd_client_t *client )
 	return 0;
     }
 
-    write( client->fd, &client_id, sizeof(client_id) );
+    ESD_WRITE_INT( client->fd, &client_id, sizeof(client_id), length, "smp cach" );
     fsync( client->fd );
 
     client->state = ESD_NEXT_REQUEST;
@@ -317,10 +320,10 @@ int esd_proto_sample_cache( esd_client_t *client )
 /* free a sample cached by the client, return boolean ok */
 int esd_proto_sample_free( esd_client_t *client )
 {
-    int sample_id, client_id;
+    int sample_id, client_id, actual;
 
-    if ( read( client->fd, &client_id, sizeof(client_id) ) 
-	 != sizeof( sample_id ) )
+    ESD_READ_INT( client->fd, &client_id, sizeof(client_id), actual, "smp free" );
+    if ( sizeof( sample_id ) != actual )
 	return 0;
 
     sample_id = maybe_swap_32( client->swap_byte_order, client_id );
@@ -329,8 +332,8 @@ int esd_proto_sample_free( esd_client_t *client )
 	printf( "(%02d) proto: erasing sample <%d>\n", client->fd, sample_id );
     erase_sample( sample_id );
 
-    if ( write( client->fd, &client_id, sizeof( client_id ) ) 
-	 != sizeof( client_id ) )
+    ESD_WRITE_INT( client->fd, &client_id, sizeof(client_id), actual, "smp free" );
+    if ( sizeof( client_id ) != actual )
 	return 0;
 
     client->state = ESD_NEXT_REQUEST;
@@ -341,10 +344,10 @@ int esd_proto_sample_free( esd_client_t *client )
 /* play a sample cached by the client, return boolean ok */
 int esd_proto_sample_play( esd_client_t *client )
 {
-    int sample_id, client_id;
-
-    if ( read( client->fd, &client_id, sizeof(client_id) ) 
-	 != sizeof( client_id ) )
+    int sample_id, client_id, actual;
+    
+    ESD_READ_INT( client->fd, &client_id, sizeof(client_id), actual, "smp play" );
+    if ( sizeof( client_id ) != actual )
 	return 0;
 
     sample_id = maybe_swap_32( client->swap_byte_order, client_id );
@@ -354,8 +357,8 @@ int esd_proto_sample_play( esd_client_t *client )
     if ( !play_sample( sample_id, 0 ) )
 	sample_id = 0;
 
-    if ( write( client->fd, &client_id, sizeof(client_id) ) 
-	 != sizeof( client_id ) )
+    ESD_WRITE_INT( client->fd, &client_id, sizeof(client_id), actual, "smp play" );
+    if ( sizeof( client_id ) != actual )
 	return 0;
 
     client->state = ESD_NEXT_REQUEST;
@@ -366,10 +369,10 @@ int esd_proto_sample_play( esd_client_t *client )
 /* play a sample cached by the client, return boolean ok */
 int esd_proto_sample_loop( esd_client_t *client )
 {
-    int sample_id, client_id;
+    int sample_id, client_id, actual;
 
-    if ( read( client->fd, &client_id, sizeof(client_id) ) 
-	 != sizeof( client_id ) )
+    ESD_READ_INT( client->fd, &client_id, sizeof(client_id), actual, "smp loop" );
+    if ( sizeof( client_id ) != actual )
 	return 0;
 
     sample_id = maybe_swap_32( client->swap_byte_order, client_id );
@@ -380,8 +383,8 @@ int esd_proto_sample_loop( esd_client_t *client )
     if ( !play_sample( sample_id, 1 ) )
 	sample_id = 0;
 
-    if ( write( client->fd, &client_id, sizeof(client_id) ) 
-	 != sizeof( sample_id ) )
+    ESD_WRITE_INT( client->fd, &client_id, sizeof(client_id), actual, "smp loop" );
+    if ( sizeof( sample_id ) != actual )
 	return 0;
 
     client->state = ESD_NEXT_REQUEST;
@@ -392,10 +395,10 @@ int esd_proto_sample_loop( esd_client_t *client )
 /* play a sample cached by the client, return boolean ok */
 int esd_proto_sample_stop( esd_client_t *client )
 {
-    int sample_id, client_id;
+    int sample_id, client_id, actual;
 
-    if ( read( client->fd, &client_id, sizeof(client_id) ) 
-	 != sizeof( client_id ) )
+    ESD_READ_INT( client->fd, &client_id, sizeof(client_id), actual, "smp stop" );
+    if ( sizeof( client_id ) != actual )
 	return 0;
     
     sample_id = maybe_swap_32( client->swap_byte_order, client_id );
@@ -406,8 +409,8 @@ int esd_proto_sample_stop( esd_client_t *client )
     if ( !stop_sample( sample_id ) )
 	sample_id = 0;
 
-    if ( write( client->fd, &client_id, sizeof(client_id) ) 
-	 != sizeof( client_id ) )
+    ESD_WRITE_INT( client->fd, &client_id, sizeof(client_id), actual, "smp stop" );
+    if ( sizeof( client_id ) != actual )
 	return 0;
 
     client->state = ESD_NEXT_REQUEST;
@@ -504,15 +507,17 @@ int poll_client_requests()
  	        fprintf( stderr, 
 			 "(%02d) poll: only owner may control sound daemon\n",
 			 client->fd );
- 		write( client->fd, &is_ok, sizeof(is_ok) );
+		ESD_WRITE_INT( client->fd, &is_ok, sizeof(is_ok), length, "poll val" );
 		fsync( client->fd );
  	    }
  	}
  	else {
  
  	    /* make sure there's a request as EOF may return as readable */
- 	    length = read( client->fd, &client->request, 
-			   sizeof(client->request) );
+	    if ( esdbg_comms ) printf( "--------------------------------\n" );
+	    ESD_READ_INT( client->fd, &client->request, sizeof(client->request), 
+			  length, "request" );
+	    if ( esdbg_comms ) printf( "\n" );
 	    if ( client->swap_byte_order )
 		client->request = swap_endian_32( client->request );
 

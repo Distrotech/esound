@@ -150,4 +150,57 @@ int mix_players_16s( void *mixed, int length );
 #define maybe_swap_32(c,x) \
 	( (c) ? (swap_endian_32( (x) )) : (x) )
 
+/* evil macros for debugging protocol, TODO: #ifdef ESDBG this block... */
+#define ESD_READ_INT(s,a,l,r,d) \
+	do { \
+	    int esd_ri; \
+    	    r = read( s, a, l ); \
+    	    if ( esdbg_comms ) { \
+		printf( "---> rd [%s,%d] \t%-10s: %2d, %4d = %4d  (%d)     (", \
+			__FILE__, __LINE__, d, s, l, r, *a ); \
+    		for ( esd_ri = 0 ; esd_ri < sizeof(int) ; esd_ri++ ) \
+    		    printf( "0x%02x ", *(((octet*)a)+esd_ri) ); \
+		printf( ")\n" ); \
+	    } \
+        } while ( 0 );
+
+#define ESD_READ_BIN(s,a,l,r,d) \
+	do { \
+	    int esd_rb; \
+    	    r = read( s, a, l ); \
+    	    if ( esdbg_comms ) { \
+		printf( "---> rd [%s,%d] \t%-10s: %2d, %4d = %4d  (", \
+			__FILE__, __LINE__, d, s, l, r ); \
+    		for ( esd_rb = 0 ; esd_rb < 8 ; esd_rb++ ) \
+    		    printf( "0x%02x ", *(((octet*)a)+esd_rb) ); \
+		printf( "...)\n" ); \
+	    } \
+        } while ( 0 );
+
+#define ESD_WRITE_INT(s,a,l,r,d) \
+	do { \
+	    int esd_wi; \
+    	    r = write( s, a, l ); \
+    	    if ( esdbg_comms ) { \
+		printf( "<--- wr [%s,%d] \t%-10s: %2d, %4d = %4d  (%d)     (", \
+			__FILE__, __LINE__, d, s, l, r, *a ); \
+    		for ( esd_wi = 0 ; esd_wi < sizeof(int) ; esd_wi++ ) \
+    		    printf( "0x%02x ", *(((octet*)a)+esd_wi) ); \
+		printf( ")\n" ); \
+	    } \
+        } while ( 0 );
+
+#define ESD_WRITE_BIN(s,a,l,r,d) \
+	do { \
+	    int esd_wb; \
+    	    r = write( s, a, l ); \
+    	    if ( esdbg_comms ) { \
+		printf( "<--- wr [%s,%d] \t%-10s: %2d, %4d = %4d  (", \
+			__FILE__, __LINE__, d, s, l, r ); \
+    		for ( esd_wb = 0 ; esd_wb < 8 ; esd_wb++ ) \
+    		    printf( "0x%02X ", *(((octet*)a)+esd_wb) ); \
+		printf( "...)\n" ); \
+	    } \
+        } while ( 0 );
+
 #endif /* #ifndef ESD_SERVER_H */

@@ -1,3 +1,8 @@
+1998-07-13  Yo Ric Dude  <ericmit@ix.netcom.com>
+
+	* clients.c, esd-server.h, esd.h, players.c, proto.c:
+	crack one at including communication level diagnostic info.
+
 1998-07-11  Yo Ric Dude  <ericmit@ix.netcom.com>
 
 	* clients.c, esd-server.h, esd.c, mix.c, players.c, proto.c, samples.c:

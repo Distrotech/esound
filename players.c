@@ -133,6 +133,7 @@ int read_player( esd_player_t *player )
 	    actual = read( player->source_id, 
 			   player->data_buffer, 
 			   player->buffer_length );
+
 	    /* check for end of stream */
 	    if ( actual == 0 ) 
 		return -1;
@@ -316,6 +317,7 @@ esd_player_t *new_stream_player( esd_client_t *client )
     /* and initialize the player */
     player->next = NULL;
     player->parent = NULL;
+
     read( client->fd, &player->format, sizeof(player->format) );
     if ( client->swap_byte_order )
 	player->format = swap_endian_32( player->format );

@@ -118,6 +118,7 @@ int get_new_clients( int listen )
 			(unsigned int) (addr >> 8) % 256, 
 			(unsigned int) addr % 256, port );
 	    }
+	    if ( esdbg_comms ) printf( "================================\n" );
 
 	    /* make sure we have the memory to save the client... */
 	    new_client = (esd_client_t*) malloc( sizeof(esd_client_t) );
