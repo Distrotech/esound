@@ -1,5 +1,7 @@
 1998-09-20  Yo Ric Dude  <ericmit@ix.netcom.com>
 
+	* configure.in: made esdplay a --enable-able option, that was fun.
+
 	* esd.c, mix.c, samples.c: i think i've got the 8bit stuff working,
 	but it needs to be cleaned up, and preferably use function pointers 
 	over if-else blocks to pick the appropriate 8bit/16bit algorithms.

@@ -83,24 +83,36 @@ AC_CHECK_FUNC(ALnewconfig,,[AC_CHECK_LIB(audio,ALnewconfig)])
 AC_CHECK_FUNC(snd_cards,,[AC_CHECK_LIB(sound,snd_cards)])
 
 dnl Only build the esdplay utility if we find the library, -lauduiofile
+AF_LIB=
+ESDPLAY=
 
+AC_ARG_ENABLE(esdplay,
+[  --enable-esdplay        build esdplay utility (requires audiofile library)
+                              ARG = { yes | no | check } [default=check]])
+
+if test xno != x$enable_esdplay ; then
 echo "---------------------------------------------------------------------"
 echo "--- The esdplay utility requires the audiofile library.";
 AC_CHECK_LIB(audiofile,afOpenFile,[
-echo "--- The esdplay utility will be built."
-AF_LIB="-laudiofile"
-ESDPLAY=esdplay
+   echo "--- The esdplay utility will be built."
+   AF_LIB="-laudiofile"
+   ESDPLAY=esdplay
 ],[
-echo "--- WARNING: The audiofile library was not found on your system.";
-echo "--- The audiofile library may be obtained from the following sites:"
-echo "--- ftp://somwhere/dir/file.tgz"
-echo "--- The esdplay utility will not be built."
-ESDPLAY=
+   echo "--- WARNING: The audiofile library was not found on your system.";
+   echo "--- The audiofile library may be obtained from the following sites:"
+   echo "--- ftp://somwhere/dir/file.tgz"
+   echo "--- The esdplay utility will not be built."
 ],-lm)
+else
+   echo "---------------------------------------------------------------------"
+   echo "--- Per configure request, the esdplay utility will not be built.";
+fi
 
 echo "---------------------------------------------------------------------"
 
+dnl set | sort
+
 AC_SUBST(AF_LIB)
-AC_SUBST(HAVE_LIBAUDIOFILE)
 AC_SUBST(ESDPLAY)
+
 AC_OUTPUT(Makefile)
