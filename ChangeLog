@@ -1,3 +1,7 @@
+2002-05-01  Rodney Dawes  <dobey@free.fr>
+
+	* Makefile.am: Need to dist getopt*.c even when not needed for build
+	
 2002-04-29  Frédéric Crozat  <fcrozat@mandrakesoft.com>
 
 	* audio_alsa09.c: (initAlsa), (esd_audio_open), (esd_audio_read),

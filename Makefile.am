@@ -13,8 +13,10 @@ if BUILD_ESDPLAY
 esdplay = esdplay
 endif
 
+getopt_extra = getopt.c getopt1.c
+
 if NEED_GETOPT
-getopt_src = getopt.c getopt1.c
+getopt_src = $(getopt_extra)
 endif
 
 bin_SCRIPTS = \
@@ -137,6 +139,7 @@ pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = esound.pc
 
 EXTRA_DIST = \
+	$(getopt_extra)	\
 	esddsp		\
 	esound.pc.in	\
 	esound.spec	\
