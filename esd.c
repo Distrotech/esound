@@ -477,6 +477,9 @@ int main ( int argc, char *argv[] )
 	} else if ( !strcmp( argv[ arg ], "-spawnpid" ) ) {
 	    if ( ++arg < argc )
 		esd_spawnpid = atoi( argv[ arg ] );
+	} else if ( !strcmp( argv[ arg ], "-v" ) || !strcmp( argv[ arg ], "--version" ) ) {
+		fprintf(stderr, "Esound version " VERSION "\n");
+		exit (0);
 	} else if ( !strcmp( argv[ arg ], "-h" ) ) {
 	    fprintf( stderr, "Usage: esd [options]\n\n" );
 	    fprintf( stderr, "  -d DEVICE   force esd to use sound device DEVICE\n" );
