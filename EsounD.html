@@ -1,0 +1,182 @@
+
+<!DOCTYPE HTML PUBLIC "-//Netscape Comm. Corp.//DTD HTML//EN">
+
+<HEAD>
+<TITLE>EsounD - An Enlightened Sound Daemon</TITLE>
+</HEAD>
+
+<BODY background=bg.jpg bgcolor=#000000 text=#FFBF1F 
+link=#FFFF00 alink=#00FF00 vlink=#BF5F2F>
+
+<H2>EsounD - alpha version - 0.2.1</h2>
+
+So you've got your (insert sound playing program here) cruising
+at full tilt, and you want to check out this cool Monty Python
+quote, but you don't want to kill the original sound?  This is 
+just the fix, with a little tweaking, of course. =P
+
+The Enlightened Sound Daemon can mix several audio streams
+into one sound device.  It will mix in pre-loaded samples, too.
+Want to play a frightening sound whenever the user presses the 
+&quot;go&quot; button?  No problem, just cache it, and play it
+back by sample id number.
+
+<H3>Caveats</h3>
+
+This is <em>hot off the presses</em> software, get it while it's 
+still hot.  Seriously, don't download this unless you're willing
+to help debug, test thoroughly, port other players, etc.  It's 
+still got a ways to go yet.  Be prepared for a bumpy ride.  Any 
+and all reasonable patches and improvements accepted.
+
+<H3>Requirements</h3>
+
+The Enlightened Sound Daemon requires the following:
+
+Linux, version 2.??? or higher.  I run 2.0.33, but I don't think 
+the sound API has significantly changed recently.  If you find
+it to be incompatible with different kernel/OSS revs, let me know.
+The incompatability with recent 2.1.xx kernels has been fixed.
+<p>
+And of course, a sound device.  
+<p>
+Currently, this only runs under Linux.  I will work on porting 
+to SGI/Irix soon.  Ports to other platforms are requested.
+
+<H3>Known Problems, Deficiencies, and Possible Workarounds:</h3>
+
+This should probably have some documentation as to the API, but
+for now it's still in development (i.e. subject to change).
+See the sample command line driver utilities (esd?*) for usage.
+<P>
+Any other pressing issues or patches may be directed to 
+<a href="mailto:ericmit@ix.netcom.com">ericmit@ix.netcom.com</a>.
+Please mention &quot;EsounD v0.2.1&quot; in the subject line.
+<BR>
+I occasionally hang out in the #E irc channel as <code>ricdude</code>.
+
+<H3>New Features</h3>
+
+<H5>Version 0.2</h5>
+<UL>
+<LI>the configure style installation now works if you don't already
+ have a previous version installed.  Evil gnu automake >=P</LI>
+<LI>better handling of "dead" time: should use 0% cpu if it's 
+not actually doing anything</LI>
+</UL>
+
+<H5>Version 0.2</h5>
+<UL>
+<LI>a configure style installation is now available.</LI>
+<LI>added network support</LI>
+<LI>optional /dev/dsp fallback for stream play and record</LI>
+<LI>other forgotten features and bug fixes</LI>
+</UL>
+
+<H3>Downloading, Compiling, and Installing</h3>
+
+Simply download the EsounD archive from 
+<a href="ftp://ftp.enlightenment.org/pub/ricware/esound-0.2.1.tar.gz">
+ftp://ftp.enlightenment.org/pub/ricware/esound-0.2.1.tar.gz</a> - 
+(<a href="http://www.netcom.com/~ericmit/esound_0_2_1.tgz">Alternate</a>)
+and extract the contents of the archive.
+<P>
+To compile the package, change to the newly created 
+&quot;esound-0.2.1&quot; directory, and type 
+&quot;configure ; make&quot;.
+The sound daemon, and the command line toolset should build as is.
+All executables should run fine from the source directory.
+You may need to &quot;export LD_LIBRARY_PATH=`pwd`&quot; (for sh/bash)
+or &quot;setenv LD_LIBRARY_PATH `pwd`&quot; (for csh/tcsh), for the 
+dynamically linked libs to link properly.
+<P>
+As root, type &quot;make install&quot;.  This should copy all
+relevant files to useful/accessible places.
+
+<H3>Running EsounD</h3>
+
+<DL>
+<DT>esd
+<DD>the Enlightened Sound Daemon.
+</DL>
+* options for esd - -port &lt;port&gt; = accept connections on port
+(default=5001)
+<P>
+<DL>
+<DT>esdlock
+<DD>only the "owner" of the daemon can play sounds.  the first 
+key (16 bytes) submitted to the daemon identified the owner.
+<DT>esdunlock
+<DD>anyone can play sounds through the daemon.
+</DL>
+* in addition, "kill -HUP &lt;esd-pid&gt;" resets ownership of the daemon.<BR>
+* the file, ~/.esd-auth, is used to determine identity, and is created at random if needed.
+<P>
+<DL>
+<DT>esdcat
+<DD>plays a raw audio stream through the daemon
+<DT>esdmon
+<DD>outputs the mixed stream from the daemon
+<DT>esdrec
+<DD>outputs from the sound device's current input
+</DL>
+* options for cat,mon,rec - default to 16 bit signed short, stereo, 44.1kHz<BR>
+* -b = 8 bit unsigned char, -m = mono, -r &lt;rate&gt; = sample rate of rate Hz.
+
+<DL>
+<DT>esdsample
+<DD>test scaffolding for sample cache, play back, and free.
+<DT>esdloop
+<DD>test scaffolding for sample cache, loop, and free.
+</DL>
+* options for esdsample, esdloop 
+	- same as above, but must specify a file on command line.
+<p>
+** all client programs can connect to remote hosts via the ESPEAKER environment
+variable: <code> export ESPEAKER=inet.addr.of.host:port </code> for bash;
+<code> setenv ESPEAKER inet.addr.of.host:port </code> for tcsh.  The client will
+connect to EsounD running on the specified host on the specified port.
+
+<H3>Planned Development and Top Suggestions So Far...</H3>
+
+Porting of sound playing applications.  It shouldn't be *too* hard.
+Anyone willing to lend a hand in this effort will be duly appreciated.
+<P>
+Planned Feature Additions:
+<UL>
+<LI>See the TODO file for unorganized thoughts about where to go from here
+</LI>
+</UL>
+
+<HR>
+
+<P align=center>
+<font size=+1>Potentially Useful Links
+<BR>
+[ <a href="http://www.netcom.com/~ericmit/index.html">Ric's Home</a> ] - 
+[ <a href="http://www.netcom.com/~ericmit/E.html">Ric's E Page</a> ] -
+[ <a href="http://www.netcom.com/~ericmit/Econfig.html">Econfig</a> ] -
+[ <a href="http://www.netcom.com/~ericmit/EsounD.html">EsounD</a> ] -
+[ <a href="http://www.netcom.com/~ericmit/Links.html">Links</a> ]
+</font>
+</P>
+
+<HR>
+<!-- BEGIN NETCOM extra - page counter -->
+<font size=-1>
+<P>
+<img border=0 alt="gratuitous counter"
+src="http://www.netcom.com/bin/page_counter?/~ericmit/EsounD.html" 
+align=top> brave souls have dared to view this page's evil content.
+<!-- END NETCOM extra - page counter   -->
+
+<BR>
+Page created by: 
+<a href="mailto:ericmit@ix.netcom.com">ericmit@ix.netcom.com</a>
+<BR>
+Changes last made on: <em>April 29, 1998</em>
+</FONT>
+
+</BODY>
+
+</HTML>

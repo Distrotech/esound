@@ -1,0 +1,20 @@
+Program History:
+
+    This was based on a prototype sound daemon created by Carsten 
+    Haitzler (aka The Rasterman).  Some snips of his code are 
+    probably still lurking about, but the overwhelming majority 
+    of it was written from scratch.
+
+Additional Credits:
+
+    Chutt <#E> for insanely agreeing to alpha test, and porting 
+    Emusic, to EsounD.  Emusic is a highly customizable sound player
+    available from:  http://www.icom.net/~smelecat/emp3/index.htm.
+    And for the initial configure setup
+
+    Shaleh <#E> for "-Wall -pedantic" cleanup patches
+
+    adnans <#E> threshhold clipping patches
+
+    Your Name Here, simply submit a patch, or port an existing 
+    application for use with this package.

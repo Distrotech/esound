@@ -1,0 +1,7 @@
+/* config.h.in.  Generated automatically from configure.in by autoheader.  */
+
+#undef PACKAGE
+#undef VERSION
+
+/* Define if you have the <sys/soundcard.h> header file.  */
+#undef HAVE_SYS_SOUNDCARD_H

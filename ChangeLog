@@ -1,0 +1,72 @@
+Mon Apr 27 23:58:52 1998  Yo 'Ric Dude  <ricdude@piranha>
+
+	* esd.c, esd.h, mix.c: moved clipping into mix.c
+
+	* clients.c, esd.c, esd.h, mix.c, samples.c: clipping patches entered
+
+	* LICENSE: updates
+
+Sat Apr 25 03:03:11 1998  Yo 'Ric Dude  <ricdude@piranha>
+
+	* TODO, audio.c, clients.c, esd.h, esdcat.c, esdlib.c, esdrec.c:
+	added the /dev/dsp fallback feature to client lib
+
+Sat Apr 18 23:57:15 1998  Yo 'Ric Dude  <ricdude@piranha>
+
+	* esdlib.c:
+	client lib returns -1 if esd not available, instead of exiting(1)
+
+	* TODO: updated to reflect new ideas
+
+	* LICENSE: more credits
+
+Fri Apr 17 23:54:04 1998  Yo 'Ric Dude  <ricdude@piranha>
+
+	* LICENSE, clients.c, esd.c, esd.h, esdlib.c, esdlock.c, esdloop.c, esdunlock.c, mix.c, players.c, samples.c:
+	-Wall -pedantic cleanup
+
+Thu Apr 16 04:11:25 1998  Yo 'Ric Dude  <ricdude@piranha>
+
+	* esdloop.c: Initial revision
+
+	* EsounD.html, EsounD.lsm, LICENSE, TODO, clients.c, esd.c, esd.h, esdlib.c, srcfiles:
+	preparation for v0.2
+
+Wed Apr 15 03:28:19 1998  Yo 'Ric Dude  <ricdude@piranha>
+
+	* clients.c, esd.c, esd.h, esdlib.c, players.c, samples.c:
+	added support for sample loops
+
+	* audio.c: clean up
+
+	* TODO: updated, esdloop, clean up
+
+Sat Apr 11 16:03:53 1998  Yo 'Ric Dude  <ricdude@piranha>
+
+	* clients.c, esd.c:
+	fixed cpu usage problem in monitoring only condition
+
+	* DOCUMENTATION, TODO: Initial revision
+
+	* clients.c, esd.c, players.c: created TODO file for random thoughts
+
+	* srcfiles: new files
+
+	* clients.c, players.c:
+	removed potential for blocking on monitor and recorder writes
+
+	* clients.c, esd.h, mix.c, players.c, samples.c:
+	corrected conflict with remove_sample in newer kernels
+
+Sat Apr  4 19:57:07 1998  Yo 'Ric Dude  <ricdude@piranha>
+
+	* COPYING, EsounD.html, EsounD.lsm, LICENSE, TIPS, srcfiles:
+	Initial revision
+
+	* esd.h: removed CLIENT_TIMEOUT, no longer needed
+
+	* players.c: reworked logic for detecting end of stream players
+
+	* esd.h, esdmon.c, esdsample.c, samples.c, audio.c, clients.c, esd.c, esdcat.c, esdlib.c, esdlock.c, esdrec.c, esdunlock.c, mix.c, players.c:
+	Initial revision
+
