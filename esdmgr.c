@@ -181,6 +181,8 @@ esd_info_t *esd_get_all_info( int esd )
 
     } while( player_info->source_id > 0 );
 
+    free( player_info );
+
     /* get the sample info */
     do 
     {
@@ -210,6 +212,8 @@ esd_info_t *esd_get_all_info( int esd )
 	}
 
     } while( sample_info->sample_id > 0 );
+
+    free( sample_info );
 
     return info;
 }

@@ -1,3 +1,8 @@
+Tue Jun  8 18:13:22 1999  John Ellis  <johne@bellatlantic.net>
+
+	* esdmgr.c esd_get_all_info(): Fix memory leaks: player_info and
+	sample_info were not being freed after the do .. while loops.
+
 Tue Jun  8 17:00:54 1999 Timur Bakeyev <mc@bat.ru>
 
 	* audio_oss.c: #ifdef'ed SNDCTL_DSP_SETDUPLEX, as it doesn't exist in OSS
