@@ -287,9 +287,9 @@ int open_listen_socket( int port )
       socket_addr.sin_family = AF_INET;
       socket_addr.sin_port = htons( port );
       if (esd_public)
-	socket_addr.sin_addr.s_addr = htonl( inet_addr("0.0.0.0") );
+	socket_addr.sin_addr.s_addr = htonl( INADDR_ANY );
       else
-	socket_addr.sin_addr.s_addr = htonl( inet_addr("127.0.0.1") );
+	socket_addr.sin_addr.s_addr = htonl( INADDR_LOOPBACK );
       if ( bind( socket_listen,
 		(struct sockaddr *) &socket_addr,
 		sizeof(struct sockaddr_in) ) < 0 )

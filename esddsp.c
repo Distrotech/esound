@@ -211,10 +211,13 @@ dspctl (int fd, request_t request, void *argp)
 
   DPRINTF ("hijacking /dev/dsp ioctl, and sending it to esd "
 	   "(%d : %x - %p)\n", fd, request, argp);
-
   
   switch (request)
     {
+    case SNDCTL_DSP_RESET:
+    case SNDCTL_DSP_POST:
+      break;
+
     case SNDCTL_DSP_SETFMT:
       fmt |= (*arg & 0x30) ? ESD_BITS16 : ESD_BITS8;
       settings |= 1;
@@ -245,9 +248,10 @@ dspctl (int fd, request_t request, void *argp)
     case SNDCTL_DSP_GETOSPACE:
       {
 	audio_buf_info *bufinfo = (audio_buf_info *) argp;
-	bufinfo->bytes = 100000;
+	bufinfo->bytes = ESD_BUF_SIZE;
       }
       break;
+
 
     default:
       DPRINTF ("unhandled /dev/dsp ioctl (%x - %p)\n", request, argp);

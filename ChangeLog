@@ -1,3 +1,14 @@
+Thu Apr  8 23:08:56 PDT 1999 Manish Singh <yosh@gimp.org>
+
+	* acinclude.m4
+	* ltconfig
+	* ltmain.sh: libtool 1.2f
+
+	* esd.c: use INADDR constants instead of inet_addr calls (was
+	broken before)
+
+	* esddsp.c: minor tweaks
+
 1999-03-30  The Rasterman <raster@rasterman.com>
         * esdlib.c, esd.c: added UNIX domain sockets as the "default" 
 	  (less overhead than tcp/ip for a local machine - better for
