@@ -1,3 +1,22 @@
+Sun Oct 18 21:33:26 PDT 1998 Manish Singh <yosh@gimp.org>
+
+	* Makefile.am: add TODO and esddsp.c to EXTRA_DIST
+
+	* esddsp.c: somewhat of a rewrite. We only try to use esound
+	if an open() fails. This lets the no esound case fall back to
+	/dev/dsp, and also doesn't do a strcmp on every call to open.
+	Got rid of the varargs junk in ioctl, I've never seen an ioctl
+	with more than one extra arg anyway (please tell me if I'm wrong).
+	Reworked the code, so we're not so x11amp specific, i.e. the
+	esound socket is opened immediately after all the info is set.
+	We also make sure we don't try to set it again. Default to mono
+	output per OSS specs. open/close/open with multiple formats
+	works. Provide a default value for GETFMTS. The result of all
+	this is that libesddsp works with a lot more stuff now. I've
+	tested x11amp, mpg123, amp, freeamp, xanim, rvplayer, and
+	esound itself. ;) (a side effect is that rvplayer works on
+	Linux 2.1.120+ kernels as well)
+
 1998-10-18  Yo Ric Dude  <ricdude@ix.netcom.com>
 
 	* esddsp.c, proto.c: fixed inconsistency in esd_on_standby

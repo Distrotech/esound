@@ -3,12 +3,14 @@ AF_LIB = @AF_LIB@
 bin_SCRIPTS = esd-config
 
 EXTRA_DIST = \
-	esd.m4 \
-	EsounD.html \
-	TIPS \
-	test-script \
-	test.wav \
-	getopt.h
+	esd.m4 		\
+	EsounD.html 	\
+	TIPS 		\
+	test-script 	\
+	test.wav 	\
+	getopt.h 	\
+	TODO		\
+	esddsp.c
 
 lib_LTLIBRARIES = libesd.la
 
@@ -31,14 +33,14 @@ include_HEADERS = \
 	esd.h
 
 bin_PROGRAMS = \
-	esd \
-	esdcat \
-	esdctl \
-	esdfilt \
-	esdmon \
-	esdrec \
-	esdsample \
-	esdloop \
+	esd		\
+	esdcat		\
+	esdctl		\
+	esdfilt		\
+	esdmon		\
+	esdrec		\
+	esdsample	\
+	esdloop		\
 	@ESDPLAY@
 
 EXTRA_PROGRAMS = \

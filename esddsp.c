@@ -1,4 +1,4 @@
-/* Evil evil evil hack to get x11amp to cooperate with esd
+/* Evil evil evil hack to get OSS apps to cooperate with esd
  * Copyright (C) 1998 Manish Singh <yosh@gimp.org>
  *
  * This library is free software; you can redistribute it and/or
@@ -18,15 +18,23 @@
  */
 
 /* To build and use:
-   gcc -O2 -pipe -c -fPIC esddsp.c 
-   gcc -shared -Wl,-soname -Wl,libesddsp.so.0 -o libesddsp.so.0.0.0 esddsp.o -lesd -lm -lc
+   gcc -shared -O2 -pipe -fPIC esddsp.c -o libesddsp.so -lesd -lm
 
-   set LD_PRELOAD=/path/to/libesddsp.so.0.0.0
+   set LD_PRELOAD=/path/to/libesddsp.so
    launch x11amp, etc.
+
+   For frequently used programs, you can use a wrapper script:
+
+   --- cut here ---
+   #!/bin/sh
+   export LD_PRELOAD=/path/to/libesddsp.so
+   exec /path/to/my/app.real $*
+   --- cut here ---
+
+   Just rename "app" to "app.real" and drop in the above script as "app"
  */
 
 #include <string.h>
-#include <stdarg.h>
 #include <sys/types.h>
 #include <sys/soundcard.h>
 
@@ -38,30 +46,32 @@ extern int __ioctl (int fd, int request, ...);
 extern ssize_t write (int fd, const void *buf, size_t count);
 extern int fsync (int fd);
 
-static int sndfd;
+static int sndfd = -1;
+
+static int settings, done;
 
 int open (const char *pathname, int flags, mode_t mode)
 {
-    if (!strcmp (pathname, "/dev/dsp")) {
-	/* printf( "hijacking /dev/dsp open, and taking it to esd...\n" ); */
-	return (sndfd = esd_open_sound (NULL));
+  int ret = __open (pathname, flags, mode);
+
+  if (ret == -1 && !strcmp (pathname, "/dev/dsp"))
+    {
+      settings = done = 0;
+
+#ifdef DSP_DEBUG
+      printf ("hijacking /dev/dsp open, and taking it to esd...\n");
+#endif
+
+      return (sndfd = esd_open_sound (NULL));
     }
-    else
-	return __open (pathname, flags, mode);
+  else
+    return ret;
 }
 
-int ioctl (int fd, int request, ...)
+int ioctl (int fd, int request, void *argp)
 {
-  va_list args;
-  void *argp;
-  static esd_format_t fmt = ESD_STREAM | ESD_PLAY;
+  static esd_format_t fmt = ESD_STREAM | ESD_PLAY | ESD_MONO;
   static int speed;
-  int proto = ESD_PROTO_STREAM_PLAY;
-  char buf[ESD_NAME_MAX];
-
-  va_start (args, request);
-  argp = va_arg (args, void *);
-  va_end (args);
 
   if (fd != sndfd)
     return __ioctl (fd, request, argp);
@@ -69,26 +79,46 @@ int ioctl (int fd, int request, ...)
     {
       int *arg = (int *) argp;
 
-      /* printf( "hijacking /dev/dsp ioctl, and sending it to esd (%d:%d - %p)\n", 
-	      fd, request, argp ); */
+#ifdef DSP_DEBUG
+      printf ("hijacking /dev/dsp ioctl, and sending it to esd "
+	      "(%d : %x - %p)\n", fd, request, argp);
+#endif
+
       switch (request)
 	{
         case SNDCTL_DSP_SETFMT:
-	  fmt |= (*arg == 16) ? ESD_BITS16 : ESD_BITS8;
-	  return 0;
-
-	case SNDCTL_DSP_STEREO:
-	  fmt |= (*arg) ? ESD_STEREO : ESD_MONO;
-	  return 0;
+	  fmt |= (*arg & 0x30) ? ESD_BITS16 : ESD_BITS8; settings |= 1;
+	  break;
 
 	case SNDCTL_DSP_SPEED:
-	  speed = *arg;
-	  return 0;
+	  speed = *arg; settings |= 2;
+	  break;
+
+	case SNDCTL_DSP_STEREO:
+	  fmt &= ~ESD_MONO, fmt |= (*arg) ? ESD_STEREO : ESD_MONO;
+	  break;
 
 	case SNDCTL_DSP_GETBLKSIZE:
 	  *arg = ESD_BUF_SIZE;
+	  break;
 
-	  strncpy (buf, "dsp", ESD_NAME_MAX);
+	case SNDCTL_DSP_GETFMTS:
+	  *arg = 0x3f;
+	  break;
+
+	default:
+#ifdef DSP_DEBUG
+	  printf ("unhandled /dev/dsp ioctl (%x - %p)\n", request, argp);
+#endif
+	  break;
+	}
+
+      if (settings == 3 && !done)
+	{
+  	  int proto = ESD_PROTO_STREAM_PLAY;
+	  char buf[ESD_NAME_MAX] = "dsp";
+
+	  done = 1;
 
           if (write (sndfd, &proto, sizeof (proto)) != sizeof (proto))
 	    return -1;
@@ -100,13 +130,12 @@ int ioctl (int fd, int request, ...)
 	    return -1;
 
 	  fsync (sndfd);
-	  return 0;
 
-	default:
-	  /* printf( "unhandled /dev/dsp ioctl (%d - %p)\n", 
-	     request, argp ); */
-	  return 0;
+  	  fmt = ESD_STREAM | ESD_PLAY | ESD_MONO;
+	  speed = 0;
 	}
+
+      return 0;
     }
 
   return 0;
