@@ -149,6 +149,12 @@ void clean_exit(int signum) {
 	close( client->fd );
 	client = client->next;
     }
+   if (!esd_use_tcpip)
+    {
+      unlink("/tmp/.esd/socket");
+      unlink("/tmp/.esd");
+    }
+  
 
     /* trust the os to clean up the memory for the samples and such */
     exit( 0 );
@@ -201,6 +207,16 @@ int open_listen_socket( int port )
 		      "Exiting...\n");
 	      exit(1);
 	    }
+	}
+      else
+	{
+	  /* not allowed access */
+	  fprintf(stderr, 
+		  "esd: Esound sound daemon already running or stale UNIX socket\n"
+		  "/tmp/.esd/socket\n"
+		  "This socket alreayd exists indicating esd is already running.\n"
+		  "Exiting...\n");
+	  exit(1);
 	}
       unlink("/tmp/.esd/socket");
       socket_listen=socket(AF_UNIX,SOCK_STREAM,0);
@@ -256,6 +272,11 @@ int open_listen_socket( int port )
 		strlen(socket_unix.sun_path) ) < 0 )
 	{
 	  fprintf(stderr,"Unable to connect to UNIX socket /tmp/.esd/socket\n");
+	  if (!esd_use_tcpip)
+	    {
+	      unlink("/tmp/.esd/socket");
+	      unlink("/tmp/.esd");
+	    }
 	  exit(1);
 	}
       /* let anyone access esd's socket - but we have authentication so they */
@@ -267,8 +288,13 @@ int open_listen_socket( int port )
     }
     if (listen(socket_listen,16)<0)
     {
-	fprintf(stderr,"Unable to set socket listen buffer length\n");
-	exit(1);
+      fprintf(stderr,"Unable to set socket listen buffer length\n");
+      if (!esd_use_tcpip)
+	{
+	  unlink("/tmp/.esd/socket");
+	  unlink("/tmp/.esd");
+	}
+      exit(1);
     }
 
     return socket_listen;
@@ -430,6 +456,18 @@ int main ( int argc, char *argv[] )
 	}
     }
 
+    /* open the listening socket */
+    listen_socket = open_listen_socket( esd_port );
+  if ( listen_socket < 0 ) {
+    fprintf( stderr, "fatal error opening socket\n" );
+    if (!esd_use_tcpip)
+      {
+	unlink("/tmp/.esd/socket");
+	unlink("/tmp/.esd");
+      }
+    exit( 1 );	    
+  }
+  
 #define ESD_AUDIO_STUFF \
     esd_sample_size = ( (esd_audio_format & ESD_MASK_BITS) == ESD_BITS16 ) \
 	? sizeof(signed short) : sizeof(unsigned char); \
@@ -503,6 +541,11 @@ int main ( int argc, char *argv[] )
 		  ESD_AUDIO_STUFF;
 		  if ( esd_audio_open() < 0 ) {
 		    fprintf(stderr, "Sound device inadequate for Esound. Fatal.\n");
+		    if (!esd_use_tcpip)
+		      {
+			unlink("/tmp/.esd/socket");
+			unlink("/tmp/.esd");
+		      }
 		    exit( 1 );
 		  }
 		}
@@ -518,12 +561,6 @@ int main ( int argc, char *argv[] )
     output_buffer = (void *) malloc( esd_buf_size_octets );
     memset( output_buffer, 0, esd_buf_size_octets );
 
-    /* open the listening socket */
-    listen_socket = open_listen_socket( esd_port );
-    if ( listen_socket < 0 ) {
-	fprintf( stderr, "fatal error opening socket\n" );
-	exit( 1 );	    
-    }
     
     /* install signal handlers for program integrity */
     signal( SIGINT, clean_exit );	/* for ^C */
@@ -564,6 +601,7 @@ int main ( int argc, char *argv[] )
       
 	if ((esd_clients_list == NULL) && (!first) && (esd_terminate)) {
 /*	  fprintf(stderr, "No clients!\n");*/
+	  clean_exit(0);
 	  exit(0);
 	}
 

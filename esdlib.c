@@ -454,15 +454,32 @@ int esd_open_sound( const char *host )
   /* esd basically is uncontactable - lets run it and try again */
   if (socket_out < 0)
     {
-      if (!fork()) {
-	if (!fork())
-	  {
-	    setsid();
-	    execl("/bin/sh", "/bin/sh", "-c", "esd -terminate -nobeeps -as 2", NULL);
-	    perror("execl");
+      if (!getenv("ESD_NO_SPAWN"))
+	{	  
+	  if (!fork()) {
+	    if (!fork())
+	      {
+		setsid();
+		if (getenv("ESD_SPAWN_OPTIONS"))
+		  {
+		    char *opt, *cmd;
+		    
+		    opt = getenv("ESD_SPAWN_OPTIONS");
+		    cmd = malloc(5 + strlen(opt));
+		    cmd[0] = 0;
+		    strcat(cmd, "esd ");
+		    strcat(cmd, opt);
+		    execl("/bin/sh", "/bin/sh", "-c", cmd, NULL);
+		  }
+		else
+		  execl("/bin/sh", "/bin/sh", "-c", "esd -terminate -nobeeps -as 2", NULL);
+		perror("execl");
+	      }
+	    exit(0);
 	  }
-	exit(0);
-      }
+	}
+      else
+	return socket_out;
     }
 
   /* sit and spin for a bit to wait for esd to start - try 5 times over */
