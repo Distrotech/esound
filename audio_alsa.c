@@ -1,6 +1,9 @@
 /* Advanced Linux Sounds Architecture support for EsounD
    7-19-98: Nick Lopez( kimo_sabe@usa.net ) - it starts!
 */
+#include "esd-server.h"
+
+int esdbg_trace = 0;
 
 #if defined(DRIVER_NEWALSA)
 #  include <sys/asoundlib.h>
@@ -23,7 +26,7 @@ int esd_audio_open()
 {
     snd_pcm_format_t format;
     snd_pcm_playback_params_t params;
-    int ret, mode = SND_PCM_OPEN_PLAYBACK;
+    int ret, i, mode = SND_PCM_OPEN_PLAYBACK;
     int mask=0, card=ALSACARD, device=ALSADEVICE, err=0;
     char buf[256];
   
@@ -63,7 +66,7 @@ int esd_audio_open()
 		handle = NULL;
 	    }
 	    else {
-		if( esdbug_trace ) {
+		if( esdbg_trace ) {
 		    fprintf( stderr, "opened alsa card %d\n", card );
 		}
 	    }
