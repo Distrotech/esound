@@ -3,7 +3,8 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <stdlib.h>
-#include <strings.h>
+#include <string.h>
+#include <unistd.h>
 
 /* Run-time check for IPv6 support */
 int 
