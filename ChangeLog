@@ -1,3 +1,10 @@
+Mon Feb  1 01:24:43 PST 1999 Manish Singh <yosh@gimp.org>
+
+	* esddsp.c: stupid interim hack for SNDCTL_DSP_GETOSPACE so x11amp 0.9a
+	works properly
+
+	* esddsp.in: -m flag to enable mixer support
+
 1999-01-31  Yo Ric Dude  <ericmit@ix.netcom.com>
 
 	* LICENSE, COPYING.LIB: Make some effort at license term disclosure.

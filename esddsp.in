@@ -18,6 +18,7 @@ while test $# -gt 0; do
 	    echo "options:"
 	    echo "-h, --help                show brief help"
 	    echo "-s, --server=HOST:PORT    contact esd server on host at port"
+	    echo "-m, --mixer               enable mixer support"
 	    echo "-n, --name=NAME           use name to identify player to esd"
 	    echo "-v, --verbose             show parameters"
 	    exit 0
@@ -36,6 +37,11 @@ while test $# -gt 0; do
 
 	--server*)
 	    export ESPEAKER=`echo $1 | sed -e 's/^[^=]*=//g'`
+	    shift
+	    ;;
+
+	-m|--mixer)
+	    export ESDDSP_MIXER=1
 	    shift
 	    ;;
 

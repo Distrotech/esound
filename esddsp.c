@@ -24,7 +24,7 @@
  */
 /* #define MULTIPLE_X11AMP */
 
-#ifdef __GNUC__
+#if defined(__GNUC__) && !defined(__STRICT_ANSI__)
 
 #ifdef DSP_DEBUG
 #define DPRINTF(format, args...)	printf(format, ## args)
@@ -240,6 +240,13 @@ dspctl (int fd, request_t request, void *argp)
 
     case SNDCTL_DSP_GETCAPS:
       *arg = 0;
+      break;
+
+    case SNDCTL_DSP_GETOSPACE:
+      {
+	audio_buf_info *bufinfo = (audio_buf_info *) argp;
+	bufinfo->bytes = 100000;
+      }
       break;
 
     default:
