@@ -11,89 +11,95 @@ while test $# -gt 0; do
     case "$1" in
 
 	-h|--help)
-	    echo "esddsp - attempt to reroute audio device to esd"
-	    echo " "
-	    echo "esddsp [options] player arguments"
-	    echo " "
-	    echo "options:"
-	    echo "-h, --help                show brief help"
-	    echo "-s, --server=HOST:PORT    contact esd server on host at port"
-	    echo "-m, --mixer               enable mixer support"
-	    echo "-n, --name=NAME           use name to identify player to esd"
-	    echo "-v, --verbose             show parameters"
-	    exit 0
-	    ;;
+		echo "esddsp - attempt to reroute audio device to esd"
+		echo " "
+		echo "esddsp [options] player arguments"
+		echo " "
+		echo "options:"
+		echo "-h, --help                show brief help"
+		echo "-s, --server=HOST:PORT    contact esd server on host at port"
+		echo "-m, --mixer               enable mixer support"
+		echo "-n, --name=NAME           use name to identify player to esd"
+		echo "-v, --verbose             show parameters"
+		exit 0
+		;;
 
 	-s)
-	    shift
-	    if test $# -gt 0; then
-		export ESPEAKER=$1
-	    else
-		echo "no server specified"
-		exit 1
-	    fi
-	    shift
-	    ;;
+		shift
+		if test $# -gt 0; then
+			ESPEAKER=$1
+			export ESPEAKER
+		else
+			echo "no server specified"
+			exit 1
+		fi
+		shift
+		;;
 
 	--server*)
-	    export ESPEAKER=`echo $1 | sed -e 's/^[^=]*=//g'`
-	    shift
-	    ;;
+		ESPEAKER=`echo $1 | sed -e 's/^[^=]*=//g'`
+		export ESPEAKER
+		shift
+		;;
 
 	-m|--mixer)
-	    export ESDDSP_MIXER=1
-	    shift
-	    ;;
+		ESDDSP_MIXER=1
+		export ESDDSP_MIXER
+		shift
+		;;
 
 	-n)
-	    shift
-	    if test $# -gt 0; then
-		export ESDDSP_NAME=$1
-	    else
-		echo "no player name specified"
-		exit 1
-	    fi
-	    shift
-	    set_name=1
-	    ;;
+		shift
+		if test $# -gt 0; then
+			ESDDSP_NAME=$1
+			export ESDDSP_NAME
+		else
+			echo "no player name specified"
+			exit 1
+		fi
+		shift
+		set_name=1
+		;;
 
 	--name*)
-	    export ESDDSP_NAME=`echo $1 | sed -e 's/^[^=]*=//g'`
-	    set_name=1
-	    shift
-	    ;;
+		ESDDSP_NAME=`echo $1 | sed -e 's/^[^=]*=//g'`
+		export ESDDSP_NAME
+		set_name=1
+		shift
+		;;
 
 	-v|--verbose)
-	    verbose=1
-	    shift
-	    ;;
+		verbose=1
+		shift
+		;;
 
 	*)
-	    # no more esddsp options, get on with life
-	    break
-	    ;;
+		# no more esddsp options, get on with life
+		break
+		;;
     esac
 done
 
 # default name to player if not specified
 if test "$set_name" = 0; then
-    export ESDDSP_NAME=$1
+	ESDDSP_NAME=$1
+	export ESDDSP_NAME
 fi
 
 # echo options if verbose specified
 if test "$verbose" = 1; then
-    echo "server:        $ESPEAKER"
-    echo "name:          $ESDDSP_NAME"
-    echo "command line:  $@"
+	echo "server:		$ESPEAKER"
+	echo "name:		$ESDDSP_NAME"
+	echo "command line:	$@"
 fi
 
 # setup esd to hijack calls made to /dev/dsp
 prefix=@prefix@
 exec_prefix=@exec_prefix@
-libdir=@libdir@
 
-export LD_PRELOAD_PATH=${libdir}
-export LD_PRELOAD='libesddsp.so.@ESD_MAJOR_VERSION@ libesd.so.@ESD_MAJOR_VERSION@'
+LD_PRELOAD_PATH=@libdir@
+LD_PRELOAD='libesddsp.so.@ESD_MAJOR_VERSION@ libesd.so.@ESD_MAJOR_VERSION@'
+export LD_PRELOAD_PATH LD_PRELOAD
 
 # invoke the program with the args given
 exec "$@"

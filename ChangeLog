@@ -1,5 +1,10 @@
 2002-06-19  Frederic Crozat  <fcrozat@mandrakesoft.com>
 
+        * esddsp.in: remove bashim (PLD)
+	
+
+2002-06-19  Frederic Crozat  <fcrozat@mandrakesoft.com>
+
 	* clients.c: (get_new_clients): don't use tcp wrapper for unix socket
 	(Debian)
 
