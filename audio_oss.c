@@ -72,7 +72,7 @@ int esd_audio_open()
     /* set the sound driver audio format for playback */
 #if defined(__powerpc__) || defined(__sparc__)
     value = test = ( (esd_audio_format & ESD_MASK_BITS) == ESD_BITS16 )
-        ? /* 16 bit */ AFMT_S16_NE : /* 8 bit */ AFMT_U8;
+        ? /* 16 bit */ AFMT_S16_BE : /* 8 bit */ AFMT_U8;
 #else /* #if !defined(__powerpc__) */
     value = test = ( (esd_audio_format & ESD_MASK_BITS) == ESD_BITS16 )
         ? /* 16 bit */ AFMT_S16_LE : /* 8 bit */ AFMT_U8;
