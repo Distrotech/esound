@@ -1,3 +1,11 @@
+1998-05-19  Yo 'Ric Dude  <ericmit@ix.netcom.com>
+
+	* clients.c, esdsample.c: 
+	corrected a problem playing samples without a simultaneous stream
+	which was instigated by the "better" blocking algorithm.  Added
+	simple multiple trigger capability to esdsample.c program.
+
+
 1998-05-16  Raja R Harinath  <harinath@cs.umn.edu>
 
 	* esdlib.c (esd_send_auth): POSIX allows some systems not to
