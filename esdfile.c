@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <string.h>
+#include <stdlib.h>
 
 /*******************************************************************/
 /* esdfile.c - audiofile wrappers for sane handling of files */

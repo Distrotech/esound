@@ -3,6 +3,9 @@
 */
 #include "esd.h"
 
+/* debugging messages for audio device */
+static int driver_trace = 0;
+
 #if defined(DRIVER_NEWALSA)
 #  include <sys/asoundlib.h>
 #else

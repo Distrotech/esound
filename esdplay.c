@@ -141,8 +141,6 @@ main (int argc, char *argv[])
 {
   int option_index = 0, c = 0;
 
-  char *server = NULL;
-
   struct option opts[] = {
     { "server", required_argument, NULL, 's' },
     { "help", no_argument, NULL, 'h' },

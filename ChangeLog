@@ -1,3 +1,6 @@
+1999-08-20  Elliot Lee  <sopwith@redhat.com>
+	* *.c, esd-server.h: Fix warnings, bump version to 0.2.13.
+
 1999-08-19  Kjartan Maraas  <kmaraas@online.no>
 
 	* mix.c: (clip_mix_to_output_8u): Change *output to unsigned int
