@@ -11,33 +11,61 @@ signed int mixed_buffer[ ESD_BUF_SIZE ];
 /* TODO: straighten out the mix algorithm comment annotations */
 /* TOTO: i don't think we're in kansas anymore... */
 
+/* decides which of the mix_from_* functions to use, and calls it */
+int mix_and_copy( void *dest_buf, int dest_len, 
+	int dest_rate, esd_format_t dest_format, 
+	void *source_data, int src_len, 
+	int src_rate, esd_format_t src_format )
+{
+	if ( ( src_format & ESD_MASK_CHAN ) == ESD_MONO ) {
+	    if ( (src_format & ESD_MASK_BITS) == ESD_BITS16 ) 
+		return mix_from_mono_16s( dest_buf, dest_len, 
+			dest_rate, dest_format, source_data, src_len,
+			src_rate );
+	    else
+		return mix_from_mono_8u( dest_buf, dest_len, 
+			dest_rate, dest_format, source_data, src_len,
+			src_rate );
+	} else {
+	    if ( (src_format & ESD_MASK_BITS) == ESD_BITS16 ) 
+		return mix_from_stereo_16s( dest_buf, dest_len, 
+			dest_rate, dest_format, source_data, src_len,
+			src_rate );
+	    else
+		return mix_from_stereo_8u( dest_buf, dest_len, 
+			dest_rate, dest_format, source_data, src_len,
+			src_rate );
+	}
+	return 0;
+}
+
 /*******************************************************************/
 /* takes the 16 bit signed source waveform, and mixes to player */
-int mix_from_stereo_16s( signed short *source_data_ss, 
-		       esd_player_t *player, int length )
+int mix_from_stereo_16s( void *dest_buf, int dest_len, int dest_rate, esd_format_t dest_format, 
+			signed short *source_data_ss, int src_len, int src_rate )
 {
-    int wr_dat = 0, rd_dat = 0;
+    int wr_dat = 0, rd_dat = 0, bytes_written = 0;
     register unsigned char *target_data_uc = NULL;
     register signed short *target_data_ss = NULL;
     signed short lsample, rsample;
 
     /* if nothing to mix, just bail */
-    if ( !length ) {
+    if ( !src_len ) {
 	return 0;
     }
 
     /* mix it down */
-    switch ( player->format & ESD_MASK_BITS )
+    switch ( dest_format & ESD_MASK_BITS )
     {
     case ESD_BITS8:
-	target_data_uc = (unsigned char *) player->data_buffer;
+	target_data_uc = (unsigned char *) dest_buf;
 
-	if ( ( player->format & ESD_MASK_CHAN ) == ESD_MONO ) {
+	if ( ( dest_format & ESD_MASK_CHAN ) == ESD_MONO ) {
 
 	    /* mix mono, 8 bit sound source to stereo, 16 bit */
-	    while ( wr_dat < player->buffer_length )
+	    while ( wr_dat < dest_len )
 	    {
-		rd_dat = wr_dat * esd_audio_rate / player->rate;
+		rd_dat = wr_dat * src_rate / dest_rate;
 		rd_dat *= 2;		/* adjust for mono */
 		rd_dat += rd_dat % 2;	/* force to left sample */
 
@@ -53,9 +81,9 @@ int mix_from_stereo_16s( signed short *source_data_ss,
 	} else {
 
 	    /* mix stereo, 8 bit sound source to stereo, 16 bit */
-	    while ( wr_dat < player->buffer_length )
+	    while ( wr_dat < dest_len )
 	    {
-		rd_dat = wr_dat * esd_audio_rate / player->rate;
+		rd_dat = wr_dat * src_rate / dest_rate;
 
 		lsample = source_data_ss[ rd_dat++ ];
 		lsample /= 256; lsample += 127;
@@ -67,19 +95,20 @@ int mix_from_stereo_16s( signed short *source_data_ss,
 	    }
 	}
 
+	bytes_written = wr_dat * sizeof(unsigned char);
 	break;
 
     case ESD_BITS16:
-	target_data_ss = (signed short *) player->data_buffer;
+	target_data_ss = (signed short *) dest_buf;
 
-	if ( ( player->format & ESD_MASK_CHAN ) == ESD_MONO ) {
+	if ( ( dest_format & ESD_MASK_CHAN ) == ESD_MONO ) {
 
 	    /* mix mono, 16 bit sound source from stereo, 16 bit */
-	    while ( wr_dat < player->buffer_length / sizeof(signed short) )
+	    while ( wr_dat < dest_len / sizeof(signed short) )
 	    {
-		rd_dat = wr_dat * esd_audio_rate / player->rate;
+		rd_dat = wr_dat * src_rate / dest_rate;
 		rd_dat *= 2;		/* adjust for stereo */
-		rd_dat += rd_dat % 2;	/* force to left sample */
+		/* rd_dat += rd_dat % 2; */	/* force to left sample */
 
 		lsample = source_data_ss[ rd_dat++ ];
 		rsample = source_data_ss[ rd_dat++ ];
@@ -90,9 +119,9 @@ int mix_from_stereo_16s( signed short *source_data_ss,
 	} else {
 
 	    /* mix stereo, 16 bit sound source from stereo, 16 bit */
-	    while ( wr_dat < player->buffer_length / sizeof(signed short) )
+	    while ( wr_dat < dest_len / sizeof(signed short) )
 	    {
-		rd_dat = wr_dat * esd_audio_rate / player->rate;
+		rd_dat = wr_dat * src_rate / dest_rate;
 		/* rd_dat += (rd_dat % 2); */ /* force to left sample */
 
 		lsample = source_data_ss[ rd_dat++ ];
@@ -103,44 +132,45 @@ int mix_from_stereo_16s( signed short *source_data_ss,
 	    }
 	}
 
+	bytes_written = wr_dat * sizeof(signed short);
 	break;
 
     default:
-	fprintf( stderr, "(%02d) mix from: format 0x%08x not supported\n", 
-		 player->format & ESD_MASK_BITS, player->source_id );
+	fprintf( stderr, "mix from 16s: format 0x%08x not supported\n", 
+		 dest_format & ESD_MASK_BITS );
 	break;
     }
 
-    return wr_dat * sizeof(signed short);
+    return bytes_written;
 }
 
 /*******************************************************************/
 /* takes the 8 bit unsigned source waveform, and mixes to player */
-int mix_from_stereo_8u( unsigned char *source_data_uc, 
-		       esd_player_t *player, int length )
+int mix_from_stereo_8u( void *dest_buf, int dest_len, int dest_rate, esd_format_t dest_format, 
+			unsigned char *source_data_uc, int src_len, int src_rate )
 {
-    int wr_dat = 0, rd_dat = 0;
+    int wr_dat = 0, rd_dat = 0, bytes_written = 0;
     register unsigned char *target_data_uc = NULL;
     register signed short *target_data_ss = NULL;
     signed short lsample, rsample;
 
     /* if nothing to mix, just bail */
-    if ( !length ) {
+    if ( !src_len ) {
 	return 0;
     }
 
     /* mix it down */
-    switch ( player->format & ESD_MASK_BITS )
+    switch ( dest_format & ESD_MASK_BITS )
     {
     case ESD_BITS8:
-	target_data_uc = (unsigned char *) player->data_buffer;
+	target_data_uc = (unsigned char *) dest_buf;
 
-	if ( ( player->format & ESD_MASK_CHAN ) == ESD_MONO ) {
+	if ( ( dest_format & ESD_MASK_CHAN ) == ESD_MONO ) {
 
 	    /* mix mono, 8 bit sound source to stereo, 16 bit */
-	    while ( wr_dat < player->buffer_length )
+	    while ( wr_dat < dest_len )
 	    {
-		rd_dat = wr_dat * esd_audio_rate / player->rate;
+		rd_dat = wr_dat * src_rate / dest_rate;
 		rd_dat *= 2;		/* adjust for mono */
 		rd_dat += rd_dat % 2;	/* force to left sample */
 
@@ -156,9 +186,9 @@ int mix_from_stereo_8u( unsigned char *source_data_uc,
 	} else {
 
 	    /* mix stereo, 8 bit sound source to stereo, 16 bit */
-	    while ( wr_dat < player->buffer_length )
+	    while ( wr_dat < dest_len )
 	    {
-		rd_dat = wr_dat * esd_audio_rate / player->rate;
+		rd_dat = wr_dat * src_rate / dest_rate;
 
 		lsample = source_data_uc[ rd_dat++ ];
 /*		lsample /= 256; lsample += 127; */
@@ -170,17 +200,18 @@ int mix_from_stereo_8u( unsigned char *source_data_uc,
 	    }
 	}
 
+	bytes_written = wr_dat * sizeof(unsigned char);
 	break;
 
     case ESD_BITS16:
-	target_data_ss = (signed short *) player->data_buffer;
+	target_data_ss = (signed short *) dest_buf;
 
-	if ( ( player->format & ESD_MASK_CHAN ) == ESD_MONO ) {
+	if ( ( dest_format & ESD_MASK_CHAN ) == ESD_MONO ) {
 
 	    /* mix mono, 16 bit sound source from stereo, 16 bit */
-	    while ( wr_dat < player->buffer_length / sizeof(signed short) )
+	    while ( wr_dat < dest_len / sizeof(signed short) )
 	    {
-		rd_dat = wr_dat * esd_audio_rate / player->rate;
+		rd_dat = wr_dat * src_rate / dest_rate;
 		rd_dat *= 2;		/* adjust for stereo */
 		rd_dat += rd_dat % 2;	/* force to left sample */
 
@@ -193,9 +224,9 @@ int mix_from_stereo_8u( unsigned char *source_data_uc,
 	} else {
 
 	    /* mix stereo, 16 bit sound source from stereo, 16 bit */
-	    while ( wr_dat < player->buffer_length / sizeof(signed short) )
+	    while ( wr_dat < dest_len / sizeof(signed short) )
 	    {
-		rd_dat = wr_dat * esd_audio_rate / player->rate;
+		rd_dat = wr_dat * src_rate / dest_rate;
 		/* rd_dat += (rd_dat % 2); */ /* force to left sample */
 
 		lsample = source_data_uc[ rd_dat++ ] - 127;
@@ -206,15 +237,206 @@ int mix_from_stereo_8u( unsigned char *source_data_uc,
 	    }
 	}
 
+	bytes_written = wr_dat * sizeof(signed short);
 	break;
 
     default:
-	fprintf( stderr, "(%02d) mix from: format 0x%08x not supported\n", 
-		 player->format & ESD_MASK_BITS, player->source_id );
+	fprintf( stderr, "mix from 8u: format 0x%08x not supported\n", 
+		 dest_format & ESD_MASK_BITS );
 	break;
     }
 
-    return wr_dat * sizeof(signed short);
+    return bytes_written;
+}
+
+/*******************************************************************/
+/* takes the 16 bit mono signed source waveform, and mixes to player */
+int mix_from_mono_16s( void *dest_buf, int dest_len, int dest_rate, esd_format_t dest_format, 
+			signed short *source_data_ss, int src_len, int src_rate )
+{
+    int wr_dat = 0, rd_dat = 0, bytes_written = 0;
+    register unsigned char *target_data_uc = NULL;
+    register signed short *target_data_ss = NULL;
+    signed short lsample;
+
+    /* if nothing to mix, just bail */
+    if ( !src_len ) {
+	return 0;
+    }
+
+    /* mix it down */
+    switch ( dest_format & ESD_MASK_BITS )
+    {
+    case ESD_BITS8:
+	target_data_uc = (unsigned char *) dest_buf;
+
+	if ( ( dest_format & ESD_MASK_CHAN ) == ESD_MONO ) {
+
+	    /* mix mono, 8 bit sound source from mono, 16 bit */
+	    while ( wr_dat < dest_len )
+	    {
+		rd_dat = wr_dat * src_rate / dest_rate;
+
+		lsample = source_data_ss[ rd_dat++ ];
+
+		lsample /= 256; lsample += 127;
+
+		target_data_uc[ wr_dat++ ] = lsample / 2;
+	    }
+
+	} else {
+
+	    /* mix mono, 8 bit sound source from stereo, 8 bit */
+	    while ( wr_dat < dest_len )
+	    {
+		rd_dat = wr_dat * src_rate / dest_rate;
+		rd_dat /= 2;
+
+		lsample = source_data_ss[ rd_dat++ ];
+		lsample /= 256; lsample += 127;
+
+		target_data_uc[ wr_dat++ ] = lsample;
+		target_data_uc[ wr_dat++ ] = lsample;
+	    }
+	}
+
+	bytes_written = wr_dat * sizeof(unsigned char);
+	break;
+
+    case ESD_BITS16:
+	target_data_ss = (signed short *) dest_buf;
+
+	if ( ( dest_format & ESD_MASK_CHAN ) == ESD_MONO ) {
+
+	    /* mix mono, 16 bit sound source from mono, 16 bit */
+	    while ( wr_dat < dest_len / sizeof(signed short) )
+	    {
+		rd_dat = wr_dat * src_rate / dest_rate;
+
+		lsample = source_data_ss[ rd_dat++ ];
+
+		target_data_ss[ wr_dat++ ] = lsample / 2;
+	    }
+
+	} else {
+
+	    /* mix stereo, 16 bit sound source from mono, 16 bit */
+	    while ( wr_dat < dest_len / sizeof(signed short) )
+	    {
+		rd_dat = wr_dat * src_rate / dest_rate;
+		rd_dat /= 2;
+
+		lsample = source_data_ss[ rd_dat++ ];
+
+		target_data_ss[ wr_dat++ ] = lsample;
+		target_data_ss[ wr_dat++ ] = lsample;
+	    }
+	}
+
+	bytes_written = wr_dat * sizeof(signed short);
+	break;
+
+    default:
+	fprintf( stderr, "mix from 16s: format 0x%08x not supported\n", 
+		 dest_format & ESD_MASK_BITS );
+	break;
+    }
+
+    return bytes_written;
+}
+
+/*******************************************************************/
+/* takes the 8 bit mono unsigned source waveform, and mixes to player */
+int mix_from_mono_8u( void *dest_buf, int dest_len, int dest_rate, esd_format_t dest_format, 
+			unsigned char *source_data_uc, int src_len, int src_rate )
+{
+    int wr_dat = 0, rd_dat = 0, bytes_written = 0;
+    register unsigned char *target_data_uc = NULL;
+    register signed short *target_data_ss = NULL;
+    signed short lsample;
+
+    /* if nothing to mix, just bail */
+    if ( !src_len ) {
+	return 0;
+    }
+
+    /* mix it down */
+    switch ( dest_format & ESD_MASK_BITS )
+    {
+    case ESD_BITS8:
+	target_data_uc = (unsigned char *) dest_buf;
+
+	if ( ( dest_format & ESD_MASK_CHAN ) == ESD_MONO ) {
+
+	    /* mix mono, 8 bit sound source from mono, 8 bit */
+	    while ( wr_dat < dest_len )
+	    {
+		rd_dat = wr_dat * src_rate / dest_rate;
+
+		lsample = source_data_uc[ rd_dat++ ];
+		target_data_uc[ wr_dat++ ] = lsample / 2;
+	    }
+
+	} else {
+
+	    /* mix stereo, 8 bit sound source from mono, 8 bit */
+	    while ( wr_dat < dest_len )
+	    {
+		rd_dat = wr_dat * src_rate / dest_rate;
+		rd_dat /= 2;
+
+		lsample = source_data_uc[ rd_dat++ ];
+
+		target_data_uc[ wr_dat++ ] = lsample;
+		target_data_uc[ wr_dat++ ] = lsample;
+	    }
+	}
+
+	bytes_written = wr_dat * sizeof(unsigned char);
+	break;
+
+    case ESD_BITS16:
+	target_data_ss = (signed short *) dest_buf;
+
+	if ( ( dest_format & ESD_MASK_CHAN ) == ESD_MONO ) {
+
+	    /* mix mono, 16 bit sound source from mono, 8 bit */
+	    while ( wr_dat < dest_len / sizeof(signed short) )
+	    {
+		rd_dat = wr_dat * src_rate / dest_rate;
+
+		lsample = source_data_uc[ rd_dat++ ] - 127;
+		lsample *= 256;
+
+		target_data_ss[ wr_dat++ ] = lsample;
+	    }
+
+	} else {
+
+	    /* mix stereo, 16 bit sound source from mono, 8 bit */
+	    while ( wr_dat < dest_len / sizeof(signed short) )
+	    {
+		rd_dat = wr_dat * src_rate / dest_rate;
+		rd_dat /= 2;
+
+		lsample = source_data_uc[ rd_dat++ ] - 127;
+		lsample *= 256;
+
+		target_data_ss[ wr_dat++ ] = lsample;
+		target_data_ss[ wr_dat++ ] = lsample;
+	    }
+	}
+
+	bytes_written = wr_dat * sizeof(signed short);
+	break;
+
+    default:
+	fprintf( stderr, "mix from 8u: format 0x%08x not supported\n", 
+		 dest_format & ESD_MASK_BITS );
+	break;
+    }
+
+    return bytes_written;
 }
 
 /*******************************************************************/

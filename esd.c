@@ -30,7 +30,7 @@ void set_audio_buffer( void *buf, esd_format_t format,
     signed short *ss_buf = (signed short *)buf;
     
     /* printf( "fmt=%d, ml=%d, mr=%d, freq=%d, speed=%d, len=%ld\n",
-	    format, magl, magr, freq, speed, length ); */
+       format, magl, magr, freq, speed, length ); */
 
     switch ( format & ESD_MASK_BITS )
     {
@@ -286,6 +286,14 @@ int main ( int argc, char *argv[] )
 
 	/* mix new requests, and output to device */
 	length = mix_players_16s( output_buffer, esd_buf_size_octets );
+	
+	/* we handle this even when length == 0 because a filter could have
+	 * closed, and we don't want to eat the processor if one did.. */
+	if ( esd_filter_list && !esd_on_standby ) {
+	    length = filter_write( output_buffer, length, 
+				   esd_audio_format, esd_audio_rate );
+	}
+	
 	if ( length > 0 /* || esd_monitor */ ) {
 	    do_sleep = 0;
 	    if ( !esd_on_standby ) {
@@ -308,12 +316,24 @@ int main ( int argc, char *argv[] )
 	/* this clears out any leftovers from recording, below */
 	if ( esd_monitor && !esd_on_standby ) {
 	    /* TODO: maybe the last parameter here should be length? */
-		if ( (esd_audio_format & ESD_MASK_BITS) == ESD_BITS16 ) 
-		    length = mix_from_stereo_16s( output_buffer, 
-						  esd_monitor, length );
-		else
-		    length = mix_from_stereo_8u( output_buffer, 
-						 esd_monitor, length );
+	    if ( (esd_audio_format & ESD_MASK_BITS) == ESD_BITS16 ) {
+		length = mix_from_stereo_16s( esd_monitor->data_buffer, 
+					      esd_monitor->buffer_length, 
+					      esd_monitor->rate, 
+					      esd_monitor->format, 
+					      output_buffer, 
+					      length, 
+					      esd_audio_rate );
+	    }
+	    else {
+		length = mix_from_stereo_8u( esd_monitor->data_buffer, 
+					     esd_monitor->buffer_length, 
+					     esd_monitor->rate, 
+					     esd_monitor->format, 
+					     output_buffer, 
+					     length, 
+					     esd_audio_rate );
+	    }
 
 	    if( length )
 		monitor_write();
@@ -324,12 +344,25 @@ int main ( int argc, char *argv[] )
 	if ( esd_recorder && !esd_on_standby ) { 
 	    length = esd_audio_read( output_buffer, esd_buf_size_octets );
 	    if ( length ) {
-		if ( (esd_audio_format & ESD_MASK_BITS) == ESD_BITS16 ) 
-		    mix_from_stereo_16s( output_buffer, 
-					 esd_recorder, esd_buf_size_octets ); 
-		else
-		    mix_from_stereo_8u( output_buffer, 
-					esd_recorder, esd_buf_size_octets ); 
+		if ( (esd_audio_format & ESD_MASK_BITS) == ESD_BITS16 ) {
+		    length = mix_from_stereo_16s( esd_recorder->data_buffer, 
+						  esd_recorder->buffer_length, 
+						  esd_recorder->rate, 
+						  esd_recorder->format, 
+						  output_buffer, 
+						  esd_buf_size_octets, 
+						  esd_audio_rate );
+		}
+		else {
+		    length = mix_from_stereo_8u( esd_recorder->data_buffer, 
+						 esd_recorder->buffer_length, 
+						 esd_recorder->rate, 
+						 esd_recorder->format, 
+						 output_buffer, 
+						 esd_buf_size_octets, 
+						 esd_audio_rate );
+		}
+		
 		recorder_write(); 
 	    }
 	}

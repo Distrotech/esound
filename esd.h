@@ -47,7 +47,9 @@ enum esd_proto {
     ESD_PROTO_STANDBY,	    /* release /dev/dsp and ignore all data */
     ESD_PROTO_RESUME,	    /* reclaim /dev/dsp and play sounds again */
 
+    /* move these to a more logical place when we're ready to break the protocol */
     ESD_PROTO_SAMPLE_GETID, /* get the ID for an already-cached sample */
+    ESD_PROTO_STREAM_FILT,  /* filter mixed buffer output as a stream */
 
     ESD_PROTO_MAX           /* for bounds checking */
 };
@@ -119,6 +121,7 @@ int esd_monitor_stream( esd_format_t format, int rate, char *host, char *name );
 /* int esd_monitor_stream_fallback( esd_format_t format, int rate ); */
 int esd_record_stream( esd_format_t format, int rate, char *host, char *name );
 int esd_record_stream_fallback( esd_format_t format, int rate, char *host, char *name );
+int esd_filter_stream( esd_format_t format, int rate, char *host, char *name );
 
 /* cache a sample in the server returns sample id, < 0 = error */
 int esd_sample_cache( int esd, esd_format_t format, int rate, int length, char *name );

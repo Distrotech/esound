@@ -18,6 +18,7 @@ esdloop
 esdsample
 esdrec
 esdmon
+esdfilt
 esdctl
 esdcat
 esdplay
@@ -28,3 +29,4 @@ _libs
 .deps
 esd-config
 *.da
+esound.spec

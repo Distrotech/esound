@@ -363,6 +363,41 @@ int esd_monitor_stream( esd_format_t format, int rate, char *host, char *name )
 }
 
 /*******************************************************************/
+/* open a socket for filtering as a stream */
+int esd_filter_stream( esd_format_t format, int rate, char *host, char *name )
+{
+    int sock;
+    int proto = ESD_PROTO_STREAM_FILT;
+    char name_buf[ ESD_NAME_MAX ];
+
+    /* connect to the EsounD server */
+    sock = esd_open_sound( host );
+    if ( sock < 0 ) 
+	return sock;
+    
+    /* prepare the name buffer */
+    if ( name )
+	strncpy( name_buf, name, ESD_NAME_MAX );
+    else
+	name_buf[ 0 ] = '\0';
+
+    /* send the audio format information */
+    if ( write( sock, &proto, sizeof(proto) ) != sizeof(proto) )
+	return -1;
+    if ( write( sock, &format, sizeof(format) ) != sizeof(format) )
+	return -1;
+    if( write( sock, &rate, sizeof(rate) ) != sizeof(rate) )
+	return -1;
+    if( write( sock, name_buf, ESD_NAME_MAX ) != ESD_NAME_MAX )
+	return -1;
+
+    /* flush the socket */
+    fsync( sock );
+    
+    return sock;
+}
+
+/*******************************************************************/
 /* open a socket for recording as a stream */
 int esd_record_stream( esd_format_t format, int rate, char *host, char *name )
 {

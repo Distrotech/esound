@@ -297,6 +297,31 @@ int esd_proto_stream_monitor( esd_client_t *client )
 }
 
 /*******************************************************************/
+/* manage the filter client, return boolean ok */
+int esd_proto_stream_filter( esd_client_t *client )
+{
+    esd_player_t *filter;
+    
+    /* sign up the new monitor client */
+    filter = new_stream_player( client );
+    if ( filter != NULL ) {
+	/* flesh out the monitor */
+	filter->parent = client;
+	filter->next = esd_filter_list;
+	esd_filter_list = filter;
+
+	if ( esdbg_trace )
+	    printf ( "(%02d) filter on client\n", client->fd );
+    } else {
+	/* failed to initialize the recorder, kill its client */
+	return 0;
+    }
+
+    client->state = ESD_STREAMING_DATA;
+    return 1;
+}
+
+/*******************************************************************/
 /* cache a sample from the client, return boolean ok  */
 int esd_proto_sample_cache( esd_client_t *client )
 {
@@ -658,6 +683,10 @@ int poll_client_requests()
  		    is_ok = esd_proto_stream_monitor( client );
  		    break;
  
+ 		case ESD_PROTO_STREAM_FILT:
+ 		    is_ok = esd_proto_stream_filter( client );
+ 		    break;
+
  		case ESD_PROTO_SAMPLE_CACHE:
  		    is_ok = esd_proto_sample_cache( client );
  		    break;

@@ -34,6 +34,7 @@ bin_PROGRAMS = \
 	esd \
 	esdcat \
 	esdctl \
+	esdfilt \
 	esdmon \
 	esdrec \
 	esdsample \
@@ -46,6 +47,7 @@ EXTRA_PROGRAMS = \
 esd_SOURCES = 	\
 	esd.c 		\
 	clients.c	\
+	filter.c	\
 	mix.c		\
 	players.c	\
 	proto.c		\
@@ -57,6 +59,9 @@ esdcat_SOURCES = \
 
 esdctl_SOURCES = \
 	esdctl.c
+
+esdfilt_SOURCES = \
+	esdfilt.c
 
 esdmon_SOURCES = \
 	esdmon.c

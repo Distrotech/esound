@@ -1,3 +1,10 @@
+1998-10-10  Yo Ric Dude  <ricdude@ix.netcom.com>
+
+	* esd-server.h, esd.c, esd.h, esdlib.c, mix.c, proto.c, filter.c,
+ 	esdfilt.c Makefile.am, .cvsignore: filter patch courtesy of Bibek
+ 	Sahu. ten points to the first person to create esdequalizer. does
+ 	libgsl do digital filters?
+
 Tue Oct  6 20:57:37 PDT 1998 Manish Singh <yosh@gimp.org>
 
 	* esd.c: nanosleep in the no data ready case too, so we don't

@@ -112,6 +112,10 @@ extern esd_player_t *esd_players_list;
 extern esd_player_t *esd_recorder;
 extern esd_player_t *esd_monitor;
 
+/* filter.c - things with which to handle filters */
+extern esd_player_t *esd_filter_list;
+void erase_filter( esd_player_t *filter );
+
 void dump_players();
 void add_player( esd_player_t *player );
 void erase_player( esd_player_t *player );
@@ -135,8 +139,22 @@ int play_sample( int sample_id, int loop );
 int stop_sample( int sample_id );
 
 /* mix.c - deal with mixing signals, and format conversion */
-int mix_from_stereo_16s( signed short *source_data_ss, 
-		       esd_player_t *player, int length );
+int mix_and_copy( void *dest_buf, int dest_len, 
+	int dest_rate, esd_format_t dest_format, 
+	void *source_data, int src_len, 
+	int src_rate, esd_format_t src_format );
+int mix_from_stereo_16s( void *dest_buf, int dest_len, 
+	int dest_rate, esd_format_t dest_format, 
+	signed short *source_data_ss, int src_len, int src_rate );
+int mix_from_stereo_8u( void *dest_buf, int dest_len, 
+	int dest_rate, esd_format_t dest_format, 
+	unsigned char *source_data_uc, int src_len, int src_rate );
+int mix_from_mono_16s( void *dest_buf, int dest_len, 
+	int dest_rate, esd_format_t dest_format, 
+	signed short *source_data_ss, int src_len, int src_rate );
+int mix_from_mono_8u( void *dest_buf, int dest_len, 
+	int dest_rate, esd_format_t dest_format, 
+	unsigned char *source_data_uc, int src_len, int src_rate );
 int mix_players_16s( void *mixed, int length );
 int mix_players_8s( void *mixed, int length );
 
