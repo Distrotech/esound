@@ -67,9 +67,8 @@ int filter_write( void *buffer, int size, esd_format_t format, int rate )
 		data_format = filter->format;
 		data_rate = filter->rate;
 	    } else if ( actual == 0 ) {
-		if ( esdbg_trace) 
-		    printf( "no data available from filter (%d)\n", 
-			filter->source_id, filter ); 
+		ESDBG_TRACE( printf( "no data available from filter (%d)\n", 
+				     filter->source_id, filter ); );
 		data_buffer = filter->data_buffer;
 		data_size = 0;
 		data_format = filter->format;
@@ -126,7 +125,7 @@ void erase_filter( esd_player_t *filter )
     }
 
     /* hmm, we didn't find the desired filter, just get on with life */
-    if ( esdbg_trace ) printf( "-%02d- filter not found\n", filter->source_id );
+    ESDBG_TRACE( printf( "-%02d- filter not found\n", filter->source_id ); );
     return;
 }
 

@@ -85,10 +85,9 @@ void erase_client( esd_client_t *client )
 		esd_clients_list = current->next;
 	    }
 
-	    if ( esdbg_trace ) {
-		printf ( "(%02d) closing client connection\n", 
-			 client->fd );
-	    }
+	    ESDBG_TRACE( printf ( "(%02d) closing client connection\n", 
+				  client->fd ); );
+
 	    close( client->fd );
 	    free_client( client );
 
@@ -101,7 +100,7 @@ void erase_client( esd_client_t *client )
     }
 
     /* hmm, we didn't find the desired client, just get on with life */
-    if ( esdbg_trace ) printf( "(%02d) client not found\n", client->fd );
+    ESDBG_TRACE( printf( "(%02d) client not found\n", client->fd ); );
     return;
 }
 
@@ -125,13 +124,12 @@ int get_new_clients( int listen )
 	    port = ntohs( incoming.sin_port );
 	    addr = ntohl( incoming.sin_addr.s_addr );
 
-	    if ( esdbg_trace ) {
+	    ESDBG_TRACE( 
 		printf( "(%02d) new client from: %03u.%03u.%03u.%03u:%05d\n", 
 			fd, (unsigned int) addr >> 24, 
 			(unsigned int) (addr >> 16) % 256, 
 			(unsigned int) (addr >> 8) % 256, 
-			(unsigned int) addr % 256, port );
-	    }
+			(unsigned int) addr % 256, port ); );
 
 #ifdef USE_LIBWRAP
 	    {
@@ -142,10 +140,9 @@ int get_new_clients( int listen )
 		fromhost( &req );
 
 		if ( !hosts_access( &req )) {
-		    if ( esdbg_trace ) {
+		    ESDBG_TRACE( 
 			printf( "connection from %s refused by tcp_wrappers\n",
-				eval_client( &req ) );
-		    }
+				eval_client( &req ) ); );
 
 		    close( fd );
 		    continue;
@@ -153,7 +150,8 @@ int get_new_clients( int listen )
 	    }
 #endif
 
-	    if ( esdbg_comms ) printf( "================================\n" );
+	    /* if ( esdbg_comms ) printf( "================================\n" ); */
+	    ESDBG_COMMS( printf( "================================\n" ); );
 
 	    /* make sure we have the memory to save the client... */
 	    new_client = (esd_client_t*) malloc( sizeof(esd_client_t) );
@@ -169,8 +167,8 @@ int get_new_clients( int listen )
 	    nbl = 0;
 	    if ( ioctl( fd, FIONBIO, &nbl ) < 0 )
 	    {
-		if ( esdbg_trace ) 
-		    printf( "(%02d) couldn't turn on blocking for client\n", fd );
+		ESDBG_TRACE( printf( "(%02d) couldn't turn on blocking for client\n", 
+				     fd ); );
 		close( fd );
 		return -1;
 	    }

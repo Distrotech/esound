@@ -58,9 +58,9 @@ int check_endian( esd_client_t *client )
 	/* printf( "different endian order!\n" ); */
 	client->swap_byte_order = 1;
     } else {
-	if ( esdbg_trace ) 
+	ESDBG_TRACE( 
 	    printf( "(%02d) unknown endian key: 0x%08x (same = 0x%08x, diff = 0x%08x)\n",
-		    client->fd, endian, ESD_ENDIAN_KEY, ESD_SWAP_ENDIAN_KEY );
+		    client->fd, endian, ESD_ENDIAN_KEY, ESD_SWAP_ENDIAN_KEY ); );
 	
 	return -1;
     }
@@ -82,8 +82,8 @@ int validate_source( esd_client_t *client, struct sockaddr_in source, int owner_
 
     if( !esd_is_owned ) {
 	/* noone owns it yet, the first client claims ownership */
-	if ( esdbg_trace )
-	    printf( "(%02d) esd auth: claiming ownership of esd.\n", client->fd );
+	ESDBG_TRACE( printf( "(%02d) esd auth: claiming ownership of esd.\n", 
+			     client->fd ); );
 
 	esd_is_locked = 1;
 	memcpy( esd_owner_key, submitted_key, ESD_KEY_LEN );
@@ -106,16 +106,15 @@ int validate_source( esd_client_t *client, struct sockaddr_in source, int owner_
     /* TODO: maybe check based on source ip? */
     /* if ( !owner_only ) { check_ip_etc(); } */
     /* the client is not authorized to connect to the server */
-    if ( esdbg_trace )
-	printf( "(%02d) esd auth: NOT authorized to use esd, closing conn.\n",
-		client->fd );
+    ESDBG_TRACE( printf( "(%02d) esd auth: NOT authorized to use esd, closing conn.\n",
+			 client->fd ); );
 
     return 0;
 
  check_endian:
     if ( check_endian( client ) <= 0 ) { 
 	/* irix is weird, may return -1, instead of EAGAIN, try again anyway */
-	if ( esdbg_trace ) printf( "will check for endian key next trip\n" );
+	ESDBG_TRACE( printf( "will check for endian key next trip\n" ); );
 	client->state = ESD_NEEDS_ENDCHECK;
 	return 1;
     }
@@ -131,8 +130,7 @@ int esd_proto_lock( esd_client_t *client )
     int ok = 1, actual;		/* already validated, can't fail */
     int client_ok = maybe_swap_32( client->swap_byte_order, ok );
 
-    if ( esdbg_trace )
-	printf( "(%02d) locking sound daemon\n", client->fd );
+    ESDBG_TRACE( printf( "(%02d) locking sound daemon\n", client->fd ); );
     esd_is_locked = 1;
 
     ESD_WRITE_INT( client->fd, &client_ok, sizeof(client_ok), actual, "lock ok" );
@@ -149,8 +147,7 @@ int esd_proto_unlock( esd_client_t *client )
     int ok = 1, actual;		/* already validated, can't fail */
     int client_ok = maybe_swap_32( client->swap_byte_order, ok );
 
-    if ( esdbg_trace )
-	printf( "(%02d) unlocking sound daemon\n", client->fd );
+    ESDBG_TRACE( printf( "(%02d) unlocking sound daemon\n", client->fd ); );
     esd_is_locked = 0;
 
     ESD_WRITE_INT( client->fd, &client_ok, sizeof(client_ok), actual, "unlck ok" );
@@ -170,8 +167,8 @@ int esd_proto_standby( esd_client_t *client )
     /* only bother if we're not on standby */
     if ( !esd_on_standby ) {
 
-	if ( esdbg_trace )
-	    printf( "(%02d) setting sound daemon to standby\n", client->fd );
+	ESDBG_TRACE( printf( "(%02d) setting sound daemon to standby\n", 
+			     client->fd ); );
 	
 	/* TODO: close down any recorders, too */
 	esd_on_standby = 1;
@@ -195,8 +192,7 @@ int esd_proto_resume( esd_client_t *client )
     /* only bother if we're on standby */
     if ( esd_on_standby ) {
 	
-	if ( esdbg_trace ) 
-	    printf( "(%02d) resuming sound daemon\n", client->fd );
+	ESDBG_TRACE( printf( "(%02d) resuming sound daemon\n", client->fd ); );
 	
 	/* reclaim the audio device */
 	if ( esd_audio_open() < 0 ) {
@@ -257,8 +253,7 @@ int esd_proto_stream_recorder( esd_client_t *client )
 	/* flesh out the recorder */
 	esd_recorder->parent = client;
 
-	if ( esdbg_trace )
-	    printf ( "(%02d) recording on client\n", client->fd );
+	ESDBG_TRACE( printf ( "(%02d) recording on client\n", client->fd ); );
 
     } else {
 	/* failed to initialize the recorder, kill its client */
@@ -283,8 +278,7 @@ int esd_proto_stream_monitor( esd_client_t *client )
 	monitor->next = esd_monitor_list;
 	esd_monitor_list = monitor;
 
-	if ( esdbg_trace )
-	    printf ( "(%02d) monitoring on client\n", client->fd );
+	ESDBG_TRACE( printf ( "(%02d) monitoring on client\n", client->fd ); );
     } else {
 	/* failed to initialize the recorder, kill its client */
 	return 0;
@@ -308,8 +302,7 @@ int esd_proto_stream_filter( esd_client_t *client )
 	filter->next = esd_filter_list;
 	esd_filter_list = filter;
 
-	if ( esdbg_trace )
-	    printf ( "(%02d) filter on client\n", client->fd );
+	ESDBG_TRACE( printf ( "(%02d) filter on client\n", client->fd ); );
     } else {
 	/* failed to initialize the filter, kill its client */
 	return 0;
@@ -327,8 +320,7 @@ int esd_proto_sample_cache( esd_client_t *client )
     int length;
     int client_id;
 
-    if ( esdbg_trace )
-	printf( "(%02d) proto: caching sample\n", client->fd );
+    ESDBG_TRACE( printf( "(%02d) proto: caching sample\n", client->fd ); );
 
     if ( client->state == ESD_CACHING_SAMPLE ) {
 	sample = find_caching_sample( client );
@@ -342,12 +334,11 @@ int esd_proto_sample_cache( esd_client_t *client )
 	sample->parent = client;
 	if( ( length = read_sample( sample ) ) < sample->sample_length ) {
 	    client->state = ESD_CACHING_SAMPLE;
-	    if ( esdbg_trace ) 
-		printf( "(%02d) continue caching sample next trip\n", client->fd );
+	    ESDBG_TRACE( printf( "(%02d) continue caching sample next trip\n", 
+				 client->fd ); );
 	    return 1;
 	} else {
-	    if ( esdbg_trace ) 
-		printf( "(%02d) sample cached, moving on\n", client->fd );
+	    ESDBG_TRACE( printf( "(%02d) sample cached, moving on\n", client->fd ); );
 	    client->state = ESD_NEXT_REQUEST;
 	}
     } else {
@@ -371,8 +362,7 @@ int esd_proto_sample_getid(esd_client_t *client)
     esd_sample_t *sample = esd_samples_list;
     char namebuf[ESD_NAME_MAX];
 
-    if ( esdbg_trace )
-	printf( "(%02d) proto: getting sample ID\n", client->fd );
+    ESDBG_TRACE( printf( "(%02d) proto: getting sample ID\n", client->fd ); );
 
     ESD_READ_BIN(client->fd, namebuf, ESD_NAME_MAX, actual, "smp getid");
     namebuf[ESD_NAME_MAX - 1] = '\0';
@@ -409,8 +399,8 @@ int esd_proto_sample_free( esd_client_t *client )
 
     sample_id = maybe_swap_32( client->swap_byte_order, client_id );
 
-    if ( esdbg_trace )
-	printf( "(%02d) proto: erasing sample <%d>\n", client->fd, sample_id );
+    ESDBG_TRACE( printf( "(%02d) proto: erasing sample <%d>\n", 
+			 client->fd, sample_id ); );
     erase_sample( sample_id );
 
     ESD_WRITE_INT( client->fd, &client_id, sizeof(client_id), actual, "smp free" );
@@ -434,8 +424,8 @@ int esd_proto_sample_play( esd_client_t *client )
     }
     sample_id = maybe_swap_32( client->swap_byte_order, client_id );
 
-    if ( esdbg_trace )
-	printf( "(%02d) proto: playing sample <%d>\n", client->fd, sample_id );
+    ESDBG_TRACE( printf( "(%02d) proto: playing sample <%d>\n", 
+			 client->fd, sample_id ); );
     if ( !play_sample( sample_id, 0 ) )
 	sample_id = 0;
 
@@ -461,8 +451,8 @@ int esd_proto_sample_loop( esd_client_t *client )
 
     sample_id = maybe_swap_32( client->swap_byte_order, client_id );
 
-    if ( esdbg_trace )
-	printf( "(%02d) proto: looping sample <%d>\n", client->fd, sample_id );
+    ESDBG_TRACE( printf( "(%02d) proto: looping sample <%d>\n", 
+			 client->fd, sample_id ); );
 
     if ( !play_sample( sample_id, 1 ) )
 	sample_id = 0;
@@ -489,8 +479,8 @@ int esd_proto_sample_stop( esd_client_t *client )
     
     sample_id = maybe_swap_32( client->swap_byte_order, client_id );
 
-    if ( esdbg_trace )
-	printf( "(%02d) proto: stopping sample <%d>\n", client->fd, sample_id );
+    ESDBG_TRACE( printf( "(%02d) proto: stopping sample <%d>\n", 
+			 client->fd, sample_id ); );
 
     if ( !stop_sample( sample_id ) )
 	sample_id = 0;
@@ -513,8 +503,7 @@ int esd_proto_server_info( esd_client_t *client )
     rate = maybe_swap_32( client->swap_byte_order, esd_audio_rate );
     format = maybe_swap_32( client->swap_byte_order, esd_audio_format );
 
-    if ( esdbg_trace )
-	printf( "(%02d) proto: server info\n", client->fd );
+    ESDBG_TRACE( printf( "(%02d) proto: server info\n", client->fd ); );
 
     /* send back the server information */
     ESD_WRITE_INT( client->fd, &version, sizeof(version), actual, "si ver" );
@@ -542,8 +531,7 @@ int esd_proto_all_info( esd_client_t *client )
     rate = maybe_swap_32( client->swap_byte_order, esd_audio_rate );
     format = maybe_swap_32( client->swap_byte_order, esd_audio_format );
 
-    if ( esdbg_trace )
-	printf( "(%02d) proto: server info\n", client->fd );
+    ESDBG_TRACE( printf( "(%02d) proto: server info\n", client->fd ); );
 
     /* send back the server information */
     ESD_WRITE_INT( client->fd, &version, sizeof(version), actual, "ai ver" );
@@ -635,9 +623,8 @@ int esd_proto_stream_pan( esd_client_t *client )
     left = maybe_swap_32( client->swap_byte_order, client_left );
     right = maybe_swap_32( client->swap_byte_order, client_right );
 
-    if ( esdbg_trace )
-	printf( "(%02d) proto: panning stream <%d> [%d, %d]\n", 
-		client->fd, stream_id, left, right );
+    ESDBG_TRACE( printf( "(%02d) proto: panning stream <%d> [%d, %d]\n", 
+			 client->fd, stream_id, left, right ); );
 
     /* find the stream, and reset panning */
     ok = 0;
@@ -685,9 +672,8 @@ int esd_proto_sample_pan( esd_client_t *client )
     left = maybe_swap_32( client->swap_byte_order, client_left );
     right = maybe_swap_32( client->swap_byte_order, client_right );
 
-    if ( esdbg_trace )
-	printf( "(%02d) proto: panning sample <%d> [%d, %d]\n", 
-		client->fd, sample_id, left, right );
+    ESDBG_TRACE( printf( "(%02d) proto: panning sample <%d> [%d, %d]\n", 
+			 client->fd, sample_id, left, right ); );
 
     /* find the stream, and reset panning */
     ok = 0;
@@ -799,8 +785,8 @@ int poll_client_requests()
  	    }
  	    else if ( client->state == ESD_NEEDS_ENDCHECK ) {
 		/* wait for next trip through */
-		if ( esdbg_trace )
-		    printf( "waiting to check for endian key next trip\n" );
+		ESDBG_TRACE( 
+		    printf( "waiting to check for endian key next trip\n" ); );
 	    } 
  	    else if ( client->request != ESD_PROTO_INVALID ) {
  	        /* send failure code to client */
@@ -812,7 +798,7 @@ int poll_client_requests()
  	    }
  	}
 	else if ( client->state == ESD_NEEDS_ENDCHECK ) {
-	    if ( esdbg_trace ) printf( "rechecking for endian key\n" );
+	    ESDBG_TRACE( printf( "rechecking for endian key\n" ); );
 	    is_ok = check_endian( client );
 
 	    /* check_endian() return vals don't exactly match is_ok's meaning */
@@ -821,11 +807,11 @@ int poll_client_requests()
 	    else client->state = ESD_NEXT_REQUEST;
 	}
 	else if ( client->state == ESD_CACHING_SAMPLE ) {
-	    if ( esdbg_trace ) printf( "resuming sample cache\n" );
+	    ESDBG_TRACE( printf( "resuming sample cache\n" ); );
 	    is_ok = esd_proto_sample_cache( client );
 	}
 	else if ( client->state == ESD_NEEDS_REQDATA ) {
-	    if ( esdbg_trace ) printf( "resuming request data\n" );
+	    ESDBG_TRACE( printf( "resuming request data\n" ); );
 
 	    switch ( client->request )
 	    {
@@ -842,8 +828,8 @@ int poll_client_requests()
 		is_ok = esd_proto_sample_stop( client ); break;
 
 	    default:
-		if ( esdbg_trace ) printf( "(%02d) invalid request: %d\n",
-					   client->fd, client->request );
+		ESDBG_TRACE( printf( "(%02d) invalid request: %d\n",
+				     client->fd, client->request ); );
 		break;
 	    }
 	    
@@ -851,18 +837,19 @@ int poll_client_requests()
  	else {
  
  	    /* make sure there's a request as EOF may return as readable */
-	    if ( esdbg_comms ) printf( "--------------------------------\n" );
+	    /* if ( esdbg_comms ) printf( "--------------------------------\n" ); */
+	    ESDBG_COMMS( printf( "--------------------------------\n" ); );
 	    ESD_READ_INT( client->fd, &client->request, sizeof(client->request), 
 			  length, "request" );
-	    if ( esdbg_comms ) printf( "\n" );
+	    /* if ( esdbg_comms ) printf( "\n" ); */
+	    ESDBG_COMMS( printf( "\n" ); );
 	    if ( client->swap_byte_order )
 		client->request = swap_endian_32( client->request );
 
  	    if ( length <= 0 ) {
  		/* no more data available from that client, close it */
-		if ( esdbg_trace )
-		    printf( "(%02d) no more protocol requests for client\n", 
-			    client->fd );
+		ESDBG_TRACE( printf( "(%02d) no more protocol requests for client\n", 
+				     client->fd ); );
  		is_ok = 0;
  
  	    } else {

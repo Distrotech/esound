@@ -1,5 +1,8 @@
 1998-11-09  Yo Ric Dude  <ricdude@ix.netcom.com>
 
+	* clients.c, esdlib.c, filter.c, mix.c, players.c, proto.c
+	samples.c: use the freshly updated debugging macros
+
 	* esd-server.h, esd.h, esdctl.c, esdlib.c, esdmgr.c, mix.c,
 	players.c, proto.c, samples.c: initial support for setting stereo
 	panning of streams and samples, just need to update mix.c to do

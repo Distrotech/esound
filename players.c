@@ -37,15 +37,13 @@ void free_player( esd_player_t *player )
 	sample = (esd_sample_t *) (player->parent);
 	sample->ref_count--;
 
-	if ( esdbg_trace ) 
-	    printf( "<%02d> free player: [%p] refs=%d erase?=%d\n", 
-		    player->source_id, player, sample->ref_count, 
-		    sample->erase_when_done );
+	ESDBG_TRACE( printf( "<%02d> free player: [%p] refs=%d erase?=%d\n", 
+			     player->source_id, player, sample->ref_count, 
+			     sample->erase_when_done ); );
 
 	if ( sample->erase_when_done && !sample->ref_count ) {
-	    if ( esdbg_trace )
-		printf( "<%02d> free_player: erasing sample\n", 
-			sample->sample_id );
+	    ESDBG_TRACE( printf( "<%02d> free_player: erasing sample\n", 
+				 sample->sample_id ); );
 
 	    erase_sample( sample->sample_id );
 	}
@@ -103,7 +101,7 @@ void erase_player( esd_player_t *player )
     }
 
     /* hmm, we didn't find the desired player, just get on with life */
-    if ( esdbg_trace ) printf( "-%02d- player not found\n", player->source_id );
+    ESDBG_TRACE( printf( "-%02d- player not found\n", player->source_id ); );
     return;
 }
 
@@ -140,7 +138,7 @@ void erase_monitor( esd_player_t *monitor )
     }
 
     /* hmm, we didn't find the desired monitor, just get on with life */
-    if ( esdbg_trace ) printf( "-%02d- monitor not found\n", monitor->source_id );
+    ESDBG_TRACE( printf( "-%02d- monitor not found\n", monitor->source_id ); );
     return;
 }
 
@@ -250,9 +248,8 @@ int read_player( esd_player_t *player )
 	break;
 
     default:
-	if ( esdbg_trace ) 
-	    printf( "-%02d- read_player: format 0x%08x not supported\n", 
-		    player->source_id, player->format );
+	ESDBG_TRACE( printf( "-%02d- read_player: format 0x%08x not supported\n", 
+			     player->source_id, player->format ); );
 	return -1;
     }
 
@@ -302,8 +299,7 @@ void monitor_write( void *output_buffer, int length ) {
 
 	if ( length < 0 ) {
 	    /* error on write, close it down */
-	    if ( esdbg_trace ) 
-		printf( "(%02d) closing monitor\n", monitor->source_id );
+	    ESDBG_TRACE( printf( "(%02d) closing monitor\n", monitor->source_id ); );
 	    remove = monitor;
 	}
 
@@ -343,8 +339,7 @@ void recorder_write() {
 
     if ( length < 0 ) {
 	/* couldn't send anything, close it down */
-	if ( esdbg_trace )
-	    printf( "(%02d) closing recorder\n", esd_recorder->source_id );
+	ESDBG_TRACE( printf( "(%02d) closing recorder\n", esd_recorder->source_id ); );
 
 	/* stop recording */
 	esd_audio_close();
@@ -394,9 +389,8 @@ esd_player_t *new_stream_player( esd_client_t *client )
 
     player->name[ ESD_NAME_MAX - 1 ] = '\0';
 
-    if ( esdbg_trace ) 
-	printf( "(%02d) stream %s: 0x%08x at %d Hz\n", client ->fd, 
-		player->name, player->format, player->rate );
+    ESDBG_TRACE( printf( "(%02d) stream %s: 0x%08x at %d Hz\n", client ->fd, 
+			 player->name, player->format, player->rate ); );
 
     /* calculate buffer length to match the mix buffer duration */
     player->buffer_length = esd_buf_size_octets * player->rate / esd_audio_rate;
@@ -421,8 +415,7 @@ esd_player_t *new_stream_player( esd_client_t *client )
     /* player->last_read = time(NULL); */
     player->left_vol_scale = player->right_vol_scale = ESD_VOLUME_BASE;
 
-    if ( esdbg_trace )
-	printf( "(%02d) player: [%p]\n", player->source_id, player );
+    ESDBG_TRACE( printf( "(%02d) player: [%p]\n", player->source_id, player ); );
 
     return player;
 }
@@ -466,9 +459,8 @@ esd_player_t *new_sample_player( int sample_id, int loop )
     player->left_vol_scale = sample->left_vol_scale;
     player->right_vol_scale = sample->right_vol_scale;
 
-    if ( esdbg_trace )
-	printf( "<%02d> connection format: 0x%08x at %d Hz\n", 
-		player->source_id, player->format, player->rate );
+    ESDBG_TRACE( printf( "<%02d> connection format: 0x%08x at %d Hz\n", 
+			 player->source_id, player->format, player->rate ); );
 
     /* calculate buffer length to match the mix buffer duration */
     player->buffer_length = esd_buf_size_octets * player->rate / esd_audio_rate;
@@ -494,9 +486,8 @@ esd_player_t *new_sample_player( int sample_id, int loop )
     sample->ref_count++;
     sample->erase_when_done = 0;
 
-    if ( esdbg_trace ) 
-	printf( "<%02d> new player: refs=%d [%p]\n", 
-		player->source_id, sample->ref_count, player );
+    ESDBG_TRACE( printf( "<%02d> new player: refs=%d [%p]\n", 
+			 player->source_id, sample->ref_count, player ); );
 
     return player;
 }
