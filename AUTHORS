@@ -50,5 +50,9 @@ Additional Credits:
     Manish Singh <yosh@gimp.org>: misc autoconf hackery, the magic
     /dev/dsp to esd rerouter.
 
+    Miodrag Vallat: aix driver fixes
+
+    Philippe Defert: unnecessary fsync() cleanup, rounding patch.
+
     Your Name Here, simply submit a patch, or port an existing 
     application for use with this package.
