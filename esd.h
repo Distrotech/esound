@@ -172,8 +172,8 @@ typedef struct esd_player_info {
     
     int source_id;		/* either a stream fd or sample id */
     char name[ ESD_NAME_MAX ];	/* name of stream for remote control */
-    esd_format_t format;	/* magic int with the format info */
     int rate;			/* sample rate */
+    esd_format_t format;	/* magic int with the format info */
 
 } esd_player_info_t;
 
@@ -184,9 +184,9 @@ typedef struct esd_sample_info {
     
     int sample_id;		/* either a stream fd or sample id */
     char name[ ESD_NAME_MAX ];	/* name of stream for remote control */
-    esd_format_t format;	/* magic int with the format info */
     int rate;			/* sample rate */
-    int sample_length;		/* total buffer length */
+    esd_format_t format;	/* magic int with the format info */
+    int length;			/* total buffer length */
 
 } esd_sample_info_t;
 
@@ -237,7 +237,7 @@ esd_info_t *esd_update_info( int esd, esd_info_t *info,
 esd_info_t *esd_unsubscribe_info( int esd );
 
 /* release all memory allocated for the esd info structure */
-void esd_free_esd_info( esd_info_t *info );
+void esd_free_all_info( esd_info_t *info );
 
 /*******************************************************************/
 /* audio.c - abstract the sound hardware for cross platform usage */

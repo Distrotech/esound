@@ -516,11 +516,89 @@ int esd_proto_server_info( esd_client_t *client )
     if ( esdbg_trace )
 	printf( "(%02d) proto: server info\n", client->fd );
 
+    /* send back the server information */
     ESD_WRITE_INT( client->fd, &version, sizeof(version), actual, "si ver" );
     ESD_WRITE_INT( client->fd, &rate, sizeof(rate), actual, "si rate" );
     ESD_WRITE_INT( client->fd, &format, sizeof(format), actual, "si fmt" );
     if ( sizeof( format ) != actual )
 	return 0;
+
+    client->state = ESD_NEXT_REQUEST;
+    return 1;
+}
+
+/*******************************************************************/
+/* play a sample cached by the client, return boolean ok */
+int esd_proto_all_info( esd_client_t *client )
+{
+    int version, rate, format, actual, source_id, sample_id, length;
+    esd_player_t *player;
+    esd_sample_t *sample;
+    const char *name;
+    char no_name[ ESD_NAME_MAX ] = "";
+
+    version = maybe_swap_32( client->swap_byte_order, 0 );
+    rate = maybe_swap_32( client->swap_byte_order, esd_audio_rate );
+    format = maybe_swap_32( client->swap_byte_order, esd_audio_format );
+
+    if ( esdbg_trace )
+	printf( "(%02d) proto: server info\n", client->fd );
+
+    /* send back the server information */
+    ESD_WRITE_INT( client->fd, &version, sizeof(version), actual, "ai ver" );
+    ESD_WRITE_INT( client->fd, &rate, sizeof(rate), actual, "ai rate" );
+    ESD_WRITE_INT( client->fd, &format, sizeof(format), actual, "ai fmt" );
+    if ( sizeof( format ) != actual )
+	return 0;
+
+    /* send back the player information */
+    for ( player = esd_players_list; /* NULL will break; */ ; player = player->next )
+    {
+	if ( player ) {
+	    source_id = maybe_swap_32( client->swap_byte_order, player->source_id );
+	    name = ( (player->format & ESD_MASK_MODE) == ESD_STREAM ) 
+		? player->name : ( (esd_sample_t*) (player->parent) )->name;
+	    rate = maybe_swap_32( client->swap_byte_order, player->rate );
+	    format = maybe_swap_32( client->swap_byte_order, player->format );
+	} else {
+	    source_id = rate = format = 0;
+	    name = no_name;
+	}
+
+	ESD_WRITE_INT( client->fd, &source_id, sizeof(source_id), actual, "ai p.id" );
+	ESD_WRITE_BIN( client->fd, name, ESD_NAME_MAX, actual, "ai p.nm" );
+	ESD_WRITE_INT( client->fd, &rate, sizeof(rate), actual, "ai p.rate" );
+	ESD_WRITE_INT( client->fd, &format, sizeof(format), actual, "ai p.fmt" );
+	if ( sizeof( format ) != actual )
+	    return 0;
+
+	if ( !player ) break;
+    }
+
+    /* send back the sample information */
+    for ( sample = esd_samples_list; /* NULL will break; */ ; sample = sample->next )
+    {
+	if ( sample ) {
+	    sample_id = maybe_swap_32( client->swap_byte_order, sample->sample_id );
+	    name = sample->name;
+	    rate = maybe_swap_32( client->swap_byte_order, sample->rate );
+	    format = maybe_swap_32( client->swap_byte_order, sample->format );
+	    length = maybe_swap_32( client->swap_byte_order, sample->sample_length );
+	} else {
+	    sample_id = rate = format = length = 0;
+	    name = no_name;
+	}
+
+	ESD_WRITE_INT( client->fd, &sample_id, sizeof(sample_id), actual, "ai p.id" );
+	ESD_WRITE_BIN( client->fd, name, ESD_NAME_MAX, actual, "ai p.nm" );
+	ESD_WRITE_INT( client->fd, &rate, sizeof(rate), actual, "ai p.rate" );
+	ESD_WRITE_INT( client->fd, &format, sizeof(format), actual, "ai p.fmt" );
+	ESD_WRITE_INT( client->fd, &length, sizeof(length), actual, "ai p.fmt" );
+	if ( sizeof( length ) != actual )
+	    return 0;
+
+	if ( !sample ) break;
+    }
 
     client->state = ESD_NEXT_REQUEST;
     return 1;
@@ -738,6 +816,9 @@ int poll_client_requests()
  		    break;
 
 		case ESD_PROTO_ALL_INFO:
+ 		    is_ok = esd_proto_all_info( client );
+ 		    break;
+
 		case ESD_PROTO_SUBSCRIBE:
 		case ESD_PROTO_UNSUBSCRIBE:
 		    fprintf( stderr, 

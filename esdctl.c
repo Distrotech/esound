@@ -143,7 +143,7 @@ int main(int argc, char **argv)
 		fprintf( stderr, "allinfo failed\n" );
 	    } else {
 		esd_print_all_info( all_info );
-		esd_free_esd_info( all_info );
+		esd_free_all_info( all_info );
 	    }
 	}
 	else {

@@ -1,3 +1,12 @@
+1998-11-04  Yo Ric Dude  <ricdude@ix.netcom.com>
+
+	* TODO, esd.h, esdctl.c, esdmgr.c, proto.c: It really should have
+ 	been esd_free_all_info(), and while we're at it, make it do
+ 	something potentially useful.
+  	
+	* esound.spec: set it up for autoconf to update the version
+ 	number, then lost the changes. thanks to Michael Sterrett.
+
 1998-11-03  Christopher Blizzard  <blizzard@appliedtheory.com>
 
 	* esdctl.c (main): Change call from esd_free_all_info() to
