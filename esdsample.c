@@ -29,7 +29,7 @@ int main(int argc, char **argv)
     char *host = NULL;
     char *name = NULL;
     char filename[ ESD_NAME_MAX ] = "";
-    int cache_mode = 0; /* cache mode, 1 = data, 0 = file */
+    int cache_mode = 0; /* cache mode, 1 = data, 0 = file, 2 = existing */
     
     for ( arg = 1 ; arg < argc ; arg++)
     {
@@ -47,6 +47,8 @@ int main(int argc, char **argv)
 	    channels = ESD_MONO;
 	else if ( !strcmp( "-d", argv[ arg ] ) )
 	    cache_mode = 1;
+	else if ( !strcmp( "-e", argv[ arg ] ) )
+	    cache_mode = 2;
 	else if ( !strcmp( "-r", argv[ arg ] ) )
 	{
 	    arg++;
@@ -71,7 +73,7 @@ printf( "name is \'%s\'.\n", filename );
     signal( SIGKILL, clean_exit );
     signal( SIGPIPE, clean_exit );
 
-    if ( cache_mode ) {
+    if ( cache_mode == 1 ) {
 	source = fopen( name, "r" );
 
 	if ( source == NULL ) {
@@ -110,7 +112,7 @@ printf( "name is \'%s\'.\n", filename );
 
 	printf( "sample <%d> uploaded, %d bytes\n", sample_id, total );
     } 
-    else {
+    else if ( cache_mode == 0) {
 	sock = esd_open_sound( host );
 	if ( sock <= 0 ) 
 	    return 1;
@@ -126,6 +128,8 @@ printf( "name is \'%s\'.\n", filename );
 	}
 
 	printf( "sample <%d> uploaded: %s\n", sample_id, filename );
+    } else if (cache_mode == 2) {
+	strcpy(filename, name);
     }
 
     reget_sample_id = esd_sample_getid( sock, filename );

@@ -27,7 +27,7 @@ play_file (const char *filename)
 
   char buf[ESD_BUF_SIZE];
   int buf_frames;
-  int frames_read = 0;
+  int frames_read = 0, bytes_written = 0;
 
   /* input from libaudiofile... */
 
@@ -96,6 +96,7 @@ play_file (const char *filename)
   while ((frames_read = afReadFrames(in_file, AF_DEFAULT_TRACK, 
 				    buf, buf_frames)))
     {
+      bytes_written += frames_read * bytes_per_frame;
       if (write (out_sock, buf, frames_read * bytes_per_frame) <= 0)
 	return 1;
     }
@@ -104,6 +105,8 @@ play_file (const char *filename)
 
   if (afCloseFile (in_file))
     return 1;
+
+  printf("bytes_written = %d\n", bytes_written);
 
   return 0;
 }

@@ -1,6 +1,9 @@
 #!/bin/sh
 # Run this to generate all the initial makefiles, etc.
 
+srcdir=`dirname $0`
+test -z "$srcdir" && srcdir=.
+
 DIE=0
 
 (autoconf --version) < /dev/null > /dev/null 2>&1 || {
@@ -31,18 +34,21 @@ if test "$DIE" -eq 1; then
 	exit 1
 fi
 
+THEDIR="`pwd`"
+cd $srcdir
 libtoolize --copy --force
 aclocal $ACLOCAL_FLAGS
 autoheader
 autoconf
 automake --gnu --add-missing
+cd "$THEDIR"
 
 if test -z "$*"; then
 	echo "I am going to run ./configure with no arguments - if you wish "
         echo "to pass any to it, please specify them on the $0 command line."
 fi
 
-./configure "$@"
+$srcdir/configure "$@"
 
 echo 
 echo "Now type 'make' to compile esound."
