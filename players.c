@@ -375,8 +375,8 @@ void monitor_write( void *output_buffer, int length ) {
 	FD_ZERO( &wr_fds );
 	FD_SET( monitor->source_id, &wr_fds );
 	can_write = select( monitor->source_id + 1, NULL, &wr_fds, NULL, &timeout );
-	if ( !can_write ) 
-	    break;
+	if ( can_write > 0) 
+	{
 
 	/* mix down the monitor's buffer */
 	length = monitor->translate_func( monitor->data_buffer, 
@@ -396,6 +396,7 @@ void monitor_write( void *output_buffer, int length ) {
 	    /* error on write, close it down */
 	    ESDBG_TRACE( printf( "(%02d) closing monitor\n", monitor->source_id ); );
 	    remove = monitor;
+	}
 	}
 
 	monitor = monitor->next;
