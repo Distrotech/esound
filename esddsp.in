@@ -93,7 +93,7 @@ exec_prefix=@exec_prefix@
 libdir=@libdir@
 
 export LD_PRELOAD_PATH=${libdir}
-export LD_PRELOAD='libesddsp.so libesd.so'
+export LD_PRELOAD='libesddsp.so.@ESD_MAJOR_VERSION@ libesd.so.@ESD_MAJOR_VERSION@'
 
 # invoke the program with the args given
 exec "$@"

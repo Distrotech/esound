@@ -109,7 +109,7 @@ if test "x$enable_local_sound" = "xyes"; then
    echo "--- Most of these checks should fail. Do not be alarmed.";
    AC_CHECK_HEADERS(soundcard.h sys/soundcard.h machine/soundcard.h sys/audio.h)
    AC_CHECK_HEADERS(sys/audioio.h sys/audio.io.h sun/audioio.h)
-   AC_CHECK_HEADERS(dmedia/audio.h sys/soundlib.h sys/asoundlib.h)
+   AC_CHECK_HEADERS(dmedia/audio.h sys/soundlib.h sys/asoundlib.h alsa/asoundlib.h)
    # mme_api.h directly includes other files from the mme subdir
    xCPPFLAGS="$CPPFLAGS"
    CPPFLAGS="$CPPFLAGS -I/usr/include/mme"
@@ -184,6 +184,11 @@ if test "x$enable_local_sound" = "xyes"; then
          AC_DEFINE(DRIVER_ALSA)
       fi
 
+      if test "${ac_cv_header_alsa_asoundlib_h}" = "yes"; then
+         found_sound=yes
+         AC_DEFINE(DRIVER_ALSA_09)
+      fi
+
       if test "${ac_cv_header_sys_asoundlib_h}" = "yes"; then
          found_sound=yes
          AC_DEFINE(DRIVER_NEWALSA)
@@ -204,6 +209,7 @@ if test "x$enable_local_sound" = "xyes"; then
    if test "x$enable_alsa" = "xyes"; then
       AC_CHECK_FUNC(snd_cards,,[AC_CHECK_LIB(sound,snd_cards)])
       AC_CHECK_FUNC(snd_cards,,[AC_CHECK_LIB(asound,snd_cards)])
+      AC_CHECK_FUNC(snd_pcm_pause,,[AC_CHECK_LIB(asound,snd_pcm_pause)])
    fi
 else
    AC_DEFINE(DRIVER_NONE)

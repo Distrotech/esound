@@ -39,6 +39,7 @@ libesd_la_SOURCES = \
 AUDIO_BACKENDS = \
 	audio_aix.c	\
 	audio_alsa.c	\
+	audio_alsa09.c  \
 	audio_hpux.c	\
 	audio_irix.c	\
 	audio_none.c	\

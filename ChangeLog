@@ -1,3 +1,17 @@
+2002-04-23  Frederic Crozat  <fcrozat@mandrakesoft.com>
+
+	* Makefile.am:
+	* acconfig.h:
+	* audio.c:
+	* configure.in:
+	* esddsp.in: add support for ALSA 0.9 
+	(patch from Santiago Otero <siryurian@terra.es>)
+
+2002-04-23  Frederic Crozat <fcrozat@mandrakesoft.com>
+
+	* esddsp.in: use library major number for LD_PRELOAD
+	* MAINTAINERS: add myself
+
 2002-04-12  Frederic Crozat  <fcrozat@mandrakesoft.com>
 
 	* esd.c: (main): remove socket/socket directory before exiting
