@@ -1,5 +1,17 @@
 1998-09-19  Yo Ric Dude  <ericmit@ix.netcom.com>
 
+	* AUTHORS: decided to add my own name to the file, so people can
+ 	blame me a little more directly
+	* Makefile.am: added optional building of esdplay.  
+	* configure.in: added optional building of esdplay based on
+ 	whether or not -laudiofile is found.  made several "artistic"
+ 	changes to configure.in.  also added feedback about the expected
+ 	failure of the various audio header and lib tests.  hopefully
+ 	people won't think their system is horribly broken if not all of
+ 	the tests pass.
+	* esdplay.c: added Simon Kagedal's auto format sniffing player for
+ 	esd, requires the audiofile library, which is in gnome cvs)
+
 	* audio.c, esd.c, esd.h, esdcat.c, esdloop.c, esdmon.c, esdrec.c,
 	esdsample.c, mix.c, players.c: allow different server rates, too.
 

@@ -1,3 +1,5 @@
+AF_LIB = @AF_LIB@
+
 EXTRA_DIST = \
 EsounD.html \
 TIPS \
@@ -31,7 +33,11 @@ esdctl \
 esdmon \
 esdrec \
 esdsample \
-esdloop
+esdloop \
+@ESDPLAY@
+
+EXTRA_PROGRAMS = \
+esdplay
 
 esd_SOURCES = 	\
 esd.c 		\
@@ -42,37 +48,27 @@ proto.c		\
 samples.c	\
 esd-server.h
 
-#esd_LDADD = libesd.la
-
 esdcat_SOURCES = \
 esdcat.c
-
-#esdcat_LDADD = libesd.la
 
 esdctl_SOURCES = \
 esdctl.c
 
-#esdctl_LDADD = libesd.la
-
 esdmon_SOURCES = \
 esdmon.c
-
-#esdmon_LDADD = libesd.la
 
 esdrec_SOURCES = \
 esdrec.c
 
-#esdrec_LDADD = libesd.la
-
 esdsample_SOURCES = \
 esdsample.c
-
-#esdsample_LDADD = libesd.la
 
 esdloop_SOURCES = \
 esdloop.c
 
-#esdloop_LDADD = libesd.la
+EXTRA_esdplay_SOURCES = \
+esdplay.c
 
-LDADD = -lm libesd.la
+LDADD = libesd.la -lm
 
+esdplay_LDADD = $(AF_LIB) $(LDADD)

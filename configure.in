@@ -1,18 +1,42 @@
+dnl Initialize the autoconf settings
+
 AC_INIT(esd.h)
 AM_INIT_AUTOMAKE(esound, 0.2.4)
 AM_CONFIG_HEADER(config.h)
+
+dnl Check for tools
+
 AC_CANONICAL_HOST
-AM_PROG_LIBTOOL
+AC_PROG_MAKE_SET
 AC_PROG_CC
+AC_PROG_CPP
+
+AM_PROG_LIBTOOL
 AC_PROG_INSTALL
 AC_PROG_RANLIB
-AC_CHECK_HEADERS(soundcard.h sys/soundcard.h machine/soundcard.h sys/audio.h sys/audioio.h sys/audio.io.h sun/audioio.h dmedia/audio.h sys/soundlib.h)
+
+dnl Check for network libs needed
+
+AC_CHECK_FUNC(connect,,[AC_CHECK_LIB(socket,connect)])
+AC_CHECK_FUNC(gethostbyname,,[AC_CHECK_LIB(nsl,gethostbyname)])
+AC_CHECK_FUNC(inet_aton,,[AC_CHECK_LIB(resolv,inet_aton)])
+
+dnl Check for audio header files needed
+
+echo "---------------------------------------------------------------------"
+echo "--- Checking to see which audio header files your system uses.";
+echo "--- Most of these checks should fail. Do not be alarmed.";
+AC_CHECK_HEADERS(soundcard.h sys/soundcard.h machine/soundcard.h sys/audio.h)
+AC_CHECK_HEADERS(sys/audioio.h sys/audio.io.h sun/audioio.h)
+AC_CHECK_HEADERS(dmedia/audio.h sys/soundlib.h)
+
+dnl Define the driver needed based on the first header file found
 
 if test "${ac_cv_header_sys_soundcard_h}" = "yes" || \
    test "${ac_cv_header_soundcard_h}" = "yes" || \
    test "${ac_cv_header_machine_soundcard_h}" = "yes"; then
 
-# mklinux/powerpc needs special care and feeding
+dnl Platform mklinux/powerpc needs special care and feeding
    if test "${host_cpu}" = "powerpc"; then
      AC_DEFINE(DRIVER_MKLINUX)
    else
@@ -50,13 +74,33 @@ if test "${ac_cv_header_sys_soundlib_h}" = "yes"; then
    AC_DEFINE(DRIVER_ALSA)
 fi
 
-AC_CHECK_FUNC(connect,,[AC_CHECK_LIB(socket,connect)])
-AC_CHECK_FUNC(gethostbyname,,[AC_CHECK_LIB(nsl,gethostbyname)])
-AC_CHECK_FUNC(inet_aton,,[AC_CHECK_LIB(resolv,inet_aton)])
+dnl Check for audio libs needed
+
+echo "---------------------------------------------------------------------"
+echo "--- Checking to see which audio libraries are required for linking.";
 AC_CHECK_FUNC(_oss_ioctl,,[AC_CHECK_LIB(ossaudio,_oss_ioctl)])
 AC_CHECK_FUNC(ALnewconfig,,[AC_CHECK_LIB(audio,ALnewconfig)])
 AC_CHECK_FUNC(snd_cards,,[AC_CHECK_LIB(sound,snd_cards)])
 
-AC_PROG_MAKE_SET
+dnl Only build the esdplay utility if we find the library, -lauduiofile
 
+echo "---------------------------------------------------------------------"
+echo "--- The esdplay utility requires the audiofile library.";
+AC_CHECK_LIB(audiofile,afOpenFile,[
+echo "--- The esdplay utility will be built."
+AF_LIB="-laudiofile"
+ESDPLAY=esdplay
+],[
+echo "--- WARNING: The audiofile library was not found on your system.";
+echo "--- The audiofile library may be obtained from the following sites:"
+echo "--- ftp://somwhere/dir/file.tgz"
+echo "--- The esdplay utility will not be built."
+ESDPLAY=
+],-lm)
+
+echo "---------------------------------------------------------------------"
+
+AC_SUBST(AF_LIB)
+AC_SUBST(HAVE_LIBAUDIOFILE)
+AC_SUBST(ESDPLAY)
 AC_OUTPUT(Makefile)

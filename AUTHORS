@@ -1,5 +1,8 @@
 Program History:
 
+    EsounD is currently primarily coded and maintained by 
+    Eric B. Mitchell (aka 'Ricdude) <ericmit@ix.netcom.com>.
+
     This was based on a prototype sound daemon created by Carsten 
     Haitzler (aka The Rasterman).  Some snips of his code are 
     probably still lurking about, but the overwhelming majority 
