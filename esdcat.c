@@ -62,7 +62,7 @@ int main(int argc, char **argv)
     sock = esd_play_stream_fallback( format, rate, host, name );
     if ( sock <= 0 ) 
 	return 1;
-    
+
     while ( ( length = fread( buf, 1, ESD_BUF_SIZE, source ) ) > 0 )
     {
 	/* fprintf( stderr, "read %d\n", length ); */

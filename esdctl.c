@@ -115,7 +115,7 @@ int main(int argc, char **argv)
     /* contact the server */
     esd = esd_open_sound( server );
     if ( esd <= 0 ) return 1;
-
+  
     /* control the daemon */
     while ( optind < argc )
     {

@@ -82,6 +82,46 @@ int esd_set_socket_buffers( int sock, int src_format,
 }
 
 /*******************************************************************/
+/* get the stream latency to esound (latency is number of samples  */
+/* at 44.1khz stereo 16 bit - you'll have to adjust if oyur input  */
+/* sampling rate is less (in bytes per second)                     */
+int esd_get_latency(int esd)
+{
+  int lag = 0;
+  int proto = ESD_PROTO_LATENCY;
+  void (*phandler)(int);
+
+/* this is unavoidable - incase ESD "dissapears" (ie the socket conn dies) */
+/* we need to catch SIGPIPE to avoid the default handler form giving us */
+/* a bad day - ignore the SIGPIPE, then make sure to cathc all errors */
+    phandler = signal( SIGPIPE, dummy_signal );    /* for closed esd conns */
+    /* send the necessary information */
+    if ( write( esd, &proto, sizeof(proto) ) != sizeof(proto) ) {
+      signal( SIGPIPE, phandler ); 
+      return -1;
+    }
+
+    /* get the latency back from the server */
+    if ( read( esd, &lag, sizeof(lag) ) != sizeof(lag) ) {
+      signal( SIGPIPE, phandler ); 
+      return -1;
+    }
+
+    /* diagnostic info */
+    /*
+    if ( getenv( "ESDBG" ) )
+	printf( "esound getting latency\n" );
+    */
+
+    /* return the sample id to the client */
+    signal( SIGPIPE, phandler ); 
+  
+  lag += ESD_BUF_SIZE * 2;
+  
+  return lag;
+}
+
+/*******************************************************************/
 /* send the authorization cookie, create one if needed */
 int esd_send_auth( int sock )
 {

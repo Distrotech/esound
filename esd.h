@@ -70,6 +70,9 @@ enum esd_proto {
     /* esd status */
     ESD_PROTO_STANDBY_MODE, /* see if server is in standby, autostandby, etc */
 
+    /* esd latency */
+    ESD_PROTO_LATENCY,      /* retrieve latency between write()'s and output */
+  
     ESD_PROTO_MAX           /* for bounds checking */
 };
     
@@ -173,6 +176,15 @@ int esd_sample_kill( int esd, int sample );
 /* closes fd, previously obtained by esd_open */
 int esd_close( int esd );
 
+/* get the stream latency to esound (latency is number of samples  */
+/* at 44.1khz stereo 16 bit - you'll have to adjust if oyur input  */
+/* sampling rate is less (in bytes per second)                     */
+/* so if you're at 44.1khz stereo 16bit in your stream - your lag  */
+/* in bytes woudl be lag * 2 * 2 bytes (2 for stereo, 2 for 16bit) */
+/* if your stream is at 22.05 Khz it'll be double this - in mono   */
+/* double again ... etc.                                           */
+int esd_get_latency(int esd);
+    
 
 /*******************************************************************/
 /* esdmgr.c - functions to implement a "sound manager" for esd */

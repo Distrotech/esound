@@ -1,3 +1,7 @@
+Wed Apr 21 15:10:19 EDT 1999 The Rasterman <raster@rasterman.com>
+	* esdlib.c, esd.h, proto.c: added "latency" request protocol to request
+          number of smaples of latency you have with a stream to esd.
+	  
 1999-04-12  Elliot Lee  <sopwith@redhat.com>
 
 	* esdlib.c, esd_config.c, esd.conf, configure.in, Makefile.am:

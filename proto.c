@@ -33,6 +33,7 @@ int esd_proto_all_info( esd_client_t *client );
 int esd_proto_stream_pan( esd_client_t *client );
 int esd_proto_sample_pan( esd_client_t *client );
 int esd_proto_standby_mode( esd_client_t *client );
+int esd_proto_get_latency( esd_client_t *client );
 int poll_client_requests(void);
 
 /*******************************************************************/
@@ -78,8 +79,41 @@ esd_proto_handler_info_t esd_proto_map[ ESD_PROTO_MAX ] =
     { 3 * sizeof(int), &esd_proto_stream_pan, "stream pan"},
     { 3 * sizeof(int), &esd_proto_sample_pan, "sample pan" },
 
-    { sizeof(int), &esd_proto_standby_mode, "standby mode" }
+    { sizeof(int), &esd_proto_standby_mode, "standby mode" },
+    { 0, &esd_proto_get_latency, "get latency" }
 };
+
+/***********************************************************************/
+/* returns the latency between audio stream data being write() 'en to  */
+/* esd and when it finally comes out the speakers of your audio system */
+int esd_proto_get_latency( esd_client_t *client )
+{
+    int lag, amount, actual;
+
+    ESDBG_TRACE( printf( "(%02d) proto: get latency\n", client->fd ); );
+  
+    if (esd_audio_format & ESD_STEREO)
+      {
+	if (esd_audio_format & ESD_BITS16)
+	  amount = (44100 * (ESD_BUF_SIZE + 64)) / esd_audio_rate;
+	else
+	  amount = (44100 * (ESD_BUF_SIZE + 128)) / esd_audio_rate;
+      }
+    else
+      {
+	if (esd_audio_format & ESD_BITS16)
+	  amount = (2 * 44100 * (ESD_BUF_SIZE + 128)) / esd_audio_rate;
+	else
+	  amount = (2 * 44100 * (ESD_BUF_SIZE + 256)) / esd_audio_rate;
+      }
+    lag = maybe_swap_32( client->swap_byte_order, amount );
+
+    /* send back the server information */
+    ESD_WRITE_INT( client->fd, &lag, sizeof(lag), actual, "lag buf" );
+    if ( sizeof( lag ) != actual )
+	return 0;
+    return 1;
+}
 
 /*******************************************************************/
 /* checks for client/server endianness */
@@ -908,6 +942,15 @@ int poll_client_requests()
 		/* TODO: do one read, and handle if we get all the data */
 		/* this should fix the "all handlers requrie data oddity */
 		is_ok = 1;
+	        /* if this request requires no additional param data... */
+	        if (esd_proto_map[client->request].data_length == 0)
+		  {
+		    ESDBG_TRACE( printf( "(%02d) handling request %d, %s.\n", 
+					client->fd, client->request, 
+					esd_proto_map[ client->request ].description ); );
+		    client->state = ESD_NEXT_REQUEST; /* handler may override */
+		    is_ok = esd_proto_map[ client->request ].handler( client );
+		  }
 	    } 
 	    else {
 		ESDBG_TRACE( printf( "(%02d) invalid request: %d\n",
