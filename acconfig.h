@@ -2,6 +2,7 @@
 #undef DRIVER_AIX
 #undef DRIVER_IRIX
 #undef DRIVER_HPUX
+#undef DRIVER_OSF
 #undef DRIVER_SOLARIS
 #undef DRIVER_MKLINUX
 #undef DRIVER_ALSA

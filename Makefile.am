@@ -5,6 +5,7 @@ SPEC_FILE = esound.spec
 
 AUDIOFILE_LIBS = @AUDIOFILE_LIBS@
 LIBESDDSP = @LIBESDDSP@
+SOUND_LIBS= @SOUND_LIBS@
 
 INCLUDES = @AUDIOFILE_CFLAGS@ -DSYSCONFDIR="\"$(sysconfdir)\""
 
@@ -36,7 +37,7 @@ libesd_la_SOURCES = \
 
 libesd_la_LDFLAGS = -version-info @ESD_VERSION_INFO@
 
-libesd_la_LIBADD = @AUDIOFILE_LIBS@ -lm
+libesd_la_LIBADD = @AUDIOFILE_LIBS@ @SOUND_LIBS@ -lm
 
 EXTRA_LTLIBRARIES = \
 	libesddsp.la

@@ -4,7 +4,7 @@ AC_INIT(esd.h)
 
 ESD_MAJOR_VERSION=0
 ESD_MINOR_VERSION=2
-ESD_MICRO_VERSION=19
+ESD_MICRO_VERSION=20
 ESD_VERSION=$ESD_MAJOR_VERSION.$ESD_MINOR_VERSION.$ESD_MICRO_VERSION
 
 dnl set version info for libesd.so to package rev - $MAJOR + $MINOR : $MICRO : $MINOR
@@ -110,6 +110,11 @@ if test "x$enable_local_sound" = "xyes"; then
    AC_CHECK_HEADERS(soundcard.h sys/soundcard.h machine/soundcard.h sys/audio.h)
    AC_CHECK_HEADERS(sys/audioio.h sys/audio.io.h sun/audioio.h)
    AC_CHECK_HEADERS(dmedia/audio.h sys/soundlib.h sys/asoundlib.h)
+   # mme_api.h directly includes other files from the mme subdir
+   xCPPFLAGS="$CPPFLAGS"
+   CPPFLAGS="$CPPFLAGS -I/usr/include/mme"
+   AC_CHECK_HEADERS(mme/mme_api.h)
+   CPPFLAGS="$xCPPFLAGS"
 
    dnl Define the driver needed based on the first header file found
 
@@ -157,6 +162,16 @@ if test "x$enable_local_sound" = "xyes"; then
       irix*)
          found_sound=yes
          AC_DEFINE(DRIVER_IRIX)
+      esac
+   fi
+
+   if test "${ac_cv_header_mme_mme_api_h}" = "yes"; then
+      case ${host_os} in
+      osf*)
+	found_sound=yes
+	AC_DEFINE(DRIVER_OSF)
+	CPPFLAGS="$CPPFLAGS -I/usr/include/mme"
+	SOUND_LIBS=-lmme
       esac
    fi
 
@@ -316,6 +331,7 @@ fi
 # set | sort; # just for double checking the script...
 
 AC_SUBST(WRAP_LIB)
+AC_SUBST(SOUND_LIBS)
 AC_SUBST(AUDIOFILE_LIBS)
 AC_SUBST(ESDPLAY)
 AC_SUBST(LIBESDDSP)

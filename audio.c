@@ -31,6 +31,8 @@ static int esd_audio_fd = -1;
 #  include "audio_irix.c"
 #elif defined(DRIVER_HPUX)
 #  include "audio_hpux.c"
+#elif defined(DRIVER_OSF)
+#  include "audio_osf.c"
 #elif defined(DRIVER_SOLARIS)
 #  include "audio_solaris.c"
 #elif defined(DRIVER_MKLINUX)

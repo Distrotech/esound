@@ -14,7 +14,7 @@ int esd_audio_open()
    int afd;
    int mode = O_WRONLY;
    int flag;
-   const char device = "/dev/paud0/1";
+   static const char device[] = "/dev/paud0/1";
    
    if ((esd_audio_format & ESD_MASK_FUNC) == ESD_RECORD) {
        fprintf(stderr, "No idea how to record audio on solaris, FIXME\n");

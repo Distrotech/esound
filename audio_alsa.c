@@ -70,7 +70,7 @@ int esd_audio_open()
 #ifdef ALSA_5_API
     static int frag_count = 0;
 #else
-    static int frag-count = 2;
+    static int frag_count = 2;
 #endif
 
 #ifdef ALSA_5_API
@@ -315,7 +315,7 @@ int esd_audio_open()
     return ( esd_audio_fd = snd_pcm_file_descriptor( alsa_sound_handle,
 						     alsa_channel ) );
 #else
-    return ( esd_audio_fd = snd_pcm_file_descriptor(alsa_sound_handle);
+    return ( esd_audio_fd = snd_pcm_file_descriptor(alsa_sound_handle) );
 #endif
 
 }
