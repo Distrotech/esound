@@ -1,3 +1,11 @@
+2002-06-19    <b@cuba.mandrakesoft.com>
+
+        * esdlib.c: (is_host_local), (esd_open_sound):
+        Fix esd not starting when DISPLAY is set to localhost
+        but esd is not running in tcp mode (bug from Edward-Liu, patch
+        from Elliot)
+	 
+
 2002-06-19  Frederic Crozat  <fcrozat@mandrakesoft.com>
 
         * audio_alsa09.c: (initAlsa), (esd_audio_open), (esd_audio_flush):

@@ -555,6 +555,15 @@ esd_connect_unix(const char *host)
     return -1;
 }
 
+static int is_host_local(const char* host) 
+{
+    char hnbuf[256]="";
+    if (!host || (*host)) return 1;
+
+    gethostname(hnbuf, sizeof(hnbuf));
+    return (!strcasecmp(host,hnbuf) || !strcasecmp(host, "localhost"));
+}
+
 /**
  * esd_open_sound: open a connection to ESD and get authorization
  * @host: Specifies hostname and port to connect to as "hostname:port"
@@ -605,7 +614,7 @@ int esd_open_sound( const char *host )
 	}
     }
 
-    if ( !(host && *host)) {
+    if ( is_host_local(host) ) {
 	if ( access( ESD_UNIX_SOCKET_NAME, R_OK | W_OK ) == -1 )
 	    use_unix = 0;
 	else
@@ -617,12 +626,13 @@ int esd_open_sound( const char *host )
 
     socket_out = esd_connect_tcpip( host );
     if ( socket_out >= 0 ) goto finish_connect;
+
 #ifndef __EMX__ /* Still in work */
     /* Connections failed, period. Since nobody gave us a remote esd
        to use, let's try spawning one. */
     /* ebm - I think this is an Inherently Bad Idea, but will leave it
        alone until I can get a good look at it */
-    if(! (host && *host)) {
+    if( is_host_local(host)) {
 	int childpid;
 	fd_set fdset;
 	struct timeval timeout;
