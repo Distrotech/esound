@@ -3,50 +3,40 @@
 %define rel      2
 %define prefix   /usr
 
-Summary:   The Enlightened Sound Daemon
+Summary: The Enlightened Sound Daemon.
 Name:      esound
 Version:   %ver
 Release:   %rel
 Copyright: GPL
-Group:     Daemons
+Group: System Environment/Base
 Source0:   esound-%{PACKAGE_VERSION}.tar.gz
 URL:       http://www.tux.org/~ricdude/EsounD.html
 BuildRoot: /var/tmp/esound-%{PACKAGE_VERSION}-root
 
 Docdir: %{prefix}/doc
-Summary(es): Demonio de sonido de Enlightment
-Summary(fr): Démon audio de Enlightment
 
 %description
-The Enlightened Sound Daemon is a server process that allows multiple
-applications to share a single sound card.
+EsounD -- the Enlightened Sound Daemon -- is a server process
+that allows multiple applications to share a single sound
+card. For example, when you're listening to music from your CD
+and you receive a sound-related event from ICQ, your applications
+won't have to jockey for the attention of your sound card.
 
-%description -l es
-El demonio de sonido de Enlightment es un proceso servidor que permite
-a más de una aplicación de usar la tarjeta de sonido al mismo tiempo
+EsounD mixes several audio streams for playback by a single
+audio device.
 
-%description -l fr
-Le démon audio de Enlightment est un processus serveur qui permets à
-plusieures applications d'utilsier la carte son à la fois.
+Install esound if you'd like to allow for such event sharing
+by your audio device.
 
 %package devel
-Summary: Libraries, includes, etc to develop EsounD applications
-Group: Libraries
+Summary: Libraries, includes and more to develop EsounD applications.
+Group: Development/Libraries
 Requires: esound
-Summary(es): Bibliotecas, includes, etc para desarrollar programas para EsounD
-Summary(fr): Bibliothèques, includes, etc pour programmer pour EsounD
 
 %description devel
-Libraries, include files, etc you can use to develop EsounD applications.
+Libraries, include files and other resources you can use
+to develop EsounD applications.
 
-%description devel -l es
-Bibliotecas, archivos *.h, etc necesarios para escribir programas con
-soporte para EsounD
-
-%description devel -l fr
-Bibliothèques, fichiers d'en-têtes, etc. necessaires pour écrire des
-applications avec support EsounD
- 
 %prep
 %setup
 
