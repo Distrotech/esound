@@ -1,3 +1,8 @@
+Mon Dec 21 21:44:44 EST 1998 Mandrake <mandrake@mandrake.net>
+
+	* esdlib.c - fixed some warnings.
+
+
 1998-12-21  Yo Ric Dude  <ricdude@ix.netcom.com>
 
 	* clients.c, esd-server.h, esd.h, players.c, proto.c, samples.c:
