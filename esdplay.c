@@ -53,9 +53,8 @@ play_file (const char *filename)
 
   afSetVirtualByteOrder (in_file, AF_DEFAULT_TRACK, AF_BYTEORDER_LITTLEENDIAN);
 
-  /*  printf ("frames: %i channels: %i rate: %f format: %i width: %i\n",
-   *	  frame_count, in_channels, in_rate, in_format, in_width);
-   */
+  printf ("frames: %i channels: %i rate: %f format: %i width: %i\n",
+    frame_count, in_channels, in_rate, in_format, in_width);
 
   /* convert audiofile parameters to EsounD parameters */
 

@@ -88,7 +88,9 @@ esd_config_read_file(FILE *fh)
 	}
 
       key = strtok(aline, "=");
+      if(!key) continue;
       value = strtok(NULL, "=");
+      if(!value) value = "";
 
       if(!strcasecmp(key, "auto_spawn"))
 	{
