@@ -1,6 +1,7 @@
 # Note that this is NOT a relocatable package
 %define ver      @ESD_VERSION@
-%define rel      2
+%define  RELEASE 1
+%define  rel     %{?CUSTOM_RELEASE} %{!?CUSTOM_RELEASE:%RELEASE}
 %define prefix   /usr
 
 Summary: The Enlightened Sound Daemon.
