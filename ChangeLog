@@ -1,5 +1,9 @@
 1998-06-13  Yo Ric Dude  <ericmit@ix.netcom.com>
 
+	* mix.c: removed core-dump causing optimization, thx to keebler.
+
+1998-06-13  Yo Ric Dude  <ericmit@ix.netcom.com>
+
 	* players.c: one-liner uninitialized data fix for the occasional
  	random sample killing itself.  Thanks to Chutt for the fix.
 

@@ -191,17 +191,6 @@ int mix_to_stereo_32s( esd_player_t *player, int length )
 		    mixed_buffer[ wr_dat ] += source_data_ss[ wr_dat ];
 		    wr_dat++;
 		}
-	    } else if ( ! (44100 % player->rate) ) {
-		/* optimize for simple increment by n and add loop */
-		step = 44100 / player->rate;
-		while ( wr_dat < length/sizeof(signed short) )
-		{
-		    for ( count = 0 ; count < step ; count++ )
-		    {
-			mixed_buffer[ wr_dat ] += source_data_ss[ rd_dat ];
-			wr_dat++; rd_dat+= step;
-		    }
-		}
 	    } else {
 		/* non integral multiple of sample rates, do it the hard way */
 		while ( wr_dat < length/sizeof(signed short) )
