@@ -50,6 +50,7 @@ int esd_use_tcpip = 0;          /* use tcp/ip sockets instead of unix domain */
 int esd_terminate = 0;          /* terminate after the last client exits */
 int esd_public = 0;             /* allow connects from hosts other than localhost */
 int esd_spawnpid = 0;           /* The PID of the process that spawned us (for use by esdlib only) */
+int esd_spawnfd = 0;           /* The PID of the process that spawned us (for use by esdlib only) */
 
 /*******************************************************************/
 /* just to create the startup tones for the fun of it */
@@ -563,6 +564,9 @@ int main ( int argc, char *argv[] )
 	} else if ( !strcmp( argv[ arg ], "-spawnpid" ) ) {
 	    if ( ++arg < argc )
 		esd_spawnpid = atoi( argv[ arg ] );
+	} else if ( !strcmp( argv[ arg ], "-spawnfd" ) ) {
+	    if ( ++arg < argc )
+		esd_spawnfd = atoi( argv[ arg ] );
 	} else if ( !strcmp( argv[ arg ], "-trust" ) ) {
 	    esd_trustval = 0;
 	} else if ( !strcmp( argv[ arg ], "-v" ) || !strcmp( argv[ arg ], "--version" ) ) {
@@ -626,6 +630,11 @@ int main ( int argc, char *argv[] )
 		       trying */
     if(esd_spawnpid)
       kill(esd_spawnpid, SIGALRM); /* Startup failed */
+    
+    if(esd_spawnfd) {
+	char c = 0; /* Startup failed */
+	write (esd_spawnfd, &c, 1);
+    }
 
     exit (2);
   } else if ( itmp < 0 ) {
@@ -702,6 +711,11 @@ int main ( int argc, char *argv[] )
 		    if(esd_spawnpid)
 		      kill(esd_spawnpid, SIGALRM); /* Startup failed */
 
+		    if(esd_spawnfd) {
+			char c = 0; /* Startup failed */
+			write (esd_spawnfd, &c, 1);
+		    }
+		    
 		    exit( 1 );
 		  }
 		}
@@ -749,6 +763,11 @@ int main ( int argc, char *argv[] )
     /* Startup succeeded */
     if(esd_spawnpid)
       kill(esd_spawnpid, SIGUSR1);
+
+    if(esd_spawnfd) {
+	char c = 1; /* Startup succeeded */
+	write (esd_spawnfd, &c, 1);
+    }
 
     /* until we kill the daemon */
     while ( 1 )

@@ -1,3 +1,10 @@
+2001-07-13  Alex Larsson  <alexl@redhat.com>
+
+	* esdlib.c:
+	* esd.c:
+	Fix esd launch race condition. USR1 could arrive before pause()
+	leading to a 10 second pause.
+
 2001-07-07  Drazen Kacar  <dave@arsdigita.com>
 
 	* configure.in: Check whether the C compiler supports inline.

@@ -13,6 +13,7 @@
 #include <signal.h>
 #include <string.h>
 #include <netdb.h>
+#include <sys/time.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -554,20 +555,6 @@ esd_connect_unix(const char *host)
     return -1;
 }
 
-static int got_sigusr1 = 0, got_sigalrm = 0;
-static void
-esd_handle_sig(int signum)
-{
-    switch(signum) {
-    case SIGUSR1:
-	got_sigusr1++;
-	break;
-    case SIGALRM:
-	got_sigalrm++;
-	break;
-    }
-}
-
 /**
  * esd_open_sound: open a connection to ESD and get authorization
  * @host: Specifies hostname and port to connect to as "hostname:port"
@@ -637,10 +624,12 @@ int esd_open_sound( const char *host )
     /* ebm - I think this is an Inherently Bad Idea, but will leave it
        alone until I can get a good look at it */
     if(! (host && *host)) {
-	int childpid, mypid;
-	struct sigaction sa, sa_orig;
-	struct sigaction sa_alarm, sa_orig_alarm;
-
+	int childpid;
+	fd_set fdset;
+	struct timeval timeout;
+	int ret;
+	int esd_pipe[2];
+	
 	esd_config_read();
 
 	if (esd_no_spawn) goto finish_connect;
@@ -649,14 +638,8 @@ int esd_open_sound( const char *host )
 	/* there's something inherently flaky about this, and if
 	   there's no audio device, Bad Things Happen */
 
-	mypid = getpid();
-	memset(&sa, '\0', sizeof(sa));
-	memset(&sa_alarm, '\0', sizeof(sa));
-	sa.sa_handler = esd_handle_sig;
-	sa_alarm.sa_handler = esd_handle_sig;
-	sigaction(SIGUSR1, &sa, &sa_orig);
-	alarm(0);
-	sigaction(SIGALRM, &sa_alarm, &sa_orig_alarm);
+	if (pipe (esd_pipe) < 0)
+	  goto finish_connect;
 
 	childpid = fork();
 	if(!childpid) {
@@ -668,7 +651,7 @@ int esd_open_sound( const char *host )
 		setsid();
 		cmd = malloc(sizeof("esd ") + esd_spawn_options?strlen(esd_spawn_options):0);
 
-		sprintf(cmd, "esd %s -spawnpid %d", esd_spawn_options?esd_spawn_options:"", mypid);
+		sprintf(cmd, "esd %s -spawnfd %d", esd_spawn_options?esd_spawn_options:"", esd_pipe[1]);
 
 		execl("/bin/sh", "/bin/sh", "-c", cmd, NULL);
 		perror("execl");
@@ -686,22 +669,28 @@ int esd_open_sound( const char *host )
 	/* Wait for for spawning to happen.  Time taken is system and load
 	 * dependent, so read from config file.
 	 */
-	for(connect_count = 0; connect_count < esd_spawn_wait_ms; connect_count++) {
-	    alarm(10);
-	    pause(); /* Until we either get USR1 (esd startup failed), USR2 (esd startup OK), or ALRM (timeout) */
-	    alarm(0);
+	FD_ZERO (&fdset);
+	FD_SET (esd_pipe[0], &fdset);
+	
+	timeout.tv_sec = 0;
+	timeout.tv_usec = esd_spawn_wait_ms * 1000;
+	
+	ret = select (esd_pipe[0] + 1, &fdset, NULL, NULL, &timeout);
+	
+	if (ret == 1) {
+	    char c;
+	    ret = read (esd_pipe[0], &c, 1);
 
-	    if(got_sigusr1) {
+	    if (ret == 1) {
 		socket_out = esd_connect_unix(host);
 		if (socket_out < 0)
 		    socket_out = esd_connect_tcpip(host);
-		if (socket_out >= 0) break;
-	    } else if(got_sigalrm)
-		break;
+	    }
 	}
-
-	sigaction(SIGUSR1, &sa_orig, NULL);
-	sigaction(SIGALRM, &sa_orig_alarm, NULL);
+	    
+	close (esd_pipe[0]);
+	close (esd_pipe[1]);
+	
     }
 #endif
  finish_connect:
