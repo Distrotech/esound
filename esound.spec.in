@@ -75,10 +75,10 @@ rm -rf $RPM_BUILD_ROOT
 
 
 %changelog
-* Wed May 13 1998 Michael Fulbright <msf@redhat.com>
-
-- First try at an RPM
-
 * Thu Oct 1 1998 Ricdude <ericmit@ix.netcom.com>
 
 - make autoconf do the version updating for us.
+
+* Wed May 13 1998 Michael Fulbright <msf@redhat.com>
+
+- First try at an RPM

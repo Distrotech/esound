@@ -1,3 +1,8 @@
+1998-10-28  Yo Ric Dude  <ricdude@ix.netcom.com>
+
+	* esound.spec.in: reordered the changelog entries, as rpm likes to 
+	complain about it if the order is backwards...
+
 1998-10-24  Yo Ric Dude  <ricdude@ix.netcom.com>
 
 	* audio_alsa.c: reworked alsa card detection per patch from 
