@@ -9,8 +9,10 @@ to have the following packages installed:
 These should be available by ftp from ftp.gnu.org or any of the
 fine GNU mirrors.  Beta software can be found at alpha.gnu.org.
 
+Please note that you need audiofile installed to build esound.
+
 If you are accessing esound via CVS, then you will need to take several
-steps to get it to compile.  You can do all these steps at once
+steps to get it to compile. You can do all these steps at once
 by running:
 
         cvsroot/esound# ./autogen.sh
@@ -31,10 +33,9 @@ options like --prefix=/usr to configure you can give those options
 to autogen.sh and they will be passed on to configure.
 
 If at all possible, please use CVS to get the latest development version of
-esound.  You can do the following to get esound+ from cvs:
+esound.  You can do the following to get esound from cvs:
 
-   $ export CVSROOT=':pserver:anonymous@cvs.gimp.org:/debian/home/gnomecvs'
+   $ export CVSROOT=':pserver:anonymous@cvs.gnome.org:/cvs/gnome'
    $ cvs login
      (there is no password, just hit return)
    $ cvs -z9 checkout esound
-
