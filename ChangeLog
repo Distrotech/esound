@@ -1,3 +1,14 @@
+2003-06-18  Frederic Crozat  <fcrozat@mandrakesoft.com>
+
+	Cygwin support (bug #110916, patch from Masahiro Sakai 
+        <s01397ms@sfc.keio.ac.jp>
+	* configure.in (AC_LIBTOOL_WIN32_DLL): call AC_LIBTOOL_WIN32_DLL,
+	which is necessary for building DLL on win32 platform.
+	* Makefile.am (libesd_la_LDFLAGS): add -no-undefined to declare that
+	libesd's dependencies provide all symbols that are undefined in
+	libesd. This is also necessary for building DLL on win32 platform.
+	* .cvsignore: quiet cvs !
+
 2003-06-07  Kjartan Maraas  <kmaraas@gnome.org>
 
 	* esdlib.c: Fix a typo in a comment.

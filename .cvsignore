@@ -34,3 +34,5 @@ esound.pc
 esddsp
 libesddsp.la
 obj
+stamp-h.in
+autom4te.cache

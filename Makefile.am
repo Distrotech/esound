@@ -26,7 +26,7 @@ bin_SCRIPTS = \
 
 lib_LTLIBRARIES = libesd.la $(libesddsp_la)
 
-libesd_la_LDFLAGS = -version-info $(ESD_VERSION_INFO)
+libesd_la_LDFLAGS = -version-info $(ESD_VERSION_INFO) -no-undefined
 libesd_la_LIBADD = $(AUDIOFILE_LIBS) $(SOUND_LIBS)
 
 libesd_la_SOURCES = \
