@@ -1,3 +1,11 @@
+Sat Oct  3 13:31:29 PDT 1998 Manish Singh <yosh@gimp.org>
+
+	* audio.c: added driver_trace variable for sound driver debug
+	messages
+
+	* audio_alsa.c: use driver_trace instead of esdbg_trace, since
+	that's limited to the server. Fix Pav's completely broken fix.
+
 Thu Oct  1 19:27:22 PDT 1998 Manish Singh <yosh@gimp.org>
 
 	* esd.m4: make it work right

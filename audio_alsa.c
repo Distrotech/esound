@@ -3,8 +3,6 @@
 */
 #include "esd-server.h"
 
-int esdbg_trace = 0;
-
 #if defined(DRIVER_NEWALSA)
 #  include <sys/asoundlib.h>
 #else
@@ -26,7 +24,7 @@ int esd_audio_open()
 {
     snd_pcm_format_t format;
     snd_pcm_playback_params_t params;
-    int ret, i, mode = SND_PCM_OPEN_PLAYBACK;
+    int ret, mode = SND_PCM_OPEN_PLAYBACK;
     int mask=0, card=ALSACARD, device=ALSADEVICE, err=0;
     char buf[256];
   
@@ -55,10 +53,10 @@ int esd_audio_open()
 
     handle = NULL;
     for( card=0; (card < SND_CARDS) && (handle == NULL); card++ ) {
-	if( mask & (1 << i) ) {
+	if( mask & (1 << card) ) {
 	    err = snd_pcm_open( &handle, i, device, mode );
 	    if( ret < 0 ) {
-		if( esdbg_trace ) {
+		if( driver_trace ) {
 		    perror( "snd_pcm_open" );
 		    fprintf( stderr, "card %d open failed: %s\n", 
 			     card, snd_strerror( err ) );
@@ -66,7 +64,7 @@ int esd_audio_open()
 		handle = NULL;
 	    }
 	    else {
-		if( esdbg_trace ) {
+		if( driver_trace ) {
 		    fprintf( stderr, "opened alsa card %d\n", card );
 		}
 	    }
