@@ -2,7 +2,9 @@
 
 	* clients.c: artistic changes 
 
-	* configure.in: add check for nanosleep, Solaris needs -lposix4
+	* configure.in: add check for nanosleep, Solaris needs -lposix4.
+ 	Also included potentially useful information for obtaining the
+ 	audiofile library.
 
 	* esd.c: forced a wait in esd.c while in standby mode, so there's
 	still some CPU to go around.

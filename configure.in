@@ -15,7 +15,7 @@ AM_PROG_LIBTOOL
 AC_PROG_INSTALL
 AC_PROG_RANLIB
 
-dnl Check for network libs needed
+dnl Check for system libs needed
 
 AC_CHECK_FUNC(connect,,[AC_CHECK_LIB(socket,connect)])
 AC_CHECK_FUNC(gethostbyname,,[AC_CHECK_LIB(nsl,gethostbyname)])
@@ -102,20 +102,21 @@ AC_ARG_ENABLE(esdplay,
 
 if test xno != x$enable_esdplay ; then
 echo "---------------------------------------------------------------------"
-echo "--- The esdplay utility requires the audiofile library.";
+echo "--- The esdplay utility requires the audiofile library."
 AC_CHECK_LIB(audiofile,afOpenFile,[
    echo "--- The esdplay utility will be built."
    AF_LIB="-laudiofile"
    ESDPLAY=esdplay
 ],[
-   echo "--- WARNING: The audiofile library was not found on your system.";
-   echo "--- The audiofile library may be obtained from the following sites:"
-   echo "--- ftp://somwhere/dir/file.tgz"
+   echo "--- WARNING: The audiofile library was not found on your system."
+   echo "--- The audiofile library may be obtained from your favourite"
+   echo "--- gnome distribution center, or check the audiofile web page at:"
+   echo "--- http://www.68k.org/~michael/audiofile/"
    echo "--- The esdplay utility will not be built."
 ],-lm)
 else
    echo "---------------------------------------------------------------------"
-   echo "--- Per configure request, the esdplay utility will not be built.";
+   echo "--- Per configuration request, the esdplay utility will not be built."
 fi
 
 echo "---------------------------------------------------------------------"
