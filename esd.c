@@ -40,6 +40,7 @@ int esd_sample_size = 0;	/* size of sample in bytes */
 
 int esd_beeps = 1;		/* whether or not to beep on startup */
 int listen_socket = -1;		/* socket to accept connections on */
+int esd_trustval = -1;		/* -1 be paranoic, 0 trust to owner of ESD_UNIX_SOCKET_DIR */
 
 int esd_autostandby_secs = -1; 	/* timeout to release audio device, disabled <0 */
 time_t esd_last_activity = 0;	/* seconds since last activity */
@@ -199,6 +200,107 @@ esd_connect_unix(void)
 
 
 /*******************************************************************/
+/* safely create directory for socket
+   Code inspired by trans_mkdir from XFree86 source code
+   For more credits see xc/lib/xtrans/Xtransutil.c. */
+int
+safe_mksocketdir(void)
+{
+struct stat dir_stats;
+
+#if defined(S_ISVTX)
+#define ESD_UNIX_SOCKET_DIR_MODE (S_IRUSR|S_IWUSR|S_IXUSR|\
+				  S_IRGRP|S_IWGRP|S_IXGRP|\
+				  S_IROTH|S_IWOTH|S_IXOTH|S_ISVTX)
+#else
+#define ESD_UNIX_SOCKET_DIR_MODE (S_IRUSR|S_IWUSR|S_IXUSR|\
+				  S_IRGRP|S_IWGRP|S_IXGRP|\
+				  S_IROTH|S_IWOTH|S_IXOTH)
+#endif
+
+  if (mkdir(ESD_UNIX_SOCKET_DIR, ESD_UNIX_SOCKET_DIR_MODE) == 0) {
+    chmod(ESD_UNIX_SOCKET_DIR, ESD_UNIX_SOCKET_DIR_MODE);
+    return 0;
+  }
+  /* If mkdir failed with EEXIST, test if it is a directory with
+     the right modes, else fail */
+  if (errno == EEXIST) {
+#if !defined(S_IFLNK) && !defined(S_ISLNK)
+#define lstat(a,b) stat(a,b)
+#endif
+    if (lstat(ESD_UNIX_SOCKET_DIR, &dir_stats) != 0) {
+      return -1;
+    }
+    if (S_ISDIR(dir_stats.st_mode)) {
+      int updateOwner = 0;
+      int updateMode = 0;
+      int updatedOwner = 0;
+      int updatedMode = 0;
+      /* Check if the directory's ownership is OK. */
+      if ((dir_stats.st_uid != 0) && (dir_stats.st_uid != getuid()))
+	updateOwner = 1;
+      /*
+       * Check if the directory's mode is OK.  An exact match isn't
+       * required, just a mode that isn't more permissive than the
+       * one requested.
+       */
+      if ( ~ESD_UNIX_SOCKET_DIR_MODE & dir_stats.st_mode)
+	updateMode = 1;
+#if defined(S_ISVTX)
+      if ((dir_stats.st_mode & S_IWOTH) && !(dir_stats.st_mode & S_ISVTX))
+	updateMode = 1;
+#endif
+#if defined(HAVE_FCHOWN) && defined(HAVE_FCHMOD)
+      /*
+       * If fchown(2) and fchmod(2) are available, try to correct the
+       * directory's owner and mode.  Otherwise it isn't safe to attempt
+       * to do this.
+       */
+      if (updateMode || updateOwner) {
+	int fd = -1;
+	struct stat fdir_stats;
+	if ((fd = open(ESD_UNIX_SOCKET_DIR, O_RDONLY)) != -1) {
+	  if (fstat(fd, &fdir_stats) == -1) {
+	    return esd_trustval;
+	  }
+	  /*
+	   * Verify that we've opened the same directory as was
+	   * checked above.
+	   */
+	  if (!S_ISDIR(fdir_stats.st_mode) ||
+	      dir_stats.st_dev != fdir_stats.st_dev ||
+	      dir_stats.st_ino != fdir_stats.st_ino) {
+	    return esd_trustval;
+	  }
+	  if (updateOwner && fchown(fd, getuid(), getgid()) == 0)
+	    updatedOwner = 1;
+	  if (updateMode && fchmod(fd, ESD_UNIX_SOCKET_DIR_MODE) == 0)
+	    updatedMode = 1;
+	  close(fd);
+	}
+      }
+#endif
+      if (updateOwner && !updatedOwner) {
+	fprintf(stderr,
+		"esd: Failed to fix owner of %s.\n",
+	      ESD_UNIX_SOCKET_DIR);
+	if (esd_trustval) fprintf(stderr, "Try -trust to force esd to start.\n");
+	return esd_trustval;
+      }
+      if (updateMode && !updatedMode) {
+	fprintf(stderr, "esd: Failed to fix mode of %s to %04o.\n",
+	      ESD_UNIX_SOCKET_DIR, ESD_UNIX_SOCKET_DIR_MODE);
+	if (esd_trustval) fprintf(stderr, "Try -trust to force esd to start.\n");
+	return esd_trustval;
+      }
+      return 0;
+    }
+  }
+  /* In all other cases, fail */
+  return -1;
+}
+
+/*******************************************************************/
 /* returns the listening socket descriptor */
 int open_listen_socket( int port )
 {
@@ -215,29 +317,14 @@ int open_listen_socket( int port )
       socket_listen=socket(AF_INET, SOCK_STREAM, 0);
     else
     {
-      if (access(ESD_UNIX_SOCKET_DIR, R_OK | W_OK) == -1)
-	{	
-	  mkdir(ESD_UNIX_SOCKET_DIR,
-		S_IRUSR|S_IWUSR|S_IXUSR|
-		S_IRGRP|S_IWGRP|S_IXGRP|
-		S_IROTH|S_IWOTH|S_IXOTH);
-	  chmod(ESD_UNIX_SOCKET_DIR,
-		S_IRUSR|S_IWUSR|S_IXUSR|
-		S_IRGRP|S_IWGRP|S_IXGRP|
-		S_IROTH|S_IWOTH|S_IXOTH);
-	}
-      if (access(ESD_UNIX_SOCKET_NAME, R_OK | W_OK) == -1)
+      if (safe_mksocketdir())
 	{
-	  if (errno == EACCES)
-	    {
-	      /* not allowed access */
-	      fprintf(stderr,
-		      "esd: Esound sound daemon unable to create unix domain socket:\n"
-		      "%s\n"
-		      "This socket already exists and is not accessible by esd.\n"
-		      "Exiting...\n", ESD_UNIX_SOCKET_NAME);
-	      exit(1);
-	    }
+	  fprintf(stderr,
+		  "esd: Esound sound daemon unable to create unix domain socket:\n"
+		  "%s\n"
+		  "The socket is not accessible by esd.\n"
+		  "Exiting...\n", ESD_UNIX_SOCKET_NAME);
+	  exit(1);
 	}
       else
 	{
@@ -476,10 +563,12 @@ int main ( int argc, char *argv[] )
 	} else if ( !strcmp( argv[ arg ], "-spawnpid" ) ) {
 	    if ( ++arg < argc )
 		esd_spawnpid = atoi( argv[ arg ] );
+	} else if ( !strcmp( argv[ arg ], "-trust" ) ) {
+	    esd_trustval = 0;
 	} else if ( !strcmp( argv[ arg ], "-v" ) || !strcmp( argv[ arg ], "--version" ) ) {
 		fprintf(stderr, "Esound version " VERSION "\n");
 		exit (0);
-	} else if ( !strcmp( argv[ arg ], "-h" || !strcmp( argv[ arg ], "--help" ) ) {
+	} else if ( !strcmp( argv[ arg ], "-h" ) || !strcmp( argv[ arg ], "--help" ) ) {
 	    fprintf( stderr, "Usage: esd [options]\n\n" );
 	    fprintf( stderr, "  -d DEVICE   force esd to use sound device DEVICE\n" );
 	    fprintf( stderr, "  -b          run server in 8 bit sound mode\n" );
@@ -490,6 +579,8 @@ int main ( int argc, char *argv[] )
 	    fprintf( stderr, "  -public     make tcp/ip access public (other than localhost)\n" );
 	    fprintf( stderr, "  -terminate  terminate esd daemone after last client exits\n" );
 	    fprintf( stderr, "  -nobeeps    disable startup beeps\n" );
+	    fprintf( stderr, "  -trust      start esd even if use of %s can be insecure\n",
+		     ESD_UNIX_SOCKET_DIR );
 #ifdef ESDBG
 	    fprintf( stderr, "  -vt         enable trace diagnostic info\n" );
 	    fprintf( stderr, "  -vc         enable comms diagnostic info\n" );

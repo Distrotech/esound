@@ -1,6 +1,17 @@
 2000-11-28  Stanislav Brabec  <utx@penguin.cz>
 
-	* esd.c: unlink(ESD_UNIX_SOCKET_DIR) -> unlink(ESD_UNIX_SOCKET_DIR),
+        * esd.c, configure.in: Security improvements: All unsafe
+	operations while creating ESD_UNIX_SOCKET_DIR was removed, new
+	function safe_mksocketdir(), new variable esd_trustval and new
+	argument -trust. Use +t on ESD_UNIX_SOCKET_DIR. There still
+	remains trivial local DoS attack - I don't see better possible
+	solution than suid helper.
+
+	* configure.in: Added check for fchown and fchmod.
+
+2000-11-28  Stanislav Brabec  <utx@penguin.cz>
+
+	* esd.c: Use rmdir on directories instead of unlink,
 	support for --help and help for -nobeeps.
 	* esdlib.c: Typo fixes.
 	* esdfile.c: Open files via "rb" on all systems. It is standard C,
