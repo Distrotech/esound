@@ -1,3 +1,9 @@
+1999-04-12  Elliot Lee  <sopwith@redhat.com>
+
+	* esdlib.c, esd_config.c, esd.conf, configure.in, Makefile.am:
+	  Use a proper config file ($(sysconfdir)/esd.conf, ~/.esd.conf),
+	  and fix auto-spawning of esd.
+
 1999-04-11  James Henstridge <james@daa.com.au>
 
 	* esound.spec.in: moved %{prefix}/lib/lib*.so files to the main

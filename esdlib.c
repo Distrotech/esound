@@ -17,18 +17,24 @@
 #include <arpa/inet.h>
 #include <sys/un.h>
 #include <errno.h>
+#include <sys/wait.h>
 
 /*******************************************************************/
 /* prototypes */
 int esd_set_socket_buffers( int sock, int src_format, 
 			    int src_rate, int base_rate );
-void dummy_signal(int signum);
+static void dummy_signal(int signum);
 
 /* dummy handler */
 static void dummy_signal(int signum) {
       signal( signum, dummy_signal);
       return;
 }
+
+/* from esd_config.c */
+extern char esd_spawn_options[];
+extern int esd_no_spawn;
+void esd_config_read(void);
 
 /*******************************************************************/
 /* alternate implementations */
@@ -447,36 +453,43 @@ int esd_open_sound( const char *host )
 	socket_out = esd_connect_tcpip(host);
     }
 
-  /* try tcp/ip again */
-  if (socket_out < 0)
+  /* try tcp/ip, if we tried via usock and it didn't work */
+  if ((socket_out < 0) && use_unix)
     socket_out = esd_connect_tcpip(host);
 
   /* esd basically is uncontactable - lets run it and try again */
   if (socket_out < 0)
     {
-      if (!getenv("ESD_NO_SPAWN"))
-	{	  
-	  if (!fork()) {
-	    if (!fork())
-	      {
-		setsid();
-		if (getenv("ESD_SPAWN_OPTIONS"))
-		  {
-		    char *opt, *cmd;
-		    
-		    opt = getenv("ESD_SPAWN_OPTIONS");
-		    cmd = malloc(5 + strlen(opt));
-		    cmd[0] = 0;
-		    strcat(cmd, "esd ");
-		    strcat(cmd, opt);
-		    execl("/bin/sh", "/bin/sh", "-c", cmd, NULL);
-		  }
-		else
-		  execl("/bin/sh", "/bin/sh", "-c", "esd -terminate -nobeeps -as 2", NULL);
-		perror("execl");
-	      }
-	    exit(0);
-	  }
+      esd_config_read();
+
+      if (!esd_no_spawn)
+	{
+	  int childpid;
+
+	  childpid = fork();
+	  if (!childpid)
+	    {
+	      if (!fork())
+		{
+		  char *cmd;
+
+		  setsid();
+		  
+		  cmd = malloc(sizeof("esd ") + strlen(esd_spawn_options));
+		  sprintf(cmd, "esd %s", esd_spawn_options);
+
+		  execl("/bin/sh", "/bin/sh", "-c", cmd, NULL);
+		  perror("execl");
+		  _exit(1);
+		}
+	      else
+		_exit(0);
+	    }
+	  else
+	    {
+	      int estat;
+	      waitpid(childpid, &estat, 0); /* reap zombie */
+	    }
 	}
       else
 	return socket_out;
@@ -486,15 +499,22 @@ int esd_open_sound( const char *host )
   /* 5 seconds - if esd still hasnt started - give up */
   while ((socket_out < 0) && (connect_count < 60))
     {
+#if defined(HAVE_NANOSLEEP) && !defined(HAVE_USLEEP)
       struct timespec timewait;
+#endif
       
       socket_out = esd_connect_unix(host);
       if (socket_out < 0)
 	socket_out = esd_connect_tcpip(host);
       connect_count++;
+
+#if defined(HAVE_USLEEP)
+      usleep(1000);
+#elif defined(HAVE_NANOSLEEP)
       timewait.tv_sec = 0;
-      timewait.tv_nsec = 100000000;
+      timewait.tv_nsec = 10000000;
       nanosleep(&timewait, NULL);
+#endif
     }
 
   if (socket_out >= 0)

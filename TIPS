@@ -88,3 +88,6 @@ esd -terminate -nobeeps
 if you set the environment variable (contents are irrelevant) called
 ESD_NO_SPAWN
 libesd will not attempt to spawn esd. and simply fail to connect.
+
+You can also put these settings in $(sysconfdir)/esd.conf, or ~/.esd.conf.
+See $(sysconfdir)/esd.conf for an example of how to make the config file.

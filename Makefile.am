@@ -3,7 +3,7 @@ SPEC_FILE = esound.spec
 AUDIOFILE_LIBS = @AUDIOFILE_LIBS@
 LIBESDDSP = @LIBESDDSP@
 
-INCLUDES = @AUDIOFILE_CFLAGS@
+INCLUDES = @AUDIOFILE_CFLAGS@ -DSYSCONFDIR="\"$(sysconfdir)\""
 
 bin_SCRIPTS = \
 	@ESDDSP@	\
@@ -26,6 +26,7 @@ libesd_la_SOURCES = \
 	esdlib.c	\
 	esdmgr.c	\
 	esdfile.c	\
+	esd_config.c	\
 	audio.c
 
 libesd_la_LDFLAGS = -version-info @ESD_VERSION_INFO@
@@ -100,7 +101,6 @@ esdsample_SOURCES = \
 esdloop_SOURCES = \
 	esdloop.c
 
-
 EXTRA_esdplay_SOURCES = \
 	esdplay.c
 
@@ -115,6 +115,8 @@ esdplay_LDADD = $(LIBOBJS) $(LDADD)
 m4datadir = $(datadir)/aclocal
 m4data_DATA = esd.m4
 
+esdconfdir = $(sysconfdir)
+esdconf_DATA = esd.conf
 
 $(PACKAGE)-$(VERSION).tar.gz: dist
 
