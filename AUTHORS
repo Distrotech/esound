@@ -7,14 +7,26 @@ Program History:
 
 Additional Credits:
 
-    Chutt <#E> for insanely agreeing to alpha test, and porting 
+    Chutt <#E>, for insanely agreeing to alpha test, and porting 
     Emusic, to EsounD.  Emusic is a highly customizable sound player
     available from:  http://www.icom.net/~smelecat/emp3/index.htm.
     And for the initial configure setup
 
-    Shaleh <#E> for "-Wall -pedantic" cleanup patches
+    Shaleh <#E>, for "-Wall -pedantic" cleanup patches
 
-    adnans <#E> threshhold clipping patches
+    adnans <#E>, threshhold clipping patches
+
+    Peter Asobeck, Sun driver update.
+
+    Jason Ish, BSD patches and debugging.
+
+    Jeff Dubrule, mklinux driver and patches.
+
+    Vendu <#E>, remembering to check for errors in esdcat.
+
+    Brian M. Almeida, Sun driver update.
+
+    Simon Kagedal, for esdplay, a generic audio file player.
 
     Your Name Here, simply submit a patch, or port an existing 
     application for use with this package.

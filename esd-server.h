@@ -3,6 +3,7 @@
 
 /* get public information from the public header file */
 #include <esd.h>
+#include <config.h>
 
 /*******************************************************************/
 /* sound daemon data structures */
@@ -232,5 +233,17 @@ int mix_players_16s( void *mixed, int length );
         } while ( 0 );
 
 #endif /* #ifdef ESDBG */
+
+/* MkLinux on the PowerMac is weird because it is a big-endian processor,
+   but it uses little-endian sound streams */
+#ifdef DRIVER_MKLINUX
+static __inline__ short MAYBE_SWAP(short x) {
+    return ((x&0xFF00)>>8) | ((x&0x00FF)<<8);
+}
+#else
+static __inline__ short MAYBE_SWAP(short x) {
+    return x;
+}
+#endif  
 
 #endif /* #ifndef ESD_SERVER_H */

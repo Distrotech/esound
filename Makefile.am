@@ -12,13 +12,13 @@ audio.c
 
 libesd_la_LDFLAGS = -version-info 2:4:2
 
-EXTRA_libesd_la_SOURCES = \
-audio_aix.c	\
-audio_hpux.c	\
-audio_irix.c	\
-audio_none.c	\
-audio_oss.c	\
-audio_solaris.c	
+# EXTRA_libesd_la_SOURCES = \
+# audio_aix.c	\
+# audio_hpux.c	\
+# audio_irix.c	\
+# audio_none.c	\
+# audio_oss.c	\
+# audio_solaris.c	
 
 include_HEADERS = \
 esd.h

@@ -5,3 +5,4 @@
 #undef DRIVER_IRIX
 #undef DRIVER_HPUX
 #undef DRIVER_SOLARIS
+#undef DRIVER_MKLINUX
