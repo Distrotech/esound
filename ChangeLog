@@ -1,5 +1,24 @@
 2003-08-01  Frederic Crozat  <fcrozat@mandrakesoft.com>
 
+	* esd.c: (set_audio_buffer), (reset_daemon), (clean_exit),
+	(esd_server_resume), (main):
+	* esd.h:
+	* esd_config.c:
+	* esdcat.c:
+	* esdctl.c: (exit_usage), (main):
+	* esddsp.c:
+	* esdfile.c:
+	* esdlib.c: (esd_get_latency), (esd_send_auth), (esd_lock),
+	(esd_unlock), (esd_standby), (esd_resume), (esd_connect_unix),
+	(esd_open_sound), (esd_play_stream), (esd_monitor_stream),
+	(esd_filter_stream), (esd_record_stream), (esd_sample_cache),
+	(esd_confirm_sample_cache), (esd_sample_getid), (esd_sample_free),
+	(esd_sample_play), (esd_sample_loop), (esd_sample_stop),
+	(esd_sample_kill):
+	Code cleanup. Patch from Kjartan Maraas <kmaraas@broadpark.no>.
+
+2003-08-01  Frederic Crozat  <fcrozat@mandrakesoft.com>
+
 	* Makefile.am:
 	* esd-config.h:
 	* esd.c: (main):

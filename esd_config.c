@@ -6,7 +6,7 @@
 #include <ctype.h>
 #include <string.h>
 
-int esd_no_spawn=1; /* If we can't find even the system config file,
+int esd_no_spawn=1; /* If we can't even find the system config file,
 		       things are screwed up - don't try to make things
 		       worse. */
 int esd_spawn_wait_ms=100; /* Time to wait trying to connect to an
@@ -126,3 +126,4 @@ esd_config_read_file(FILE *fh)
 	fprintf(stderr, "Unknown option %s.\n", key);
     } /* while(fgets(...)) */
 }
+

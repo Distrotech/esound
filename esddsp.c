@@ -501,4 +501,5 @@ nogcc (void)
   ident = NULL;
 }
 
-#endif /* __GNUC__ */
+#endif
+

@@ -101,7 +101,7 @@ int esd_set_socket_buffers( int sock, int src_format,
  * @esd: ESD socket
  *
  * Get the stream latency to esound (latency is number of samples
- * at 44.1khz stereo 16 bit - you'll have to adjust if oyur input
+ * at 44.1khz stereo 16 bit - you'll have to adjust if your input
  * sampling rate is less (in bytes per second))
  *
  * Return Value: Latency, in number of samples at 44.1khz stereo 16 bit.
@@ -112,8 +112,8 @@ int esd_get_latency(int esd)
     int proto = ESD_PROTO_LATENCY;
     void (*phandler)(int);
 
-/* this is unavoidable - incase ESD "disappears" (ie the socket conn dies) */
-/* we need to catch SIGPIPE to avoid the default handler form giving us */
+/* this is unavoidable - in case ESD "disappears" (ie the socket conn dies) */
+/* we need to catch SIGPIPE to avoid the default handler giving us */
 /* a bad day - ignore the SIGPIPE, then make sure to catch all errors */
     phandler = signal( SIGPIPE, dummy_signal );    /* for closed esd conns */
     /* send the necessary information */
@@ -162,8 +162,8 @@ int esd_send_auth( int sock )
     int namelen, retval;
     void (*phandler)(int);
   
-/* this is unavoidable - incase ESD "disappears" (ie the socket conn dies) */
-/* we need to catch SIGPIPE to avoid the default handler form giving us */
+/* this is unavoidable - in case ESD "disappears" (ie the socket conn dies) */
+/* we need to catch SIGPIPE to avoid the default handler giving us */
 /* a bad day - ignore the SIGPIPE, then make sure to catch all errors */
     phandler = signal( SIGPIPE, dummy_signal );    /* for closed esd conns */
   
@@ -261,8 +261,8 @@ int esd_lock( int esd ) {
     int ok = 0;
     void (*phandler)(int);
   
-/* this is unavoidable - incase ESD "disappears" (ie the socket conn dies) */
-/* we need to catch SIGPIPE to avoid the default handler form giving us */
+/* this is unavoidable - in case ESD "disappears" (ie the socket conn dies) */
+/* we need to catch SIGPIPE to avoid the default handler giving us */
 /* a bad day - ignore the SIGPIPE, then make sure to catch all errors */
     phandler = signal( SIGPIPE, dummy_signal );    /* for closed esd conns */
     /* diagnostic info */
@@ -300,8 +300,8 @@ int esd_unlock( int esd ){
     int ok = 0;
     void (*phandler)(int);
   
-/* this is unavoidable - incase ESD "disappears" (ie the socket conn dies) */
-/* we need to catch SIGPIPE to avoid the default handler form giving us */
+/* this is unavoidable - in case ESD "disappears" (ie the socket conn dies) */
+/* we need to catch SIGPIPE to avoid the default handler giving us */
 /* a bad day - ignore the SIGPIPE, then make sure to catch all errors */
     phandler = signal( SIGPIPE, dummy_signal );    /* for closed esd conns */
     /* diagnostic info */
@@ -340,8 +340,8 @@ int esd_standby( int esd )
     int ok = 0;
     void (*phandler)(int);
   
-/* this is unavoidable - incase ESD "disappears" (ie the socket conn dies) */
-/* we need to catch SIGPIPE to avoid the default handler form giving us */
+/* this is unavoidable - in case ESD "disappears" (ie the socket conn dies) */
+/* we need to catch SIGPIPE to avoid the default handler giving us */
 /* a bad day - ignore the SIGPIPE, then make sure to catch all errors */
     phandler = signal( SIGPIPE, dummy_signal );    /* for closed esd conns */
     /* diagnostic info */
@@ -379,8 +379,8 @@ int esd_resume( int esd )
     int ok = 0;
     void (*phandler)(int);
   
-/* this is unavoidable - incase ESD "disappears" (ie the socket conn dies) */
-/* we need to catch SIGPIPE to avoid the default handler form giving us */
+/* this is unavoidable - in case ESD "disappears" (ie the socket conn dies) */
+/* we need to catch SIGPIPE to avoid the default handler giving us */
 /* a bad day - ignore the SIGPIPE, then make sure to catch all errors */
     phandler = signal( SIGPIPE, dummy_signal );    /* for closed esd conns */
     /* diagnostic info */
@@ -403,7 +403,7 @@ int esd_resume( int esd )
 
 /**
  * esd_connect_tcpip: make a TCPIP connection to ESD
- * @host: Specifies hostname and port to connect to as "hostname:port"
+ * @host: specifies hostname and port to connect to as "hostname:port"
  * Both parts are optional, the default being to connect to localhost on
  * ESD_DEFAULT_PORT.  This default is used if host is NULL.
  *
@@ -591,8 +591,6 @@ esd_connect_tcpip(const char *host)
 
 /**
  * esd_connect_unix: make a local UNIX socket connection to ESD
- * @host: Host to connect to - ignored, since UNIX sockets
- * - FIXME - tidy up by removing this parameter.
  *
  * Attempts to make a connection to ESD using local UNIX sockets.
  * Similar to esd_connect_tcpip().
@@ -600,7 +598,7 @@ esd_connect_tcpip(const char *host)
  * Return Value: -1 on error, else a socket number connected to ESD.
  */
 static int
-esd_connect_unix(const char *host)
+esd_connect_unix()
 {
     struct sockaddr_un socket_unix;
     int socket_out = -1;
@@ -662,15 +660,15 @@ static int is_host_local(const char* host)
  * host specified by the $ESPEAKER environment variable if @host is NULL,
  * or localhost if $ESPEAKER not set.
  *
- * Will attempt to connect by UNIX sockets if the host is localhost, and by
+ * Will attempt to connect via UNIX sockets if the host is localhost, and by
  * TCPIP otherwise, or if UNIX sockets fail.
  *
- * If neither of these connection methods succeeds, and we are attempting to
+ * If neither of these connection methods succeed, and we are attempting to
  * contact the localhost, will attempt to spawn a local copy of ESD (unless
  * configured not to in esd.conf), and will then try to connect to that
  * using UNIX sockets.
  *
- * Once a connection is created, attempts to give ESD the necessary
+ * Once a connection is created, we attempt to give ESD the necessary
  * authorisation keys to do things - only if this succeeds will the socket
  * be given to the caller.
  *
@@ -763,7 +761,7 @@ int esd_open_sound( const char *host )
 	    while ((waitpid (childpid, &estat, 0)== -1) && (errno == EINTR));
 	}
 
-	/* Wait for for spawning to happen.  Time taken is system and load
+	/* Wait for spawning to happen.  Time taken is system and load
 	 * dependent, so read from config file.
 	 */
 	FD_ZERO (&fdset);
@@ -804,7 +802,7 @@ int esd_open_sound( const char *host )
  * @format: data format for this stream
  * @rate: sample rate for this stream
  * @host: host to connect to, as for esd_open_sound().
- * @name: name by which to identify this stream to ESD.  (Use NULL if you
+ * @name: name used to identify this stream to ESD.  (Use NULL if you
  * don't care what name you're given - but its generally more useful to give
  * something helpful, such as your process name and id.)
  *
@@ -833,8 +831,8 @@ int esd_play_stream( esd_format_t format, int rate,
     else
 	name_buf[ 0 ] = '\0';
 
-/* this is unavoidable - incase ESD "disappears" (ie the socket conn dies) */
-/* we need to catch SIGPIPE to avoid the default handler form giving us */
+/* this is unavoidable - in case ESD "disappears" (ie the socket conn dies) */
+/* we need to catch SIGPIPE to avoid the default handler giving us */
 /* a bad day - ignore the SIGPIPE, then make sure to catch all errors */
     phandler = signal( SIGPIPE, dummy_signal );    /* for closed esd conns */
     /* send the audio format information */
@@ -876,7 +874,7 @@ int esd_play_stream( esd_format_t format, int rate,
  * @format: data format for this stream
  * @rate: sample rate for this stream
  * @host: host to connect to, as for esd_open_sound().
- * @name: name by which to identify this stream to ESD.
+ * @name: name used to to identify this stream to ESD.
  *
  * Attempts to create a connection to an ESD, using esd_play_stream(), and if
  * this fails falls back to trying to contact the soundcard directly.
@@ -920,7 +918,7 @@ int esd_play_stream_fallback( esd_format_t format, int rate,
  * @format: data format for this stream
  * @rate: sample rate for this stream
  * @host: host to connect to, as for esd_open_sound().
- * @name: name by which identify this stream to ESD.
+ * @name: name used to identify this stream to ESD.
  *
  * Creates a new connection to ESD, using esd_open_sound(), and sets it up
  * for monitoring the output from the ESD.
@@ -947,8 +945,8 @@ int esd_monitor_stream( esd_format_t format, int rate,
     else
 	name_buf[ 0 ] = '\0';
 
-/* this is unavoidable - incase ESD "disappears" (ie the socket conn dies) */
-/* we need to catch SIGPIPE to avoid the default handler form giving us */
+/* this is unavoidable - in case ESD "disappears" (ie the socket conn dies) */
+/* we need to catch SIGPIPE to avoid the default handler giving us */
 /* a bad day - ignore the SIGPIPE, then make sure to catch all errors */
     phandler = signal( SIGPIPE, dummy_signal );    /* for closed esd conns */
     /* send the audio format information */
@@ -990,7 +988,7 @@ int esd_monitor_stream( esd_format_t format, int rate,
  * @format: data format for this stream
  * @rate: sample rate for this stream
  * @host: host to connect to, as for esd_open_sound().
- * @name: name by which identify this stream to ESD.
+ * @name: name used to identify this stream to ESD.
  *
  * Creates a new connection to ESD, using esd_open_sound(), and sets it up
  * for filtering the output from the ESD.
@@ -998,7 +996,7 @@ int esd_monitor_stream( esd_format_t format, int rate,
  * Reading from the stream will give a block of audio data, which is the
  * mixed output of the ESD formatted as specified by the function parameters.
  * The filter is free to process this data as it likes, but must then write
- * an indentically sized block of data back to the stream.  The data so
+ * an identically sized block of data back to the stream.  The data so
  * returned is played by the ESD (possibly after applying more filters to
  * it.)
  *
@@ -1028,8 +1026,8 @@ int esd_filter_stream( esd_format_t format, int rate,
     else
 	name_buf[ 0 ] = '\0';
 
-/* this is unavoidable - incase ESD "disappears" (ie the socket conn dies) */
-/* we need to catch SIGPIPE to avoid the default handler form giving us */
+/* this is unavoidable - in case ESD "disappears" (ie the socket conn dies) */
+/* we need to catch SIGPIPE to avoid the default handler giving us */
 /* a bad day - ignore the SIGPIPE, then make sure to catch all errors */
     phandler = signal( SIGPIPE, dummy_signal );    /* for closed esd conns */
     /* send the audio format information */
@@ -1071,7 +1069,7 @@ int esd_filter_stream( esd_format_t format, int rate,
  * @format: data format for this stream
  * @rate: sample rate for this stream
  * @host: host to connect to, as for esd_open_sound().
- * @name: name by which identify this stream to ESD.
+ * @name: name used to identify this stream to ESD.
  *
  * Creates a new connection to ESD, using esd_open_sound(), and sets it up
  * for recording data from the soundcard via the ESD.
@@ -1098,8 +1096,8 @@ int esd_record_stream( esd_format_t format, int rate,
     else
 	name_buf[ 0 ] = '\0';
 
-/* this is unavoidable - incase ESD "disappears" (ie the socket conn dies) */
-/* we need to catch SIGPIPE to avoid the default handler form giving us */
+/* this is unavoidable - in case ESD "disappears" (ie the socket conn dies) */
+/* we need to catch SIGPIPE to avoid the default handler giving us */
 /* a bad day - ignore the SIGPIPE, then make sure to catch all errors */
     phandler = signal( SIGPIPE, dummy_signal );    /* for closed esd conns */
     /* send the audio format information */
@@ -1141,7 +1139,7 @@ int esd_record_stream( esd_format_t format, int rate,
  * @format: data format for this stream
  * @rate: sample rate for this stream
  * @host: host to connect to, as for esd_open_sound().
- * @name: name by which to identify this stream to ESD.
+ * @name: name used to identify this stream to ESD.
  *
  * Attempts to create a connection to an ESD, using esd_record_stream(), and if
  * this fails falls back to trying to contact the soundcard directly.
@@ -1183,8 +1181,18 @@ int esd_record_stream_fallback( esd_format_t format, int rate,
     return socket_out;
 }
 
-/*******************************************************************/
-/* cache a sample in the server returns sample id, <= 0 is error */
+/**
+ * esd_sample_cache: Cache sample in server
+ * @esd: server to cache the data in
+ * @format: data format for this stream 
+ * @rate: sampling rate of the sample
+ * @size: size of the sample
+ * @name: name of the sample being cached
+ *
+ * Caches a sample in the server.
+ * 
+ * Return value: ID of the sample cached, or -1 on error.
+ */
 int esd_sample_cache( int esd, esd_format_t format, const int rate, 
 		      const int size, const char *name )
 {
@@ -1201,8 +1209,8 @@ int esd_sample_cache( int esd, esd_format_t format, const int rate,
     /* printf( "caching sample: %s (%d) - %ld bytes\n", 
        name_buf, esd, size ); */
 
-/* this is unavoidable - incase ESD "disappears" (ie the socket conn dies) */
-/* we need to catch SIGPIPE to avoid the default handler form giving us */
+/* this is unavoidable - in case ESD "disappears" (ie the socket conn dies) */
+/* we need to catch SIGPIPE to avoid the default handler giving us */
 /* a bad day - ignore the SIGPIPE, then make sure to catch all errors */
     phandler = signal( SIGPIPE, dummy_signal );    /* for closed esd conns */
     /* send the necessary information */
@@ -1256,8 +1264,8 @@ int esd_confirm_sample_cache( int esd )
     int id = 0;
     void (*phandler)(int);
 
-/* this is unavoidable - incase ESD "disappears" (ie the socket conn dies) */
-/* we need to catch SIGPIPE to avoid the default handler form giving us */
+/* this is unavoidable - in case ESD "disappears" (ie the socket conn dies) */
+/* we need to catch SIGPIPE to avoid the default handler giving us */
 /* a bad day - ignore the SIGPIPE, then make sure to catch all errors */
     phandler = signal( SIGPIPE, dummy_signal );    /* for closed esd conns */
     /* get the sample id back from the server */
@@ -1286,8 +1294,8 @@ int esd_sample_getid( int esd, const char *name)
     char namebuf[ESD_NAME_MAX];
     void (*phandler)(int);
 
-/* this is unavoidable - incase ESD "disappears" (ie the socket conn dies) */
-/* we need to catch SIGPIPE to avoid the default handler form giving us */
+/* this is unavoidable - in case ESD "disappears" (ie the socket conn dies) */
+/* we need to catch SIGPIPE to avoid the default handler giving us */
 /* a bad day - ignore the SIGPIPE, then make sure to catch all errors */
     phandler = signal( SIGPIPE, dummy_signal );    /* for closed esd conns */
     if ( write( esd, &proto, sizeof(proto) ) != sizeof(proto) ) {
@@ -1328,7 +1336,7 @@ int esd_sample_getid( int esd, const char *name)
 }
 
 /*******************************************************************/
-/* uncache a sample in the server */
+/* remove a sample from the cache in the server */
 int esd_sample_free( int esd, int sample )
 {
     int id;
@@ -1337,8 +1345,8 @@ int esd_sample_free( int esd, int sample )
 
     /* printf( "freeing sample (%d) - <%d>\n", esd, sample ); */
 
-/* this is unavoidable - incase ESD "disappears" (ie the socket conn dies) */
-/* we need to catch SIGPIPE to avoid the default handler form giving us */
+/* this is unavoidable - in case ESD "disappears" (ie the socket conn dies) */
+/* we need to catch SIGPIPE to avoid the default handler giving us */
 /* a bad day - ignore the SIGPIPE, then make sure to catch all errors */
     phandler = signal( SIGPIPE, dummy_signal );    /* for closed esd conns */
     /* send the necessary information */
@@ -1370,7 +1378,7 @@ int esd_sample_free( int esd, int sample )
 }
 
 /*******************************************************************/
-/* uncache a sample in the server */
+/* play a sample */
 int esd_sample_play( int esd, int sample )
 {
     int is_ok;
@@ -1379,8 +1387,8 @@ int esd_sample_play( int esd, int sample )
 
     /* printf( "playing sample (%d) - <%d>\n", esd, sample ); */
 
-/* this is unavoidable - incase ESD "disappears" (ie the socket conn dies) */
-/* we need to catch SIGPIPE to avoid the default handler form giving us */
+/* this is unavoidable - in case ESD "disappears" (ie the socket conn dies) */
+/* we need to catch SIGPIPE to avoid the default handler giving us */
 /* a bad day - ignore the SIGPIPE, then make sure to catch all errors */
     phandler = signal( SIGPIPE, dummy_signal );    /* for closed esd conns */
     /* send the necessary information */
@@ -1423,8 +1431,8 @@ int esd_sample_loop( int esd, int sample )
 
     /* printf( "looping sample (%d) - <%d>\n", esd, sample ); */
 
-/* this is unavoidable - incase ESD "disappears" (ie the socket conn dies) */
-/* we need to catch SIGPIPE to avoid the default handler form giving us */
+/* this is unavoidable - in case ESD "disappears" (ie the socket conn dies) */
+/* we need to catch SIGPIPE to avoid the default handler giving us */
 /* a bad day - ignore the SIGPIPE, then make sure to catch all errors */
     phandler = signal( SIGPIPE, dummy_signal );    /* for closed esd conns */
     /* send the necessary information */
@@ -1465,8 +1473,50 @@ int esd_sample_stop( int esd, int sample )
 
     /* printf( "stopping sample (%d) - <%d>\n", esd, sample ); */
 
-/* this is unavoidable - incase ESD "disappears" (ie the socket conn dies) */
-/* we need to catch SIGPIPE to avoid the default handler form giving us */
+/* this is unavoidable - in case ESD "disappears" (ie the socket conn dies) */
+/* we need to catch SIGPIPE to avoid the default handler giving us */
+/* a bad day - ignore the SIGPIPE, then make sure to catch all errors */
+    phandler = signal( SIGPIPE, dummy_signal );    /* for closed esd conns */
+    /* send the necessary information */
+    if ( write( esd, &proto, sizeof(proto) ) != sizeof(proto) ) {
+	signal( SIGPIPE, phandler ); 
+	return -1;
+    }
+    if ( write( esd, &sample, sizeof(sample) ) != sizeof(sample) ) {
+	signal( SIGPIPE, phandler ); 
+	return -1;
+    }
+    /* fsync( esd ); */
+
+    /* get the sample id back from the server */
+    if ( read( esd, &is_ok, sizeof(is_ok) ) != sizeof(is_ok) ) {
+	signal( SIGPIPE, phandler ); 
+	return -1;
+    }
+
+    /* diagnostic info */
+    /*
+      if ( getenv( "ESDBG" ) )
+      printf( "esound stopping sample\n" );
+    */
+
+    /* return the id to the client (0 = error, 1 = ok) */
+    signal( SIGPIPE, phandler ); 
+    return is_ok;
+}
+
+/*******************************************************************/
+/* stop a looping sample in the server */
+int esd_sample_kill( int esd, int sample )
+{
+    int is_ok;
+    int proto = ESD_PROTO_SAMPLE_KILL;
+    void (*phandler)(int);
+
+    /* printf( "killing sample (%d) - <%d>\n", esd, sample ); */
+
+/* this is unavoidable - in case ESD "disappears" (ie the socket conn dies) */
+/* we need to catch SIGPIPE to avoid the default handler giving us */
 /* a bad day - ignore the SIGPIPE, then make sure to catch all errors */
     phandler = signal( SIGPIPE, dummy_signal );    /* for closed esd conns */
     /* send the necessary information */
@@ -1509,3 +1559,4 @@ int esd_close( int esd )
 
     return close( esd );
 }
+

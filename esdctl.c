@@ -39,7 +39,7 @@ void exit_usage( const char *who, int errcode, const char *why, const char *what
 	     "resume, on                    resume sound output\n"
 	     "cache sample                  cache a sample in the server\n"
 	     "getid name                    retrieve a sample id from its name\n"
-	     "free name                     uncache a sample in the server\n"
+	     "free name                     remove a sample from the cache in the server\n"
 	     "play name                     play a cached sample once\n"
 	     "loop name                     make a cached sample loop\n"
 	     "stop name                     stop the looping sample at end\n"
@@ -217,7 +217,7 @@ int main(int argc, char **argv)
 	    switch( mode )
 	    {
 	    case ESM_ERROR:
-		printf( "standbymode failed\n" );
+		printf( "standby mode failed\n" );
 		break;
 	    case ESM_ON_STANDBY:
 		printf( "server is on standby\n" );
@@ -229,7 +229,7 @@ int main(int argc, char **argv)
 		printf( "server is running\n" );
 		break;
 	    default:
-		printf( "standbymode failed - unexpected return value\n" );
+		printf( "standby mode failed - unexpected return value\n" );
 		break;
 	    };
 	}
@@ -243,3 +243,4 @@ int main(int argc, char **argv)
     close( esd );
     return 0;
 }
+

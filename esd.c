@@ -37,11 +37,11 @@ int open_listen_socket( const char *hostname, int port );
 /*******************************************************************/
 /* globals */
 
-int esd_is_owned = 0;		/* start unowned, first client claims it */
-int esd_is_locked = 1;		/* if owned, will prohibit foreign sources */
+int esd_is_owned = 0;		 /* start without owner, first client claims it */
+int esd_is_locked = 1;		 /* if owned, will prohibit foreign sources */
 char esd_owner_key[ESD_KEY_LEN]; /* the key that locks the daemon */
 
-int esd_on_standby = 0;		/* set to route ignore incoming audio data */
+int esd_on_standby = 0;		/* set to ignore incoming audio data */
 int esdbg_trace = 0;		/* show warm fuzzy debug messages */
 int esdbg_comms = 0;		/* show protocol level debug messages */
 int esdbg_mixer = 0;		/* show mixer engine debug messages */
@@ -52,9 +52,9 @@ int esd_sample_size = 0;	/* size of sample in bytes */
 
 int esd_beeps = 1;		/* whether or not to beep on startup */
 int listen_socket = -1;		/* socket to accept connections on */
-int esd_trustval = -1;		/* -1 be paranoic, 0 trust to owner of ESD_UNIX_SOCKET_DIR */
+int esd_trustval = -1;		/* be paranoid, don't trust the owner of ESD_UNIX_SOCKET_DIR */
 
-int esd_autostandby_secs = -1; 	/* timeout to release audio device, disabled <0 */
+int esd_autostandby_secs = -1; 	/* timeout before releasing the audio device, disabled <0 */
 time_t esd_last_activity = 0;	/* seconds since last activity */
 int esd_on_autostandby = 0;	/* set when auto paused for auto reawaken */
 
@@ -62,7 +62,7 @@ int esd_use_tcpip = 0;          /* use tcp/ip sockets instead of unix domain */
 int esd_terminate = 0;          /* terminate after the last client exits */
 int esd_public = 0;             /* allow connects from hosts other than localhost */
 int esd_spawnpid = 0;           /* The PID of the process that spawned us (for use by esdlib only) */
-int esd_spawnfd = 0;           /* The PID of the process that spawned us (for use by esdlib only) */
+int esd_spawnfd = 0;            /* The FD of the process that spawned us (for use by esdlib only) */
 
 #if defined ENABLE_IPV6        
 int esd_use_ipv6 = 0;          /* We need it in accept () to know if we use 
@@ -71,7 +71,7 @@ int esd_use_ipv6 = 0;          /* We need it in accept () to know if we use
 static char *programname = NULL;
 
 /*******************************************************************/
-/* just to create the startup tones for the fun of it */
+/* create the startup tones for the fun of it */
 void set_audio_buffer( void *buf, esd_format_t format,
 		       int magl, int magr,
 		       int freq, int speed, int length, long offset )
@@ -95,7 +95,7 @@ void set_audio_buffer( void *buf, esd_format_t format,
 	    uc_buf[i+1] = 127 + magr * sample;
 	}
 	break;
-    case ESD_BITS16:	/* assume same endian */
+    case ESD_BITS16:	/* assume same endianness */
 	for ( i = 0 ; i < length ; i+=2 ) {
 	    sample = sin( (float)(i+offset) * kf );
 	    ss_buf[i] = magl * sample;
@@ -114,7 +114,7 @@ void set_audio_buffer( void *buf, esd_format_t format,
 }
 
 /*******************************************************************/
-/* to properly handle signals */
+/* handle signals properly */
 
 void reset_daemon( int signum )
 {
@@ -143,9 +143,8 @@ void reset_daemon( int signum )
     /* free samples */
     while ( esd_samples_list != NULL )
     {
+	esd_sample_kill( esd_samples_list->sample_id, 1 );
 	erase_sample( esd_samples_list->sample_id, 1 );
-	/* TODO: kill_sample, so it stops playing */
-	/* a looping sample will get stuck */
     }
 
     /* reset next sample id */
@@ -180,7 +179,7 @@ void clean_exit(int signum) {
     }
 
 
-    /* trust the os to clean up the memory for the samples and such */
+    /* trust the OS to clean up the memory for the samples and such */
     exit( 0 );
 }
 
@@ -545,7 +544,7 @@ int esd_server_resume(void)
 	
 	/* reclaim the audio device */
 	if ( esd_audio_open() < 0 ) {
-	    /* device was busy or something, return error, try  later */
+	    /* device was busy or something, return error, try again later */
 	    ok = 0;
 	} else {
 	    /* turn ourselves back on */
@@ -725,7 +724,7 @@ int main ( int argc, char *argv[] )
 	    fprintf( stderr, "  -tcp          use tcp/ip sockets instead of unix domain\n" );
 	    fprintf( stderr, "  -public       make tcp/ip access public (other than localhost)\n" );
 	    fprintf( stderr, "  -promiscuous  start unlocked and owned (disable authenticaton) NOT RECOMMENDED\n" );
-	    fprintf( stderr, "  -terminate    terminate esd daemone after last client exits\n" );
+	    fprintf( stderr, "  -terminate    terminate esd daemon after last client exits\n" );
 	    fprintf( stderr, "  -nobeeps      disable startup beeps\n" );
 	    fprintf( stderr, "  -trust        start esd even if use of %s can be insecure\n",
 		     ESD_UNIX_SOCKET_DIR );
@@ -734,7 +733,7 @@ int main ( int argc, char *argv[] )
 	    fprintf( stderr, "  -vc           enable comms diagnostic info\n" );
 	    fprintf( stderr, "  -vm           enable mixer diagnostic info\n" );
 #endif
-	    fprintf( stderr, "  -port PORT    listen for connections at PORT (only for tcp/ip)\n" );
+	    fprintf( stderr, "  -port PORT    listen for connections on PORT (only for tcp/ip)\n" );
 	    fprintf( stderr, "  -bind ADDRESS binds to ADDRESS (only for tcp/ip)\n" );
 	    fprintf( stderr, "\nPossible devices are:  %s\n", esd_audio_devices() );
 	    exit( 0 );
@@ -762,7 +761,7 @@ int main ( int argc, char *argv[] )
     esd_buf_size_octets = esd_buf_size_samples * esd_sample_size;
 
     /* start the initializatin process */
-/*    printf( "ESound ESD daemon initializing...\n" );*/
+/*    printf( "ESound daemon initializing...\n" );*/
 
     /* set the data size parameters */
     esd_audio_format = default_format;
@@ -771,7 +770,7 @@ int main ( int argc, char *argv[] )
 
   /* open and initialize the audio device, /dev/dsp */
   itmp = esd_audio_open();
-  if (itmp == -2) { /* Special return value indicates open of device failed, don't bother
+  if (itmp == -2) { /* Special return value indicates that opening the device failed. Don't bother
 		       trying */
     if(esd_spawnpid)
       kill(esd_spawnpid, SIGALRM); /* Startup failed */
@@ -906,7 +905,7 @@ int main ( int argc, char *argv[] )
 	}
     }
 
-    /* put some stuff in sound driver before pausing */
+    /* put some stuff in the sound driver before pausing */
     esd_audio_write( NULL, 0);
 
     /* pause the sound output */
@@ -1024,3 +1023,4 @@ int main ( int argc, char *argv[] )
     clean_exit( -1 );
     exit( 0 );
 }
+
