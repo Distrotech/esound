@@ -33,7 +33,8 @@ esd.c 		\
 clients.c	\
 mix.c		\
 players.c	\
-samples.c	
+samples.c	\
+esd-server.h
 
 #esd_LDADD = libesd.la
 
