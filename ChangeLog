@@ -1,5 +1,18 @@
 2003-06-18  Frederic Crozat  <fcrozat@mandrakesoft.com>
 
+	* acconfig.h:
+	* audio.c:
+	* audio_coreaudio.c: (PlaybackIOProc), (RecordIOProc),
+	(esd_audio_devices), (esd_audio_open), (esd_audio_close),
+	(esd_audio_pause), (esd_audio_write), (esd_audio_read),
+	(esd_audio_flush):
+	* configure.in:
+	* esdlib.c: (esd_open_sound):
+	Mac OS X CoreAudio (bug #107842, patch from Masanori Sekino
+	<msek@users.sourceforge.net>)
+
+2003-06-18  Frederic Crozat  <fcrozat@mandrakesoft.com>
+
 	Cygwin support (bug #110916, patch from Masahiro Sakai 
         <s01397ms@sfc.keio.ac.jp>
 	* configure.in (AC_LIBTOOL_WIN32_DLL): call AC_LIBTOOL_WIN32_DLL,

@@ -681,8 +681,8 @@ int esd_open_sound( const char *host )
 	FD_ZERO (&fdset);
 	FD_SET (esd_pipe[0], &fdset);
 	
-	timeout.tv_sec = 0;
-	timeout.tv_usec = esd_spawn_wait_ms * 1000;
+	timeout.tv_sec = (esd_spawn_wait_ms * 1000) / 1000000;
+	timeout.tv_usec = (esd_spawn_wait_ms * 1000) % 1000000;
 	
 	ret = select (esd_pipe[0] + 1, &fdset, NULL, NULL, &timeout);
 	

@@ -112,6 +112,7 @@ if test "x$enable_local_sound" = "xyes"; then
    AC_CHECK_HEADERS(soundcard.h sys/soundcard.h machine/soundcard.h sys/audio.h)
    AC_CHECK_HEADERS(sys/audioio.h sys/audio.io.h sun/audioio.h)
    AC_CHECK_HEADERS(dmedia/audio.h sys/soundlib.h sys/asoundlib.h alsa/asoundlib.h)
+   AC_CHECK_HEADERS(CoreAudio/CoreAudio.h)
    # mme_api.h directly includes other files from the mme subdir
    xCPPFLAGS="$CPPFLAGS"
    CPPFLAGS="$CPPFLAGS -I/usr/include/mme"
@@ -193,6 +194,12 @@ if test "x$enable_local_sound" = "xyes"; then
          found_sound=yes
          AC_DEFINE(DRIVER_NEWALSA)
       fi
+   fi
+
+   if test "${ac_cv_header_CoreAudio_CoreAudio_h}" = "yes"; then
+      found_sound=yes
+      AC_DEFINE(DRIVER_COREAUDIO)
+      SOUND_LIBS="-Wl,-framework -Wl,CoreAudio"
    fi
 
    if test "$found_sound" = "no"; then
