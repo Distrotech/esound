@@ -10,7 +10,7 @@ Release:   %rel
 Copyright: GPL
 Group:     Daemons
 Source0:   esound-%{PACKAGE_VERSION}.tar.gz
-URL:       http://pw1.netcom.com/~ericmit/EsounD.html
+URL:       http://www.tux.org/~ricdude/EsounD.html
 BuildRoot: /tmp/esound-%{PACKAGE_VERSION}-root
 Packager:  Michael Fulbright <msf@redhat.com>
 Docdir: %{prefix}/doc

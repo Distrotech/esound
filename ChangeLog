@@ -1,3 +1,8 @@
+1999-01-23  Yo Ric Dude  <ericmit@ix.netcom.com>
+
+	* Makefile.am, esound.spec.in: updated web site, and added an rpm
+	target to the makefile. "make rpm" and it should go do it's thing.
+
 1999-01-14  Yo Ric Dude  <ericmit@ix.netcom.com>
 
 	* players.c: fix the recorder_write and monitor_write function to

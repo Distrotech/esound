@@ -1,3 +1,5 @@
+SPEC_FILE = esound.spec
+
 AUDIOFILE_LIBS = @AUDIOFILE_LIBS@
 LIBESDDSP = @LIBESDDSP@
 
@@ -16,7 +18,7 @@ EXTRA_DIST = \
 	test.wav 	\
 	getopt.h 	\
 	TODO		\
-	esound.spec
+	$(SPEC_FILE)
 
 lib_LTLIBRARIES = libesd.la @LIBESDDSP@
 
@@ -112,3 +114,11 @@ esdplay_LDADD = $(LIBOBJS) $(LDADD)
 
 m4datadir = $(datadir)/aclocal
 m4data_DATA = esd.m4
+
+
+$(PACKAGE)-$(VERSION).tar.gz: dist
+
+rpm: $(PACKAGE)-$(VERSION).tar.gz
+	cp $(PACKAGE)-$(VERSION).tar.gz /usr/src/redhat/SOURCES
+	rpm -ba $(SPEC_FILE)
+
