@@ -43,6 +43,7 @@ void esd_config_read(void);
 
 /*******************************************************************/
 /* alternate implementations */
+#ifndef HAVE_INET_PTON
 #ifndef HAVE_INET_ATON
 int inet_aton(const char *cp, struct in_addr *inp)
 {
@@ -66,6 +67,7 @@ int inet_aton(const char *cp, struct in_addr *inp)
 
     return 1;
 }
+#endif
 #endif
 
 /**
@@ -543,8 +545,13 @@ esd_connect_tcpip(const char *host)
 	 if ( !port ) 
 	   port = ESD_DEFAULT_PORT;
 	 /* printf( "(remote) host is %s : %d\n", connect_host, port ); */
-       } else if( !inet_aton( default_host, &socket_addr.sin_addr ) ) {
-       	   fprintf( stderr, "couldn't convert %s to inet address\n", 
+    }
+#ifdef HAVE_INET_PTON
+	else if( !inet_pton(AF_INET, default_host, &socket_addr.sin_addr ) ) {
+#else
+	else if( !inet_aton( default_host, &socket_addr.sin_addr ) ) {
+#endif
+	fprintf( stderr, "couldn't convert %s to inet address\n", 
 		 default_host );
 	   return -1;
          }

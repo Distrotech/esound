@@ -402,7 +402,7 @@ int open_listen_socket(const char *hostname, int port )
         {
 		if (!(resolved=gethostbyname2(hostname, AF_INET)))
                 {
-			herror(programname);
+			hstrerror(h_errno);
 			return -1;
                 }
                 memcpy(&(socket_addr.sin_addr), resolved->h_addr_list[0], resolved->h_length);

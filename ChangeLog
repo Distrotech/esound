@@ -1,5 +1,14 @@
 2003-08-01  Frederic Crozat  <fcrozat@mandrakesoft.com>
 
+	* acconfig.h:
+	* configure.in:
+	* esd.c:
+	* esdlib.c:
+	Use inet_pton instead of inet_aton which is a libresolv private symbol.
+	Bug #117559, patch from Leena Gunda <leena.gunda@wipro.com>.
+
+2003-08-01  Frederic Crozat  <fcrozat@mandrakesoft.com>
+
 	* esd.c: (set_audio_buffer), (reset_daemon), (clean_exit),
 	(esd_server_resume), (main):
 	* esd.h:

@@ -50,17 +50,26 @@ AC_CHECK_FUNC(gethostbyname,,[AC_CHECK_LIB(nsl,gethostbyname)])
 AC_CHECK_FUNC(nanosleep,,[
   AC_CHECK_LIB(rt,nanosleep,,[AC_CHECK_LIB(posix4,nanosleep)])])
 AC_CHECK_FUNCS(usleep)
-AC_CHECK_FUNC(inet_aton,,[AC_CHECK_LIB(resolv,inet_aton)])
 AC_CHECK_FUNCS(strtok_r)
+
+use_inet_pton=no
+AC_CHECK_FUNC(inet_pton,use_inet_pton=yes,[AC_CHECK_LIB(resolv,inet_pton)])
+       if test "x$use_inet_pton" = "xyes"; then
+               case $ac_cv_func_inet_pton/$ac_cv_lib_resolv_inet_pton in
+               no/no) ;;
+               *) AC_DEFINE(HAVE_INET_PTON)
+               esac
+       else
+               AC_CHECK_FUNC(inet_aton,,[AC_CHECK_LIB(resolv,inet_aton)])
+               case $ac_cv_func_inet_aton/$ac_cv_lib_resolv_inet_aton in
+               no/no) ;;
+               *) AC_DEFINE(HAVE_INET_ATON)
+               esac
+       fi
 
 case $ac_cv_func_nanosleep/$ac_cv_lib_rt_nanosleep/$ac_cv_lib_posix4_nanosleep in
 no/no/no) ;;
 *) AC_DEFINE(HAVE_NANOSLEEP)
-esac
-
-case $ac_cv_func_inet_aton/$ac_cv_lib_resolv_inet_aton in 
-no/no) ;;
-*) AC_DEFINE(HAVE_INET_ATON)
 esac
 
 dnl Check if INADDR_LOOPBACK exists
