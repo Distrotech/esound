@@ -1,3 +1,8 @@
+2003-06-18  Frederic Crozat  <fcrozat@mandrakesoft.com>
+
+	* esd.c: (main): allow to set auto-standby to 0 (patch from 
+	Mohammed Waleed Kadous <waleed@cse.unsw.edu.au>)
+
 2003-06-18 2003-04-06  Arvind Samptur <arvind.samptur@wipro.com>
 
         * esdlib.c: (esd_open_sound) : waitpid() could fail due to
@@ -110,7 +115,7 @@
 
 	* configure.in: Release 0.2.28
 
-2002-06-19    <b@cuba.mandrakesoft.com>
+2002-06-19  Frederic Crozat  <fcrozat@mandrakesoft.com>
 
         * esdlib.c: (is_host_local), (esd_open_sound):
         Fix esd not starting when DISPLAY is set to localhost

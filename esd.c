@@ -505,7 +505,8 @@ int main ( int argc, char *argv[] )
     void *output_buffer = NULL;
 
     char *hostname=NULL;
-
+    char *endptr;
+    
     /* begin test scaffolding parameters */
     /* int format = AFMT_U8; AFMT_S16_LE; */
     /* int stereo = 0; */     /* 0=mono, 1=stereo */
@@ -568,8 +569,8 @@ int main ( int argc, char *argv[] )
 	    }
 	} else if ( !strcmp( argv[ arg ], "-as" ) ) {
 	    if ( ++arg != argc ) {
-		esd_autostandby_secs = atoi( argv[ arg ] );
-		if ( !esd_autostandby_secs ) {
+		esd_autostandby_secs = strtol ( argv[arg], &endptr, 10);
+		if ( !esd_autostandby_secs && !endptr && !*endptr) {
 		    esd_autostandby_secs = ESD_DEFAULT_AUTOSTANDBY_SECS;
 		    fprintf( stderr, "- could not read autostandby timeout: %s\n",
 			     argv[ arg ] );
