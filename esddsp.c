@@ -63,7 +63,7 @@
 #define REAL_LIBC ((void *) -1L)
 #endif
 
-#if defined(__FreeBSD__) || defined(__bsdi__)
+#if defined(__FreeBSD__) || defined(__FreeBSD_kernel__) || defined(__bsdi__)
 typedef unsigned long request_t;
 #else
 typedef int request_t;

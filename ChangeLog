@@ -1,3 +1,11 @@
+2004-08-11  Frederic Crozat  <fcrozat@mandrakesoft.com>
+
+	* audio_oss.c:
+	* configure.in:
+	* esddsp.c:
+	GNU/kFreeBSD support (bug #149816, patch from 
+	Robert Milan <rmh@debian.org>).
+
 2004-06-11  Frederic Crozat  <fcrozat@mandrakesoft.com>
 
 	* docs/esddsp.1.in:
