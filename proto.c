@@ -836,7 +836,7 @@ int esd_proto_standby_mode( esd_client_t *client )
 
 /*******************************************************************/
 /* checks for new client requiests - returns 1 */
-int poll_client_requests()
+int poll_client_requests(void)
 {
     int can_read, length = 0, is_ok = 0;
     esd_client_t *client = NULL;

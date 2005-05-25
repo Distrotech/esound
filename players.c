@@ -11,7 +11,7 @@ esd_player_t *esd_monitor_list = NULL;
 
 /*******************************************************************/
 /* for debugging purposes, dump the list of the clients and data */
-void dump_players()
+void dump_players(void)
 {
     esd_player_t *player = esd_players_list;
 

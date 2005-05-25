@@ -42,6 +42,7 @@
 #include <fcntl.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <sys/time.h>
 #include <stdio.h>
 
 #ifdef HAVE_MACHINE_SOUNDCARD_H
@@ -80,7 +81,7 @@ static int use_mixer = 0;
  */
 static int mmapemu = 0;
 static count_info mmapemu_ocount;
-static char *mmapemu_obuffer = 0;
+static char *mmapemu_obuffer = NULL;
 static int mmapemu_osize;
 static long long mmapemu_bytes_per_sec;
 struct timeval mmapemu_last_flush;
@@ -182,7 +183,7 @@ mix_init (int *esd, int *player)
     }
 }
 
-static void mmapemu_flush()
+static void mmapemu_flush(void)
 {
   struct timeval current_time;
   long long usec_since_last_flush;
@@ -533,7 +534,7 @@ munmap (void *start, size_t length)
     return (*func)(start,length);
 
   DPRINTF ("esddsp: /dev/dsp munmap...\n");
-  mmapemu_obuffer = 0;
+  mmapemu_obuffer = NULL;
   free(start);
 
   return 0;

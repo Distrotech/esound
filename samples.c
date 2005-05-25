@@ -16,7 +16,7 @@ void dump_samples(void);
 
 /*******************************************************************/
 /* for debugging purposes, dump the list of the clients and data */
-void dump_samples()
+void dump_samples(void)
 {
     esd_sample_t *sample = esd_samples_list;
 

@@ -8,7 +8,7 @@
 
 /* Run-time check for IPv6 support */
 int 
-have_ipv6() {
+have_ipv6(void) {
 #if defined ENABLE_IPV6
   int s;
   s = socket(AF_INET6, SOCK_STREAM, 0);

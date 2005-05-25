@@ -39,7 +39,7 @@ static snd_output_t *output = NULL;
 
 
 
-void print_state() 
+void print_state(void)
 {
   
 	int state;
@@ -173,7 +173,7 @@ snd_pcm_t* initAlsa(char *dev, int format, int channels, int speed, int mode)
 	}
   
 	periods = 2;
-	err = snd_pcm_hw_params_set_periods_min(handle, hwparams, &periods, 0);
+	err = snd_pcm_hw_params_set_periods_min(handle, hwparams, &periods, NULL);
 	if (err < 0) {
 		if (alsadbg)
 			fprintf(stderr, "%s\n", snd_strerror(err));
@@ -182,7 +182,7 @@ snd_pcm_t* initAlsa(char *dev, int format, int channels, int speed, int mode)
 	}
   
 	periods = 64;
-	err = snd_pcm_hw_params_set_periods_max(handle, hwparams, &periods, 0);
+	err = snd_pcm_hw_params_set_periods_max(handle, hwparams, &periods, NULL);
 	if (err < 0) {
 		if (alsadbg)
 			fprintf(stderr, "%s\n", snd_strerror(err));
@@ -215,10 +215,10 @@ snd_pcm_t* initAlsa(char *dev, int format, int channels, int speed, int mode)
 
 #define ARCH_esd_audio_devices
 
-const char *esd_audio_devices()
+const char *esd_audio_devices(void)
 {
         int card, err;
-        static char *all_alsa_cards=0;
+        static char *all_alsa_cards = NULL;
         char *alsa_card_tmp;
         snd_ctl_t *handle;
         snd_ctl_card_info_t *info;
@@ -228,7 +228,7 @@ const char *esd_audio_devices()
         if(all_alsa_cards)
         {
                 free(all_alsa_cards);
-                all_alsa_cards = 0;
+                all_alsa_cards = NULL;
         }
 
 	card = -1;
@@ -288,7 +288,7 @@ const char *esd_audio_devices()
 
 #define ARCH_esd_audio_open
 
-int esd_audio_open()
+int esd_audio_open(void)
 {
   
 	int channels;
@@ -368,7 +368,7 @@ int esd_audio_open()
 }
 
 #define ARCH_esd_audio_close
-void esd_audio_close()
+void esd_audio_close(void)
 {
 	if (alsadbg) {
 		fprintf(stderr, "esd_audio_close\n");
@@ -384,7 +384,7 @@ void esd_audio_close()
 }
 
 #define ARCH_esd_audio_pause
-void esd_audio_pause()
+void esd_audio_pause(void)
 {
   
 	return;
@@ -478,7 +478,7 @@ int esd_audio_write( void *buffer, int buf_size )
 }
 
 #define ARCH_esd_audio_flush
-void esd_audio_flush()
+void esd_audio_flush(void)
 {
   
 	if (alsadbg) {

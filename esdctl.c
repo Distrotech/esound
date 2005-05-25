@@ -70,7 +70,7 @@ int main(int argc, char **argv)
 	{ "file", required_argument, NULL, 'f' },
 	{ "help", no_argument, NULL, 'h' },
 	{ "version", no_argument, NULL, 'v' },
-	{ 0, 0, 0, 0 }
+	{ NULL, 0, NULL, 0 }
     };
 
     /* quick sanity check, check number of args */

@@ -53,7 +53,7 @@ main (int argc, char *argv[])
     { "server", required_argument, NULL, 's' },
     { "help", no_argument, NULL, 'h' },
     { "version", no_argument, NULL, 'v' },
-    { 0, 0, 0, 0 }
+    { NULL, 0, NULL, 0 }
   };
 
   program_name = argv [0];

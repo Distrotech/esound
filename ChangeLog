@@ -1,3 +1,16 @@
+2005-05-25  Kjartan Maraas  <kmaraas@gnome.org>
+
+	* audio_alsa09.c: (print_state):
+	* clients.c: (dump_clients):
+	* esdctl.c: (main):
+	* esddsp.c: (mmapemu_flush), (munmap):
+	* esdplay.c: (main):
+	* mix.c: (get_translate_func), (refresh_mix_funcs):
+	* players.c: (dump_players):
+	* proto.c: (poll_client_requests):
+	* samples.c: (dump_samples):
+	* util.c: (have_ipv6): Clean up warnings reported by sparse
+
 2005-05-25  David Schleef  <ds@schleef.org>
 
 	* audio_alsa09.c: Patch from Takashi Iwai. Writes to alsa

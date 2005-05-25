@@ -96,7 +96,7 @@ translate_func_t get_translate_func( esd_format_t src_fmt, int src_rate,
 	    return (translate_func_t)&mix_from_stereo_8u;
     }
     
-    return 0;
+    return NULL;
 }
 
 /* decides which of the mix_from_* functions to use, and calls it */
@@ -944,7 +944,7 @@ int mix_players( void *output, int length )
     return max;
 }
 
-int refresh_mix_funcs()
+int refresh_mix_funcs(void)
 {
     esd_player_t *filter = esd_filter_list;
     int translations = 0;

@@ -37,7 +37,7 @@ void free_client( esd_client_t *client );
 /* for debugging purposes, dump the list of the clients and data */
 
 
-void dump_clients()
+void dump_clients(void)
 {
     long addr;
     short port;
