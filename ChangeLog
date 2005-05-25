@@ -1,3 +1,8 @@
+2005-05-25  David Schleef  <ds@schleef.org>
+
+	* configure.ac: Use -Wall if the compiler supports it
+	* m4/as-compiler-flag.m4: the m4 test
+
 2005-05-25  Kjartan Maraas  <kmaraas@gnome.org>
 
 	* audio_alsa09.c: (print_state):

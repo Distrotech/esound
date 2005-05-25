@@ -457,6 +457,8 @@ if test "x$dsp_ok" = xyes; then
 fi
 AM_CONDITIONAL(BUILD_ESDDSP, test "x$dsp_ok" = xyes)
 
+AS_COMPILER_FLAG(-Wall, CFLAGS="$CFLAGS -Wall")
+
 # set | sort; # just for double checking the script...
 
 AC_SUBST(WRAP_LIB)
