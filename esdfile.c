@@ -35,6 +35,7 @@ int esd_play_file( const char *name_prefix, const char *filename, int fallback )
     /* input from libaudiofile... */
     AFfilehandle in_file;
     int in_format, in_width, in_channels, frame_count;
+    int in_compression;
     double in_rate;
     int bytes_per_frame;
 
@@ -59,11 +60,20 @@ int esd_play_file( const char *name_prefix, const char *filename, int fallback )
     frame_count = afGetFrameCount( in_file, AF_DEFAULT_TRACK );
     in_channels = afGetChannels( in_file, AF_DEFAULT_TRACK );
     in_rate = afGetRate( in_file, AF_DEFAULT_TRACK );
+    in_compression = afGetCompression ( in_file, AF_DEFAULT_TRACK );
     afGetSampleFormat( in_file, AF_DEFAULT_TRACK, &in_format, &in_width );
 
     if(getenv("ESDBG"))
     printf ("frames: %i channels: %i rate: %f format: %i width: %i\n",
     	        frame_count, in_channels, in_rate, in_format, in_width);
+
+    /* This check was added because audiofile doesn't tell us whether or
+     * not it will play compressed audio correctly. */
+    if ( in_compression != AF_COMPRESSION_NONE )
+    {
+	/* fputs ("compressed audio not supported supported\n", stderr); */
+	return 0;
+    }
 
     /* convert audiofile parameters to EsounD parameters */
     if ( in_width == 8 )
