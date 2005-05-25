@@ -22,6 +22,11 @@
 #define gethostbyname2(host, family) gethostbyname((host))
 #endif /* HAVE_GETHOSTBYNAME2 */
 
+#ifndef SUN_LEN
+#define SUN_LEN(ptr) ((size_t) (((struct sockaddr_un *) 0)->sun_path)  \
+                     + strlen ((ptr)->sun_path))
+#endif
+
 /* AIX defines this */
 #ifndef h_errno
 extern int h_errno;

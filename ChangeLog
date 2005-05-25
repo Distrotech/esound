@@ -1,3 +1,9 @@
+2005-03-22  William Jon McCann  <mccann@jhu.edu>
+
+	* esd.c: 
+	* esdlib.c: Define SUN_LEN if it isn't already (Solaris)
+	  (bug #171304)
+
 2005-05-25  David Schleef  <ds@schleef.org>
 
 	* configure.ac: Use -Wall if the compiler supports it

@@ -23,6 +23,11 @@
 
 #include <sys/un.h>
 
+#ifndef SUN_LEN
+#define SUN_LEN(ptr) ((size_t) (((struct sockaddr_un *) 0)->sun_path)  \
+                     + strlen ((ptr)->sun_path))
+#endif
+
 /*******************************************************************/
 /* prototypes */
 int esd_set_socket_buffers( int sock, int src_format, 
