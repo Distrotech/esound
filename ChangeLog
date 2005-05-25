@@ -1,5 +1,10 @@
 2005-05-25  David Schleef  <ds@schleef.org>
 
+	* audio_alsa09.c: Patch from Takashi Iwai. Writes to alsa
+	  more carefully. (bug #140803)
+
+2005-05-25  David Schleef  <ds@schleef.org>
+
 	* esdfile.c: (esd_play_file): Disable compressed audio, since
 	audiofile doesn't play it correctly.  (bug #107483)
 

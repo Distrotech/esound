@@ -444,45 +444,37 @@ int esd_audio_read( void *buffer, int buf_size )
 int esd_audio_write( void *buffer, int buf_size )
 {
 	int err;
-
 	int len = snd_pcm_bytes_to_frames(alsa_playback_handle, buf_size);
-	while ( ( err = snd_pcm_writei( alsa_playback_handle, buffer, len)) < 0) {
-		if (alsadbg) {
-			fprintf(stderr, "esd_audio_write\n");
-			print_state();
-		}
 
-		if (err == -EPIPE) {
-			if (alsadbg)
-				fprintf(stderr, "EPIPE\n");
-			if (( err = snd_pcm_prepare( alsa_playback_handle ) )< 0) {
+	while (len > 0) {
+		while ( ( err = snd_pcm_writei( alsa_playback_handle, buffer, len)) < 0) {
+			if (alsadbg) {
+				fprintf(stderr, "esd_audio_write\n");
+				print_state();
+			}
+
+			if (err == -EPIPE) {
+				if (alsadbg)
+					fprintf(stderr, "EPIPE\n");
+			} else  if (err == -ESTRPIPE) {
+				if (alsadbg)
+					fprintf(stderr, "ESTRPIPE\n");
+				while (( err = snd_pcm_resume(alsa_playback_handle)) == -EAGAIN)
+					sleep(1);
+			} 
+			err = snd_pcm_prepare(alsa_playback_handle) ;
+			if (err < 0) {
 				if (alsadbg)
 					fprintf(stderr, "%s\n", snd_strerror(err));
 				return -1;
 			}
 			continue;
-		} else  if (err == -ESTRPIPE) {
-			if (alsadbg)
-				fprintf(stderr, "ESTRPIPE\n");
-			while (( err = snd_pcm_resume(alsa_playback_handle)) == -EAGAIN)
-				sleep(1);
-			if (err < 0) {
-				if (alsadbg)
-					fprintf(stderr, "Preparing...\n");
-				if (snd_pcm_prepare( alsa_playback_handle) < 0)
-					return -1;
-			}
-			continue;
-		} 
-		err = snd_pcm_prepare(alsa_playback_handle) ;
-		if (err < 0) {
-			if (alsadbg)
-				fprintf(stderr, "%s\n", snd_strerror(err));
-			return -1;
 		}
+		len -= err;
+		buffer += snd_pcm_frames_to_bytes(alsa_playback_handle, err);
 	}
   
-	return ( snd_pcm_frames_to_bytes(alsa_playback_handle, err) );
+	return buf_size;
 }
 
 #define ARCH_esd_audio_flush
