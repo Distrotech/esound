@@ -293,7 +293,6 @@ int esd_audio_open(void)
   
 	int channels;
 	int format;
-	int card;
 	char *dev;
   
 	if (alsadbg)

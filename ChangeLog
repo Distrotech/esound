@@ -1,5 +1,19 @@
 2005-05-25  David Schleef  <ds@schleef.org>
 
+	* audio_alsa09.c:
+	* audio_solaris.c: (esd_audio_devices), (esd_audio_open):
+	* esd.c: (open_listen_socket):
+	* esd_config.c: (esd_config_read):
+	* esddsp.c: (dsp_init), (unlink), (sockaddr_mangle):
+	* esdlib.c: (esd_send_auth):
+	* genrand.c: (hashlong):
+	* players.c: (recorder_write):
+	* util.c: (esd_get_socket_dirname):
+	  Check all assignments of the return value of getenv() to
+	  make sure they're const.  Fix warnings.
+
+2005-05-25  David Schleef  <ds@schleef.org>
+
 	* configure.ac: use AC_CONFIG_SRCDIR() so configure doesn't
 	  go wandering off to some random directory (which it does).
 

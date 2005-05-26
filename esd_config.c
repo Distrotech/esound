@@ -23,7 +23,8 @@ void
 esd_config_read(void)
 {
   FILE *fh;
-  char *fn, *tmpenv;
+  char *fn;
+  const char *tmpenv;
 
   if(read_esd_config) return;
 

@@ -374,10 +374,10 @@ int open_listen_socket(const char *hostname, int port )
     struct sockaddr_un socket_unix;
     int socket_listen = -1;
     struct linger lin;
-    size_t socket_len;
-    struct sockaddr *saddr;
+    size_t socket_len = 0;
+    struct sockaddr *saddr = NULL;
 
-	struct hostent *resolved;
+    struct hostent *resolved;
 
 
     /* create the socket, and set for non-blocking */

@@ -128,7 +128,9 @@ dsp_init (void)
 {
   if (!ident)
     {
-      char *str = getenv ("ESDDSP_NAME");
+      const char *str;
+     
+      str = getenv ("ESDDSP_NAME");
       ident = malloc (ESD_NAME_MAX);
       strncpy (ident, (str ? str : "esddsp"), ESD_NAME_MAX);
 
@@ -552,7 +554,7 @@ int
 unlink (const char *filename)
 {
   static int (*func) (const char *) = NULL;
-  char *num;
+  const char *num;
 
   if (!func)
     func = (int (*) (const char *)) dlsym (REAL_LIBC, "unlink");
@@ -572,7 +574,7 @@ typedef int (*sa_func_t) (int, struct sockaddr *, int);
 static int
 sockaddr_mangle (sa_func_t func, int fd, struct sockaddr *addr, int len)
 {
-  char *num;
+  const char *num;
 
   if (!strcmp (((struct sockaddr_un *) addr)->sun_path, "/tmp/X11Amp_CTRL")
       && (num = getenv(ENVSET)))

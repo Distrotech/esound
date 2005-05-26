@@ -467,7 +467,7 @@ void monitor_write( void *output_buffer, int length ) {
 int recorder_write( void *buffer, int length ) {
 
     esd_player_t *recorder, *remove = NULL;
-    int wrote_len;
+    int wrote_len = 0;
     
     recorder = esd_recorder_list;
 

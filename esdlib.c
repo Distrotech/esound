@@ -165,7 +165,7 @@ int esd_send_auth( int sock )
     int reply;
     char *auth_filename = NULL;
     unsigned char auth_key[ESD_KEY_LEN];
-    char *home = NULL;
+    const char *home = NULL;
     int namelen, retval;
     void (*phandler)(int);
   
@@ -694,7 +694,7 @@ int esd_open_sound( const char *host )
     int len;
     char use_unix = 0;
     char display_host[ 256 ];
-    char *display;
+    const char *display;
 
     if ( !host ) host = getenv("ESPEAKER");
 

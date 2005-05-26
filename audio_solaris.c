@@ -62,7 +62,8 @@ const char *esd_audio_devices()
      * might even want to fix it.  -- dave@arsdigita.com
      */
 
-    char *device, *ctl;
+    const char *device;
+    char *ctl;
     int fd, err;
     struct audio_info auinfo;
     unsigned int avail_ports;
@@ -306,7 +307,8 @@ int esd_audio_open()
 {
     int afd = -1, cafd = -1;
     audio_device_t adev;
-    char *device, *devicectl;
+    const char *device;
+    char *devicectl;
     int err;
     int ret;
 

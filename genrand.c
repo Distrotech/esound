@@ -69,7 +69,7 @@ handle_alarm(int signum)
 static unsigned char
 hashlong(long val)
 {
-  unsigned char retval, *ptr;
+  unsigned char retval = 0, *ptr;
   int i;
 
   for(ptr = (unsigned char *)&val, i = 0; i < sizeof(val); i++)

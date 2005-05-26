@@ -23,7 +23,7 @@ have_ipv6(void) {
 const char*
 esd_get_socket_dirname (void) 
 {
-	char *audiodev;
+	const char *audiodev;
 	static char *dirname = NULL;
 
 	if (dirname == NULL) {
