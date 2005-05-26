@@ -1,5 +1,9 @@
 2005-05-25  David Schleef  <ds@schleef.org>
 
+	* esdlib.c: Don't write to a const string. (bug #167609)
+
+2005-05-25  David Schleef  <ds@schleef.org>
+
 	* audio_alsa09.c:
 	* audio_solaris.c: (esd_audio_devices), (esd_audio_open):
 	* esd.c: (open_listen_socket):

@@ -442,26 +442,36 @@ esd_connect_tcpip(const char *host)
        connect_host[0] = '\0';   
 
        if ( host ) {
+         char *host_dup;
+         char *s;
+
+         host_dup = strdup (host);
+         if (!host_dup) {
+           fprintf(stderr, "Out of memory\n");
+           return -1;
+         }
+         s = host_dup;
          cnt = 0;
-         for ( i = 0; i < strlen (host); i++ )
-           if ( host[i] == ':' )
+         for ( i = 0; i < strlen (s); i++ )
+           if ( s[i] == ':' )
              cnt++;
 
          if ( cnt == 1 ) {
-           loc = strchr (host, ':');
+           loc = strchr (s, ':');
            *loc = '\0';
-           strcpy (connect_host, host);
+           strcpy (connect_host, s);
            port = atoi (loc + 1);
          }
          else {
-           if (( cnt != 0 ) && ((loc = strchr (host, ']')) != NULL )) {
+           if (( cnt != 0 ) && ((loc = strchr (s, ']')) != NULL )) {
              *loc = '\0';
-             strcpy ( connect_host, ++host );
+             strcpy ( connect_host, ++s );
              port = atoi ( loc + 2 );
            }
            else 
-             strcpy ( connect_host, host );
+             strcpy ( connect_host, s );
          }
+         free (host_dup);
        }
        if( port == 0 )
          port = ESD_DEFAULT_PORT;
@@ -705,7 +715,7 @@ int esd_open_sound( const char *host )
 	   and see if we strike gold */
 	len = strcspn( display, ":" );
 	if ( len ) {
-	    len = min( len, 256 ); 
+	    len = min( len, 255 ); 
 	    strncpy( display_host, display, len );
 	    display_host[ len ] = '\0';
 	    host = display_host;
