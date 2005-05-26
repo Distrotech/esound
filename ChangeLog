@@ -1,5 +1,10 @@
 2005-05-25  David Schleef  <ds@schleef.org>
 
+	* esddsp.c: (dspctl): Patch from Fabian Franz.  Fix
+	  behavior of SNDCTL_DSP_GETISPACE ioctl (bug #169680)
+
+2005-05-25  David Schleef  <ds@schleef.org>
+
 	* esdlib.c: Don't write to a const string. (bug #167609)
 
 2005-05-25  David Schleef  <ds@schleef.org>

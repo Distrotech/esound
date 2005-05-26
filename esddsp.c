@@ -287,7 +287,11 @@ dspctl (int fd, request_t request, void *argp)
       break;
 
     case SNDCTL_DSP_GETBLKSIZE:
-      *arg = ESD_BUF_SIZE;
+      if (mmapemu)
+      	*arg = MMAPEMU_FRAGSIZE;
+      else
+      	*arg = ESD_BUF_SIZE;
+     
       break;
 
     case SNDCTL_DSP_GETFMTS:
@@ -309,14 +313,25 @@ dspctl (int fd, request_t request, void *argp)
 	audio_buf_info *bufinfo = (audio_buf_info *) argp;
 	if (mmapemu)
 	  {
+	    /* Number of fragments allocated for buffering */
 	    bufinfo->fragstotal = MMAPEMU_FRAGSTOTAL;
+	    /* Size of a fragment in bytes (same as SNDCTL_DSP_GETBLKSIZE) */
 	    bufinfo->fragsize = MMAPEMU_FRAGSIZE;
-	    bufinfo->bytes = 0;              /* FIXME: is this right? */
-	    bufinfo->fragments = 0;
+	    /* Number of bytes that can be read or written immediately without blocking */
+	    bufinfo->bytes = MMAPEMU_FRAGSIZE;
+	    /* Number of full fragments that can be read or written without blocking */
+	    bufinfo->fragments = 1;
 	  }
 	else
 	  {
+	    /* Number of fragments allocated for buffering */
+	    bufinfo->fragstotal = 1;
+	    /* Size of a fragment in bytes (same as SNDCTL_DSP_GETBLKSIZE) */
+	    bufinfo->fragsize = ESD_BUF_SIZE;
+	    /* Number of bytes that can be read or written immediately without blocking */
 	    bufinfo->bytes = ESD_BUF_SIZE;
+	    /* Number of full fragments that can be read or written without blocking */
+	    bufinfo->fragments = 1;
 	  }
       }
       break;
