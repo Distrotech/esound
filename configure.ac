@@ -25,6 +25,8 @@ AC_SUBST(ESD_MICRO_VERSION)
 AC_SUBST(ESD_VERSION)
 AC_SUBST(ESD_VERSION_INFO)
 
+pkgdocdir="\$(datadir)/doc/esound"
+AC_SUBST(pkgdocdir)
 
 AC_PROG_CC
 AC_PROG_CPP
@@ -383,23 +385,8 @@ echo "---------------------------------------------------------------------"
 echo "--- Checking for the documentation generation tools.  NOTE: These "
 echo "--- are NOT required for proper compilation of the esound package."
 
-DOCS=""
-DISTDOCS=""
-DB2HTML=true
-AC_CHECK_PROG(have_db2html, db2html, yes, no)
-if test "x$have_db2html" = "xyes"; then
-   DOCS=esound/index.html
-   DISTDOCS=docs/html
-   DB2HTML=db2html
-fi
-
-DB2PS=true
-AC_CHECK_PROG(have_db2ps, db2ps, yes, no)
-if test "x$have_db2ps" = "xyes"; then
-   DOCS="$DOCS esound.ps"
-   DISTDOCS="$DISTDOCS docs/esound.ps"
-   DB2PS=db2ps
-fi
+AC_CHECK_PROG(JW, jw, jw, false)
+AM_CONDITIONAL(HAVE_JW, test "x$JW" != xfalse)
 
 echo "---------------------------------------------------------------------"
 
@@ -469,8 +456,7 @@ AC_SUBST(AUDIOFILE_LIBS)
 AC_SUBST(DL_LIB)
 AC_SUBST(DOCS)
 AC_SUBST(DISTDOCS)
-AC_SUBST(DB2HTML)
-AC_SUBST(DB2PS)
+AC_SUBST(JW)
 
 AC_OUTPUT([
 Makefile

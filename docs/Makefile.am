@@ -1,19 +1,46 @@
-man_MANS = esd.1 esdcat.1 esd-config.1 esdctl.1 esddsp.1 esdfilt.1 esdloop.1 esdmon.1 esdplay.1 esdrec.1 esdsample.1 
+man_MANS = \
+	esd.1 esdcat.1 esd-config.1 esdctl.1 esddsp.1 \
+	esdfilt.1 esdloop.1 esdmon.1 esdplay.1 esdrec.1 esdsample.1 
 
-EXTRA_DIST = esd.1.in esdcat.1.in esd-config.1.in esdctl.1.in esddsp.1.in esdfilt.1.in esdloop.1.in esdmon.1.in esdplay.1.in esdrec.1.in esdsample.1.in 
+EXTRA_DIST = \
+	esd.1.in esdcat.1.in esd-config.1.in esdctl.1.in \
+	esddsp.1.in esdfilt.1.in esdloop.1.in esdmon.1.in \
+	esdplay.1.in esdrec.1.in esdsample.1.in \
+	esound.sgml
 
-DOCS = @DOCS@
+CLEANFILES = esound.dvi esound.ps esound.tex esound.aux esound.log
 
-doc: $(DOCS)
+htmldir=$(pkgdocdir)/html
 
-esound/index.html: esound.sgml
-	@DB2HTML@ $(srcdir)/esound.sgml
+if HAVE_JW
+noinst_DATA = html/index.html
+else
+noinst_DATA = 
+endif
 
-esound.ps: esound.sgml
-	cd $(srcdir) && @DB2PS@ esound.sgml
+html/index.html: esound.sgml
+	$(JW) -f docbook -b html -o html $(srcdir)/esound.sgml
 
-distclean: clean
-	rm -rf $(srcdir)/esound $(srcdir)/esound.junk
-	rm -f $(srcdir)/esound.dvi $(srcdir)/esound.ps $(srcdir)/esound.tex $(srcdir)/esound.aux $(srcdir)/esound.log
+clean-local:
+	rm -rf html
 
-clean:
+if HAVE_JW
+install-data-local:
+	$(mkinstalldirs) $(DESTDIR)$(htmldir)
+	files=`cd html && echo *.html`; \
+	test "$$files" || for f in $$files; do \
+	  cp -p $$f $(DESTDIR)$(htmldir)/$$f; \
+	done
+
+uninstall-local:
+	files=`cd html && echo *.html`; \
+	test "$$files" || for f in $$files; do \
+	  rm -rf $(DESTDIR)$(htmldir)/$$f; \
+	done
+	if test -d $(DESTDIR)$(htmldir); then rmdir $(DESTDIR)$(htmldir); fi
+else
+install-data-local:
+uninstall-local:
+endif
+
+

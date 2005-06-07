@@ -1,3 +1,10 @@
+2005-06-06  David Schleef  <ds@schleef.org>
+
+	* Makefile.am: make the docs build correctly, install correctly,
+	  and distcheck correctly.
+	* configure.ac:
+	* docs/Makefile.am:
+
 2005-05-25  David Schleef  <ds@schleef.org>
 
 	* esddsp.c: (dspctl): Patch from Fabian Franz.  Fix

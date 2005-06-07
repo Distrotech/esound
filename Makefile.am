@@ -139,18 +139,6 @@ rpm: $(PACKAGE)-$(VERSION).tar.gz
 	cp $(PACKAGE)-$(VERSION).tar.gz /usr/src/redhat/SOURCES
 	rpm -ba $(SPEC_FILE)
 
-doc:
-	list='$(SUBDIRS)'; for subdir in $$list; do \
-	  test "$$subdir" = . || (cd $$subdir && $(MAKE) doc); \
-	done
-
-
-dist-hook: doc esound.spec
-	test -d $(distdir)/docs || mkdir $(distdir)/docs 
-	cp $(srcdir)/docs/esound.sgml $(distdir)/docs
-	-cp -r $(srcdir)/docs/esound $(distdir)/docs/html
-	-cp $(srcdir)/docs/esound.ps $(distdir)/docs
-
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = esound.pc
 
@@ -169,6 +157,7 @@ EXTRA_DIST = \
 	getopt.h 	\
 	TODO		\
 	MAINTAINERS	\
-	m4/*.m4		\
+	m4/as-arts.m4   \
+	m4/as-compiler-flag.m4 \
 	$(AUDIO_BACKENDS)
 
