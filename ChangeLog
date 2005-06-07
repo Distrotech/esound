@@ -1,5 +1,13 @@
 2005-06-06  David Schleef  <ds@schleef.org>
 
+	* MAINTAINERS: add me
+	* NEWS: news for new release
+	* README: remove old stuff and tell people to go away
+	* TODO: remove old stuff
+	* configure.ac: version bump
+
+2005-06-06  David Schleef  <ds@schleef.org>
+
 	* Makefile.am: make the docs build correctly, install correctly,
 	  and distcheck correctly.
 	* configure.ac:

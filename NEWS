@@ -1,4 +1,15 @@
 ===============
+Version 0.2.36
+===============
+	* New sucker^Wmaintainer (David Schleef)
+	* new arts backend (Igor Mokrushin)
+	* ALSA-1.0 is the new default backend
+	* disable compressed audio from libaudiofile, because it's
+	  broken.
+	* code cleanup and warning fixes (Kjartan Maraas, David Schleef)
+	* OSS emulation fixes in esddsp (Fabian Franz)
+
+===============
 Version 0.2.35
 ===============
 	* fix location of configuration file in man (Craig Routledge)
