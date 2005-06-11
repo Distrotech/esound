@@ -48,6 +48,7 @@ AUDIO_BACKENDS = \
 	audio_aix.c		\
 	audio_alsa.c		\
 	audio_alsa09.c  	\
+	audio_arts.c		\
 	audio_coreaudio.c	\
 	audio_dart.c		\
 	audio_hpux.c		\

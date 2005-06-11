@@ -1,3 +1,7 @@
+2005-06-11  Kjartan Maraas  <kmaraas@gnome.org>
+
+	* Makefile.am: Add audio_arts.c here to get it disted.
+
 2005-06-06  David Schleef  <ds@schleef.org>
 
 	* MAINTAINERS: add me
