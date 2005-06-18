@@ -8,7 +8,7 @@ PKG_NAME="ESound"
 
 REQUIRED_AUTOCONF_VERSION=2.58
 REQUIRED_AUTOMAKE_VERSION=1.6
-ACLOCAL_FLAGS="-I $srcdir/m4"
+ACLOCAL_FLAGS="$ACLOCAL_FLAGS -I $srcdir/m4"
 
 
 (test -f $srcdir/configure.ac) || {
