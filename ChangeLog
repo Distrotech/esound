@@ -1,3 +1,9 @@
+2005-06-17  David Schleef  <ds@schleef.org>
+
+	* README: ha ha funny
+	* autogen.sh: use gnome-autogen.sh
+	* configure.ac: esound, not esd
+
 2005-06-11  Kjartan Maraas  <kmaraas@gnome.org>
 
 	* Makefile.am: Add audio_arts.c here to get it disted.
