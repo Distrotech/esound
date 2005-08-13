@@ -28,13 +28,13 @@ if HAVE_JW
 install-data-local:
 	$(mkinstalldirs) $(DESTDIR)$(htmldir)
 	files=`cd html && echo *.html`; \
-	test "$$files" || for f in $$files; do \
-	  cp -p $$f $(DESTDIR)$(htmldir)/$$f; \
+	test "$$files" && for f in $$files; do \
+	  cp -p html/$$f $(DESTDIR)$(htmldir)/$$f; \
 	done
 
 uninstall-local:
 	files=`cd html && echo *.html`; \
-	test "$$files" || for f in $$files; do \
+	test "$$files" && for f in $$files; do \
 	  rm -rf $(DESTDIR)$(htmldir)/$$f; \
 	done
 	if test -d $(DESTDIR)$(htmldir); then rmdir $(DESTDIR)$(htmldir); fi

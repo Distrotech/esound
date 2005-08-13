@@ -1,3 +1,8 @@
+2005-08-13  David Schleef  <ds@schleef.org>
+
+	Patch from Thomas Zajic to actually install the documentation.
+	* docs/Makefile.am: Fixes #307366
+
 2005-06-18  David Schleef  <ds@schleef.org>
 
 	* autogen.sh: Don't blow away user's ACLOCAL_FLAGS.
