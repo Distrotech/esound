@@ -1,3 +1,8 @@
+2005-09-30  David Schleef  <ds@schleef.org>
+
+	* Makefile.am: Don't compile util.o into esd binary, since it's
+	  already in libesd.  (Fixes #317554)
+
 2005-08-13  David Schleef  <ds@schleef.org>
 
 	Patch from Thomas Zajic to actually install the documentation.

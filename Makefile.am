@@ -94,7 +94,6 @@ esd_SOURCES = 	\
 	proto.c		\
 	samples.c	\
 	$(getopt_src)   \
-	util.c		\
 	esd-config.h	\
 	esd-server.h
 
