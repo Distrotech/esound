@@ -1,3 +1,12 @@
+2006-04-13  Kjartan Maraas  <kmaraas@gnome.org>
+
+	* clients.c: (get_new_clients): Fix leak. Coverity #743
+	and #875.
+	* esd.c: (main): Fix null deref. Coverity #223
+	* esdlib.c: Fix null deref. Coverity bug #775
+	* esdmgr.c: (esd_get_all_info): Fix leaks. Coverity #773
+	and #875.
+
 2005-09-30  David Schleef  <ds@schleef.org>
 
 	* Makefile.am: Don't compile util.o into esd binary, since it's

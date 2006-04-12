@@ -737,7 +737,7 @@ int main ( int argc, char *argv[] )
 	} else if ( !strcmp( opts[ arg ], "-as" ) ) {
 	    if ( ++arg != num_opts ) {
 		esd_autostandby_secs = strtol ( opts[arg], &endptr, 10);
-		if ( !esd_autostandby_secs && !endptr && !*endptr) {
+		if ( !esd_autostandby_secs && (!endptr || !*endptr) ) {
 		    esd_autostandby_secs = ESD_DEFAULT_AUTOSTANDBY_SECS;
 		    fprintf( stderr, "- could not read autostandby timeout: %s\n",
 			     opts[ arg ] );

@@ -133,11 +133,15 @@ esd_info_t *esd_get_all_info( int esd )
 
     /* allocate the server info structure */
     server_info = (esd_server_info_t *) malloc( sizeof(esd_server_info_t) );
-    if ( !server_info ) return NULL;
+    if ( !server_info ) {
+        esd_free_all_info( info );
+        return NULL;
+    }
 
     /* tell the server to cough up the info */
     write( esd, &proto, sizeof(proto) );
     if ( write( esd, &version, sizeof(version) ) != sizeof(version) ) {
+	esd_free_all_info( info );
 	free( server_info );
 	return NULL;
     }
@@ -147,6 +151,7 @@ esd_info_t *esd_get_all_info( int esd )
     read( esd, &server_info->rate, sizeof(server_info->rate) );
     if ( read( esd, &server_info->format, sizeof(server_info->format) )
 	 != sizeof(server_info->format) ) {
+	esd_free_all_info( info );
 	free( server_info );
 	return NULL;
     }

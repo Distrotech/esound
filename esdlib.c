@@ -456,8 +456,7 @@ esd_connect_tcpip(const char *host)
            if ( s[i] == ':' )
              cnt++;
 
-         if ( cnt == 1 ) {
-           loc = strchr (s, ':');
+         if ( cnt == 1 ) && ((loc = strchr (s, ':') != NULL)) {
            *loc = '\0';
            strcpy (connect_host, s);
            port = atoi (loc + 1);

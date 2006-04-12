@@ -221,6 +221,7 @@ int get_new_clients( int listen )
 		ESDBG_TRACE( printf( "(%02d) couldn't turn on blocking for client\n", 
 				     fd ); );
 		close( fd );
+		free( new_client );
 		return -1;
 	    }
 
