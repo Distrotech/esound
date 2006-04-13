@@ -1,3 +1,7 @@
+2006-04-13  Behdad Esfahbod  <behdad@gnome.org>
+
+	* esdlib.c: Fix build break.
+
 2006-04-13  Kjartan Maraas  <kmaraas@gnome.org>
 
 	* clients.c: (get_new_clients): Fix leak. Coverity #743
