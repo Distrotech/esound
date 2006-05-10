@@ -57,11 +57,11 @@ AC_ARG_ENABLE(artstest,
     ARTS_CXXFLAGS=`$ARTS_CONFIG $artsconf_args --cflags | artsc-config --cflags | sed 's/\(-I.*\)artsc/\1arts/'`
     ARTS_LIBS=`$ARTS_CONFIG $artsconf_args --libs | sed 's/artsc$/arts/'`
 
-    arts_major_version=`$ARTS_CONFIG $arts_args --version | \
+    arts_major_version=`$ARTS_CONFIG --version | \
            sed 's/\([[0-9]]*\).\([[0-9]]*\).\([[0-9]]*\)/\1/'`
-    arts_minor_version=`$ARTS_CONFIG $arts_args --version | \
+    arts_minor_version=`$ARTS_CONFIG --version | \
            sed 's/\([[0-9]]*\).\([[0-9]]*\).\([[0-9]]*\)/\2/'`
-    arts_micro_version=`$ARTS_CONFIG $arts_config_args --version | \
+    arts_micro_version=`$ARTS_CONFIG --version | \
            sed 's/\([[0-9]]*\).\([[0-9]]*\).\([[0-9]]*\)/\3/'`
     if test "x$enable_artstest" = "xyes" ; then
       dnl ac_save_CXXFLAGS="$CXXFLAGS"
