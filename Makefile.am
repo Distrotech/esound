@@ -1,7 +1,7 @@
 
 SUBDIRS = docs
 
-ACLOCAL_FLAGS = -I m4
+ACLOCAL_AMFLAGS = -I m4
 
 SPEC_FILE = esound.spec
 
