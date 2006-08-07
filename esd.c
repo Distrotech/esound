@@ -243,11 +243,16 @@ esd_connect_unix(void)
   if ( socket_out < 0 )
     return -1;
   /* this was borrowed blindly from the Tcl socket stuff */
-  if ( fcntl( socket_out, F_SETFD, FD_CLOEXEC ) < 0 )
+  if ( fcntl( socket_out, F_SETFD, FD_CLOEXEC ) < 0 ) {
+    close (socket_out);
     return -1;
+  }
   if ( setsockopt( socket_out, SOL_SOCKET, SO_REUSEADDR,
-		  &curstate, sizeof(curstate) ) < 0 )
+		  &curstate, sizeof(curstate) ) < 0 ) {
+    close (socket_out);
     return -1;
+  }
+
   /* set the connect information */
   socket_unix.sun_family = AF_UNIX;
   strncpy(socket_unix.sun_path, ESD_UNIX_SOCKET_NAME, sizeof(socket_unix.sun_path));
@@ -1104,6 +1109,8 @@ int main ( int argc, char *argv[] )
 #endif
 	}
     } /* while ( 1 ) */
+
+    close (listen_socket);
 
     /* how we'd get here, i have no idea, should only exit on signal */
     clean_exit( -1 );

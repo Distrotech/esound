@@ -1,5 +1,9 @@
 2006-08-07  David Schleef  <ds@schleef.org>
 
+	* esd.c: close master socket in error cases. Fixes #314407.
+
+2006-08-07  David Schleef  <ds@schleef.org>
+
 	* esd.c: Close file descriptors after startup.  Fixes #333186.
 
 2006-08-07  David Schleef  <ds@schleef.org>
