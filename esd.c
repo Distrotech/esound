@@ -1021,7 +1021,8 @@ int main ( int argc, char *argv[] )
 	get_new_clients( listen_socket );
 
 
-	if ((esd_clients_list == NULL) && (!first) && (esd_terminate)) {
+	if ((esd_clients_list == NULL) && (!esd_playing_samples) &&
+            (!first) && (esd_terminate)) {
 /*	  fprintf(stderr, "No clients!\n");*/
 	  clean_exit(0);
 	  exit(0);

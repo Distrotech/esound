@@ -1,5 +1,10 @@
 2006-08-07  David Schleef  <ds@schleef.org>
 
+	* esd.c: Don't terminate until last sample is finished playing.
+	  Fixes #342729.
+
+2006-08-07  David Schleef  <ds@schleef.org>
+
 	* esd.c: close master socket in error cases. Fixes #314407.
 
 2006-08-07  David Schleef  <ds@schleef.org>
