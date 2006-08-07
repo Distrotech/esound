@@ -616,6 +616,9 @@ int main ( int argc, char *argv[] )
     char *hostname=NULL;
     char *endptr;
 
+    int fd0;
+    int max_fds;
+
     /* from esd_config.c */
     extern char esd_spawn_options[];
     extern char esd_default_options[];
@@ -815,6 +818,15 @@ int main ( int argc, char *argv[] )
 	    fprintf( stderr, "unrecognized option: %s\n", opts[ arg ] );
 	}
     }
+
+    /* close all open file descriptors */
+    max_fds = getdtablesize();
+    for(i=0;i<max_fds;i++){
+      close(i);
+    }
+    fd0 = open("/dev/null", O_RDWR);
+    dup(0);
+    dup(0);
 
     /* open the listening socket */
   listen_socket = open_listen_socket(hostname, esd_port );
