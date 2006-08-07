@@ -1,3 +1,11 @@
+2006-08-07  David Schleef  <ds@schleef.org>
+
+	* esd.conf: Turn autospawning off by default.  Don't use
+	  autospawning.  It doesn't work, and it isn't possible to
+	  make it work.  esd should always be started from the session
+	  manager.
+	* esd_config.c:
+
 2006-05-10  David Schleef  <ds@schleef.org>
 
 	* m4/as-arts.m4: Fix arts detection.  Fixes #341251.  Patch
