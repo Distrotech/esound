@@ -1,5 +1,10 @@
 2006-08-07  David Schleef  <ds@schleef.org>
 
+	* players.c: Add check for return value of read.  Patch from
+	  Fernando Herrera.  Fixes #337415.
+
+2006-08-07  David Schleef  <ds@schleef.org>
+
 	* players.c: Add checks for client disconnecting.  Patch from
 	  Peter Åstrand.  Fixes #322206.
 
