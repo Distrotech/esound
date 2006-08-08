@@ -1,5 +1,9 @@
 2006-08-07  David Schleef  <ds@schleef.org>
 
+	* esd.c: Remove bogus call to hstrerror().  Fixes #319968.
+
+2006-08-07  David Schleef  <ds@schleef.org>
+
 	* esd.c: Don't terminate until last sample is finished playing.
 	  Fixes #342729.
 
