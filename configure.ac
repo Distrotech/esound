@@ -274,7 +274,7 @@ if test "x$enable_local_sound" = "xyes"; then
    if test "${ac_cv_header_CoreAudio_CoreAudio_h}" = "yes"; then
       found_sound=yes
       AC_DEFINE(DRIVER_COREAUDIO, 1, [Defined if CoreAudio backend is enabled])
-      SOUND_LIBS="-Wl,-framework -Wl,CoreAudio"
+      SOUND_LIBS="-Wl,-framework,CoreAudio"
    fi
 
    if test "x$enable_arts" = "xyes" ; then
