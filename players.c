@@ -206,7 +206,8 @@ int write_player( esd_player_t *player, void *src_buffer, int src_length,
 		  int src_rate, int src_format )
 {
     fd_set wr_fds;
-    int length = 0, actual = 0, can_write = 0;
+    fd_set rd_fds;
+    int length = 0, actual = 0, ready = 0;
     struct timeval timeout;
     char message[ 100 ];
     unsigned short data, *pos; /* used for swapping */
@@ -217,13 +218,23 @@ int write_player( esd_player_t *player, void *src_buffer, int src_length,
     timeout.tv_sec = 0;
     timeout.tv_usec = 0;
     FD_ZERO( &wr_fds );
+    FD_ZERO( &rd_fds );
     FD_SET( player->source_id, &wr_fds );
+    /* EOF is only indicated in the read set */
+    FD_SET( player->source_id, &rd_fds );
     
     /* if the data is ready, read a block */
-    can_write = select( player->source_id + 1, 
-			NULL, &wr_fds, NULL, &timeout ) ;
-    if ( can_write > 0 )
+    ready = select( player->source_id + 1, 
+			&rd_fds, &wr_fds, NULL, &timeout ) ;
+    if ( ready > 0 )
     {
+	char ch;
+	if ( FD_ISSET(player->source_id, &rd_fds)
+	     && (recv(player->source_id, &ch, 1, MSG_PEEK) < 1) ) {
+	    /* Error or EOF */
+	    return -1;
+	}
+
 	/* translate the data */
 	length = player->translate_func( player->data_buffer, 
 					 player->buffer_length, 
@@ -253,7 +264,7 @@ int write_player( esd_player_t *player, void *src_buffer, int src_length,
 	ESD_WRITE_BIN( player->source_id, player->data_buffer, 
 		       player->buffer_length, length, "str rd" );
 
-    } else if ( can_write < 0 ) {
+    } else if ( ready < 0 ) {
 	sprintf( message, "error writing client (%d)\n", 
 		 player->source_id );
 	perror( message );
