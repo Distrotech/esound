@@ -352,6 +352,7 @@ echo "---------------------------------------------------------------------"
 echo "--- Checking for the audiofile library.  NOTE: This library is now"
 echo "--- REQUIRED from proper compilation of the esound package."
 
+AC_CHECK_HEADER(audiofile.h,,[AC_MSG_ERROR([audiofile is required])])
 AM_PATH_AUDIOFILE(0.1.5, [
 
 build_esdplay=true
