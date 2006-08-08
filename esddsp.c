@@ -44,6 +44,7 @@
 #include <sys/stat.h>
 #include <sys/time.h>
 #include <stdio.h>
+#include <errno.h>
 
 #ifdef HAVE_MACHINE_SOUNDCARD_H
 #  include <machine/soundcard.h>
@@ -214,15 +215,12 @@ static void mmapemu_flush(void)
     }
 }
 
-int
-open (const char *pathname, int flags, ...)
+static int
+open_wrapper (int (*func) (const char *, int, mode_t),
+	      const char *pathname, int flags, ...)
 {
-  static int (*func) (const char *, int, mode_t) = NULL;
   va_list args;
   mode_t mode;
-
-  if (!func)
-    func = (int (*) (const char *, int, mode_t)) dlsym (REAL_LIBC, "open");
 
   dsp_init ();
 
@@ -252,6 +250,136 @@ open (const char *pathname, int flags, ...)
     }
   else
     return (*func) (pathname, flags, mode);
+}
+
+int
+open (const char *pathname, int flags, ...)
+{
+  static int (*func) (const char *, int, mode_t) = NULL;
+  va_list args;
+  mode_t mode;
+
+  DPRINTF ("open\n");
+
+  if (!func) 
+    {
+      func = (int (*) (const char *, int, mode_t)) dlsym (REAL_LIBC, "open");
+      if (!func) 
+	{
+	  fprintf(stderr, "esddsp: error: Cannot find symbol 'open'\n");
+	  errno = ENXIO;
+	  return -1;
+	}
+    }
+
+  va_start (args, flags);
+  mode = va_arg (args, mode_t);
+  va_end (args);
+
+  return open_wrapper(func, pathname, flags, mode);
+}
+
+int
+open64 (const char *pathname, int flags, ...)
+{
+  static int (*func) (const char *, int, mode_t) = NULL;
+  va_list args;
+  mode_t mode;
+
+  DPRINTF ("open64\n");
+
+  if (!func) 
+    {
+      func = (int (*) (const char *, int, mode_t)) dlsym (REAL_LIBC, "open64");
+      if (!func) 
+	{
+	  fprintf(stderr, "esddsp: error: Cannot find symbol 'open64'\n");
+	  errno = ENXIO;
+	  return -1;
+	}
+    }
+
+  va_start (args, flags);
+  mode = va_arg (args, mode_t);
+  va_end (args);
+
+  return open_wrapper(func, pathname, flags, mode);
+}
+
+static FILE *
+fopen_wrapper (FILE * (*func) (const char *, const char *),
+	       const char *pathname, const char *mode)
+{
+  dsp_init ();
+
+  if (!strcmp (pathname, "/dev/dsp"))
+    {
+      if (!getenv ("ESPEAKER") && !mmapemu)
+	{
+          FILE *ret;
+
+	  if ((ret = (*func) (pathname, mode)) != NULL)
+	    return ret;
+	}
+
+      DPRINTF ("hijacking /dev/dsp fopen, and taking it to esd...\n");
+      settings = done = 0;
+      return fdopen((sndfd = esd_open_sound (NULL)), mode);
+    }
+  else if (use_mixer && !strcmp (pathname, "/dev/mixer"))
+    {
+      FILE *ret;
+      DPRINTF ("hijacking /dev/mixer fopen, and taking it to esd...\n");
+
+      if ((ret = (*func) (pathname, mode)) != NULL)
+	{
+	  mixfd = fileno(ret);
+	  return ret;
+	}
+    }
+  else
+    return (*func) (pathname, mode);
+  /* FIXME: warning */
+}
+
+FILE *
+fopen (const char *path, const char *mode)
+{
+  static FILE * (*func) (const char *, const char *) = NULL;
+
+  DPRINTF ("fopen\n");
+
+  if (!func) 
+    {
+      func = (FILE * (*) (const char *, const char *)) dlsym (REAL_LIBC, "fopen");
+      if (!func) 
+	{
+	  fprintf(stderr, "esddsp: error: Cannot find symbol 'fopen'\n");
+	  return NULL;
+	}
+    }
+
+  return fopen_wrapper(func, path, mode);
+}
+
+FILE *
+fopen64 (const char *path, const char *mode)
+{
+  static FILE * (*func) (const char *, const char *) = NULL;
+
+  DPRINTF ("fopen64\n");
+
+  if (!func) 
+    {
+      func = (FILE * (*) (const char *, const char *)) dlsym (REAL_LIBC, "fopen64");
+      if (!func) 
+	{
+	  fprintf(stderr, "esddsp: error: Cannot find symbol 'fopen64'\n");
+	  return NULL;
+	}
+    }
+
+  return fopen_wrapper(func, path, mode);
 }
 
 static int
