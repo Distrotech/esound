@@ -1,3 +1,10 @@
+2007-01-05  Kjartan Maraas  <kmaraas@gnome.org>
+
+	* docs/esdcat.1.in: Updated man page.
+	* docs/esdrec.1.in: Updated man page.
+	Patches from Christopher Hanna at sun com.
+	Closes bug #329626 and bug #329628.
+
 2006-08-08  David Schleef  <ds@schleef.org>
 
 	* esddsp.c: intercept open64() and other 64-bit variants.
