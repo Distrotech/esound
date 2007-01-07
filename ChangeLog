@@ -1,3 +1,8 @@
+2007-01-07  Kjartan Maraas  <kmaraas@gnome.org>
+
+	* docs/esdsample.1.in: Updated man page from
+	Christopher Hanna. Closes bug #329631.
+
 2007-01-05  Kjartan Maraas  <kmaraas@gnome.org>
 
 	* docs/esdcat.1.in: Updated man page.
