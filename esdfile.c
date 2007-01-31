@@ -206,7 +206,7 @@ int esd_file_cache( int esd, const char *name_prefix, const char *filename )
 
     /* connect to server and play stream */
     sample_id = esd_sample_cache( esd, out_format, out_rate, 
-				  length*bytes_per_frame, name );
+				  length, name );
 
     /* play */
     esd_send_file( esd, in_file, bytes_per_frame );
