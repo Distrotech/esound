@@ -343,42 +343,13 @@ AC_SUBST(ESD_PC_DIR)
 dnl make sure we have the library, -laudiofile
 
 build_esdplay=false
-AC_ARG_WITH(audiofile,
-[  --with-audiofile        include support for audiofile related utilities and functions
-                              ARG = { yes | no | check } [default=check]])
 
-if test xno != x$with_audiofile ; then
-echo "---------------------------------------------------------------------"
-echo "--- Checking for the audiofile library.  NOTE: This library is now"
-echo "--- REQUIRED from proper compilation of the esound package."
+PKG_CHECK_MODULES(AUDIOFILE, [audiofile >= 0.1.5])
 
-AC_CHECK_HEADER(audiofile.h,,[AC_MSG_ERROR([audiofile is required])])
-AM_PATH_AUDIOFILE(0.1.5, [
+CFLAGS="$CFLAGS $AUDIOFILE_CFLAGS"
+LIBS="$LIBS $AUDIOFILE_LIBS"
 
 build_esdplay=true
-echo "--- libaudiofile found. Building esound with audiofile support"
-],[
-
-echo "--- ERROR: The audiofile library was not found on your system."
-echo "--- The audiofile library may be obtained from your favourite"
-echo "--- gnome distribution center, or check the audiofile web page at:"
-echo "--- http://www.68k.org/~michael/audiofile/"
-echo "--- NOTE: The audiofile library is now REQUIRED for esound."
-
-])
-
-else
-
-   echo "---------------------------------------------------------------------"
-   echo "--- WARNING: Per configuration request, the audiofile library support"
-   echo "--- not be included.  This may result in errors using some programs"
-   echo "--- designed to operate with esd."
-   echo "--- The audiofile library may be obtained from your favourite"
-   echo "--- gnome distribution center, or check the audiofile web page at:"
-   echo "--- http://www.68k.org/~michael/audiofile/"
-   echo "--- NOTE: The audiofile library is now REQUIRED for esound."
-
-fi
 
 AM_CONDITIONAL(BUILD_ESDPLAY, $build_esdplay)
 

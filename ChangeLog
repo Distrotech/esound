@@ -1,3 +1,8 @@
+2007-01-31  Kjartan Maraas  <kmaraas@gnome.org>
+
+	* configure.ac: Use pkg-config to check for audiofile.
+	Patch from Frederic Peters. Closes bug #350808.
+
 2007-01-07  Kjartan Maraas  <kmaraas@gnome.org>
 
 	* docs/esdsample.1.in: Updated man page from
