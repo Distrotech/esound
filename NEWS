@@ -1,4 +1,16 @@
 ===============
+Version 0.2.37
+===============
+	* Fix null derefs and leaks reported by Covertiy (kjartan)
+	* Build fixes (David Schleef, Thomas Zajic, Behdad Esfahbod) 
+	* Disable autospawning (David Schleef)
+	* Close filedescriptors and sockets (David Schleef)
+	* Don't terminate until the last sample is done (David Schleef)
+	* Add checks for clients disconnecting (Peter Åstrand)
+	* Updated man pages (Christopher Hanna)
+	* Use pkg-config to check for audiofile (Frederic Peters)
+
+===============
 Version 0.2.36
 ===============
 	* New sucker^Wmaintainer (David Schleef)

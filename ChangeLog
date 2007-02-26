@@ -1,3 +1,5 @@
+============================== 0.2.37 ===========================
+
 2007-01-31  Kjartan Maraas  <kmaraas@gnome.org>
 
 	* configure.ac: Use pkg-config to check for audiofile.
