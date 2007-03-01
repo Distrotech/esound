@@ -1,5 +1,9 @@
+if BUILD_ESDDSP
+ESDDSP_MAN = esddsp.1
+endif
+
 man_MANS = \
-	esd.1 esdcat.1 esd-config.1 esdctl.1 esddsp.1 \
+	esd.1 esdcat.1 esd-config.1 esdctl.1 $(ESDDSP_MAN) \
 	esdfilt.1 esdloop.1 esdmon.1 esdplay.1 esdrec.1 esdsample.1 
 
 EXTRA_DIST = \

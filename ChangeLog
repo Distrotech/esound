@@ -1,3 +1,9 @@
+2007-03-01  Kjartan Maraas  <kmaraas@gnome.org>
+
+	* docs/Makefile.am: Only install the esddsp man page if
+	we build the binary. Closes bug #412918. Patch from
+	Cygwin Ports Maintainer.
+
 ============================== 0.2.37 ===========================
 
 2007-01-31  Kjartan Maraas  <kmaraas@gnome.org>
