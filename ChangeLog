@@ -1,5 +1,10 @@
 2007-03-01  Kjartan Maraas  <kmaraas@gnome.org>
 
+	* players.c: (read_player): Fix 100% CPU problem introduced
+	in 0.2.37. Patch from Joe Marcus Clarke. Closes bug #412951.
+
+2007-03-01  Kjartan Maraas  <kmaraas@gnome.org>
+
 	* docs/Makefile.am: Only install the esddsp man page if
 	we build the binary. Closes bug #412918. Patch from
 	Cygwin Ports Maintainer.
