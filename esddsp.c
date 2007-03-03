@@ -336,10 +336,11 @@ fopen_wrapper (FILE * (*func) (const char *, const char *),
 	  mixfd = fileno(ret);
 	  return ret;
 	}
+      else
+        return NULL;
     }
   else
     return (*func) (pathname, mode);
-  /* FIXME: warning */
 }
 
 FILE *
@@ -520,6 +521,8 @@ dspctl (int fd, request_t request, void *argp)
 
 	  DPRINTF ("panning %d - %d %d\n", player, left, right);
 	  esd_set_stream_pan (esd, player, left, right);
+
+	  esd_close(esd);
 	}
     }
 
@@ -551,6 +554,9 @@ mixctl (int fd, request_t request, void *argp)
 	  esd_info_t *all_info;
 
 	  all_info  = esd_get_all_info (esd);
+
+	  esd_close(esd);
+
 	  if (all_info)
 	    {
 	      esd_player_info_t *player_info;
@@ -571,6 +577,7 @@ mixctl (int fd, request_t request, void *argp)
       else
 	{
           get_volume (&left, &right);
+          esd_close(esd);
 	  *arg = ESD_VOL_TO_OSS (left, right);
 	}
 
@@ -589,6 +596,8 @@ mixctl (int fd, request_t request, void *argp)
 	  DPRINTF ("panning %d - %d %d\n", player, left, right);
 	  esd_set_stream_pan (esd, player, left, right);
 	}
+
+      esd_close(esd);
 
       break;
 

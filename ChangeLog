@@ -1,5 +1,11 @@
 2007-03-02  David Schleef  <ds@schleef.org>
 
+	* esddsp.c:
+	  Fix leaking of file descriptors.  Patch from Pierre Ossman.
+	  Fixes bug #362826.  (Also fix an important warning.)
+
+2007-03-02  David Schleef  <ds@schleef.org>
+
 	* Makefile.am:
 	* configure.ac:
 	  Fix detection for linking against libdl.
