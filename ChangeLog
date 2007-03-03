@@ -1,3 +1,10 @@
+2007-03-02  David Schleef  <ds@schleef.org>
+
+	* Makefile.am:
+	* configure.ac:
+	  Fix detection for linking against libdl.
+	  Patch from Loïc Minier.  Fixes bug #409269.
+
 2007-03-01  Kjartan Maraas  <kmaraas@gnome.org>
 
 	* players.c: (read_player): Fix 100% CPU problem introduced

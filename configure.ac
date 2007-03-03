@@ -176,6 +176,26 @@ AC_ARG_ENABLE(arts,
   [enable_arts=${enableval}],
   [enable_arts=no])
 
+dnl build the esddsp wrapper for systems, 
+dnl that support LD_PRELOAD and RTLD_NEXT only
+dsp_ok=no DL_LIB=
+
+AC_MSG_CHECKING([if your platform supports esddsp])
+case "$host_os" in
+  linux* | freebsd* | kfreebsd*-gnu | bsdi4* )
+    dsp_ok=yes
+    ;;
+esac
+AC_MSG_RESULT($dsp_ok)
+
+if test "x$dsp_ok" = xyes; then
+   AC_CHECK_FUNC(dlopen, DL_LIB=,
+      AC_CHECK_LIB(dl, dlopen, DL_LIB=-ldl))
+   ESDDSP=esddsp
+   LIBESDDSP=libesddsp.la
+fi
+AM_CONDITIONAL(BUILD_ESDDSP, test "x$dsp_ok" = xyes)
+
 if test "x$enable_local_sound" = "xyes"; then
    found_sound=no
 
@@ -397,26 +417,6 @@ int deny_severity = LOG_WARNING;],
 
    LIBS="$esound_save_LIBS"
 fi
-
-dnl build the esddsp wrapper for systems, 
-dnl that support LD_PRELOAD and RTLD_NEXT only
-dsp_ok=no DL_LIB=
-
-AC_MSG_CHECKING([if your platform supports esddsp])
-case "$host_os" in
-  linux* | freebsd* | kfreebsd*-gnu | bsdi4* )
-    dsp_ok=yes
-    ;;
-esac
-AC_MSG_RESULT($dsp_ok)
-
-if test "x$dsp_ok" = xyes; then
-   AC_CHECK_FUNC(dlopen, dsp_ok=yes,
-      AC_CHECK_LIB(dl, dlopen, dsp_ok=yes DL_LIB=-ldl))
-   ESDDSP=esddsp
-   LIBESDDSP=libesddsp.la
-fi
-AM_CONDITIONAL(BUILD_ESDDSP, test "x$dsp_ok" = xyes)
 
 AS_COMPILER_FLAG(-Wall, CFLAGS="$CFLAGS -Wall")
 

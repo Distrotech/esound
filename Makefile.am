@@ -61,7 +61,7 @@ AUDIO_BACKENDS = \
 	audio_win32.c
 
 libesddsp_la_LDFLAGS = -version-info $(ESD_VERSION_INFO)
-libesddsp_la_LIBADD = $(DL_LIB) -lm
+libesddsp_la_LIBADD = $(DL_LIB) -lm libesd.la
 
 libesddsp_la_SOURCES = \
 	esddsp.c
