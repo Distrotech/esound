@@ -303,10 +303,9 @@ int read_player( esd_player_t *player )
 			   &rd_fds, NULL, NULL, &timeout ) ;
 	if ( can_read > 0 )
 	{
-	    int bytes_read;
 	    player->actual_length = 0;
 	    do {
-		bytes_read = ESD_READ_BIN( player->source_id,
+		ESD_READ_BIN( player->source_id,
 			      player->data_buffer + player->actual_length, 
 			      player->buffer_length - player->actual_length,
 			      actual, "str rd" );
@@ -315,7 +314,7 @@ int read_player( esd_player_t *player )
 		     || ( actual < 0 && errno != EAGAIN && errno != EINTR ) )
 		    return -1;
 
-		if (bytes_read < player->buffer_length - player->actual_length)
+		if (actual < player->buffer_length - player->actual_length)
 			break;
 		
 		/* more data, save how much we got */

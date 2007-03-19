@@ -1,3 +1,8 @@
+2007-03-19  David Schleef  <ds@schleef.org>
+
+	* players.c: the read/write wrapper macros don't have return
+	  values.  Fixes #419642.
+
 2007-03-02  David Schleef  <ds@schleef.org>
 
 	* esddsp.c:
