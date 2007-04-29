@@ -823,6 +823,9 @@ int main ( int argc, char *argv[] )
 	}
     }
 
+    /* cd to / */
+    chdir ("/");
+
     /* close all open file descriptors */
     max_fds = getdtablesize();
     for(i=0;i<max_fds;i++){

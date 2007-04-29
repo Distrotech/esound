@@ -1,3 +1,7 @@
+2007-04-28  David Schleef  <ds@schleef.org>
+
+	* esd.c: chdir to /.  Fixes #399500.
+
 2007-03-19  David Schleef  <ds@schleef.org>
 
 	* players.c: the read/write wrapper macros don't have return
