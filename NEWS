@@ -1,4 +1,15 @@
 ===============
+Version 0.2.38
+===============
+	* Fix 100% CPU problem introduced in 0.2.37 (Joe Marcus Clarke)
+	* Fix libesddsp not linking against libesd (Loïc Minier)
+	* Fix file descriptor leaks (Pierre Ossman)
+	* Fix a build problem with the read/write wrapper (Jean Bréfort)
+	* chdir to "/" when starting up (Dan Winship)
+	* Only install the esddsp man page if we build the binary
+	(<yselkowitz@users.sourceforge.net>)
+
+===============
 Version 0.2.37
 ===============
 	* Fix null derefs and leaks reported by Covertiy (kjartan)

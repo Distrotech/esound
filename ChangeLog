@@ -1,3 +1,10 @@
+============================== 0.2.38 ===========================
+
+2007-05-03  Bastien Nocera  <hadess@hadess.net>
+
+	* configure.ac: Release 0.2.38
+	* NEWS: upd
+
 2007-04-28  David Schleef  <ds@schleef.org>
 
 	* esd.c: chdir to /.  Fixes #399500.
