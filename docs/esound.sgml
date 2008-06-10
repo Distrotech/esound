@@ -1,5 +1,6 @@
-<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook V3.1//EN" [
- ]>
+<?xml version="1.0"?>
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.1.2//EN"
+               "http://www.oasis-open.org/docbook/xml/4.1.2/docbookx.dtd">
 
 <book id="index">
 
@@ -727,6 +728,7 @@
     <title>EsounD Command Reference</title>
 
     <refentry id="refentry-esd">
+	<indexterm id="index-esd"><primary>esd</primary></indexterm>
 
       <refmeta>
 	<refentrytitle>esd</refentrytitle>
@@ -736,7 +738,6 @@
       <refnamediv>
 	<refname>esd</refname>
 	<refpurpose>The Enlightened Sound Daemon</refpurpose>
-	<indexterm id="index-esd"><primary>esd</primary></indexterm>
       </refnamediv>
 
       <refsynopsisdiv>
