@@ -22,9 +22,9 @@
 
 
 /* Debug flag */
-int alsadbg = 0;
+static int alsadbg = 0;
 /* Error flag */
-int alsaerr = 0;
+static int alsaerr = 0;
 #include <alsa/asoundlib.h>
 
 /* FULL DUPLEX => two handlers */
@@ -285,6 +285,10 @@ const char *esd_audio_devices(void)
         }
 }
 
+static void noerr(const char *file, int line, const char *func, int err,
+				  const char *fmt, ...)
+{
+}
 
 #define ARCH_esd_audio_open
 
@@ -294,7 +298,18 @@ int esd_audio_open(void)
 	int channels;
 	int format;
 	char *dev;
+	char *debug;
   
+	debug = getenv("ESD_DEBUG");
+	if (debug && *debug) {
+		alsadbg = atoi(debug);
+		if (alsadbg < 0)
+			alsadbg = 0;
+	} else {
+		/* suppress verbose error messages from alsa-lib */
+		snd_lib_error_set_handler(noerr);
+	}
+
 	if (alsadbg)
 		fprintf(stderr, "esd_audio_open\n");
 

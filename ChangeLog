@@ -1,3 +1,59 @@
+============================== 0.2.39 ===========================
+
+2008-07-15  Jeffrey Stedfast  <fejj@novell.com>
+
+	* configure.ac: Release 0.2.39
+
+	* NEWS: updated
+
+	* esdlib.c Update all code to use new read/write/connect wrappers
+	that abort if the operation takes too long and/or the other end
+	drops the connection. Fixes bug #542391.
+	(read_timeout): New function to abort a read() if it takes too
+	long and/or if the other end drops the connection.
+	(write_timeout): Same idea here.
+	(connect_timeout): Same.
+
+2008-07-15  Jeffrey Stedfast  <fejj@novell.com>
+
+	* audio_alsa09.c: Suppress verbose error messages from ALSA. Patch
+	by Stanislav Brabec to fix bug #528718.
+
+2008-07-15  Jeffrey Stedfast  <fejj@novell.com>
+
+	* util.c (esd_get_socket_dirname): Allow for multiple esd
+	instances. Patch by Martin (Pitt?) from Ubuntu. Fixes bug #465067.
+
+2008-07-15  Jeffrey Stedfast  <fejj@novell.com>
+
+	* esd-config.in: Fix esound-config on multilib setups (bug
+	#435652). Patch by Matthias Clasen <mclasen@redhat.com>.
+
+2008-07-15  Jeffrey Stedfast  <fejj@novell.com>
+
+	* esddsp.in (LD_PRELOAD): search for library by itself, so that
+	both 32-bit and 64-bit programs work with a single esddsp
+	script. Fixes bug #435651.
+
+2008-07-15  Jeffrey Stedfast  <fejj@novell.com>
+
+	* audio_oss.c (esd_audio_open): Don't report errors if /dev/dsp
+	doesn't exist (Based on Havoc's patch).  Fixes bug #435649.
+
+2008-07-15  Jeffrey Stedfast  <fejj@novell.com>
+
+	Following fixes by Rémi Cardona - fixes bug #531947
+
+	* doc/Makefile.am: Fixed up gtk-doc build.
+
+	* Makefile.am: Reorder LDADD for libesddsp
+
+	* esddsp.c (open_wrapper): If mode_t is smaller than int, pop the
+	mode as an int from the varargs.
+
+	* clients.c (get_new_clients): Cast 3rd argument of accept() to a
+	socklen_t* to fix some breakage on amd64(?).
+
 2008-06-10  German Poo-Caaman~o  <gpoo@gnome.org>
 
 	* docs/esound.sgml: Updated docbooktype and fixed the build

@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <stdio.h>
 
 /* Run-time check for IPv6 support */
 int 
@@ -23,22 +24,18 @@ have_ipv6(void) {
 const char*
 esd_get_socket_dirname (void) 
 {
-	const char *audiodev;
+	const char *audiodev = NULL;
 	static char *dirname = NULL;
 
-	if (dirname == NULL) {
-		if (!(audiodev = getenv("AUDIODEV"))) {
-			audiodev = "";
-		} else {
-			char *newdev = strrchr(audiodev, '/');
-			if (newdev != NULL) {
-				audiodev = newdev++;
-			}
-		}
-		dirname = malloc(strlen(audiodev) + sizeof("/tmp/.esd"));
-		strcpy(dirname, "/tmp/.esd");
-		strcat(dirname, audiodev);
-	}
+        if ((audiodev = getenv("AUDIODEV"))) {
+                char *newdev = strrchr(audiodev, '/');
+                if (newdev != NULL) {
+                        audiodev = newdev++;
+                }
+        } else
+            audiodev = "";
+        dirname = malloc(strlen(audiodev) +  40);
+        sprintf (dirname, "/tmp/.esd%s-%i", audiodev, getuid());
 
 	return dirname;
 }

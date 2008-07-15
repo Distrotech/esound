@@ -41,7 +41,8 @@ int esd_audio_open()
     device = esd_audio_device ? esd_audio_device : "/dev/dsp";
     if ((afd = open(device, mode, 0)) == -1)
     {   /* Opening device failed */
-        perror(device);
+	if (errno != ENOENT)
+		perror(device);
         return( -2 );
     }
 

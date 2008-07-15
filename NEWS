@@ -1,4 +1,15 @@
 ===============
+Version 0.2.39
+===============
+	* Fixed esd client-side code to not hang if esd crashes/hangs
+          or otherwise becomes unreachable (Jeffrey Stedfast)
+	* Suppress verbose error messages from ALSA (Stanislav Brabec)
+	* Allow for multiple esd instances 
+	* Fix esound-config for multi-lib setups (Matthias Clasen)
+	* Don't report errors about /dev/dsp not existing (Havoc Pennington)
+	* Various other build fixes for AMD64 (Rémi Cardona)
+
+===============
 Version 0.2.38
 ===============
 	* Fix 100% CPU problem introduced in 0.2.37 (Joe Marcus Clarke)

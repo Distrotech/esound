@@ -106,7 +106,7 @@ fi
 prefix=@prefix@
 exec_prefix=@exec_prefix@
 
-LD_PRELOAD="@libdir@/libesddsp.so.@ESD_MAJOR_VERSION@ @libdir@/libesd.so.@ESD_MAJOR_VERSION@ $LD_PRELOAD"
+LD_PRELOAD="libesddsp.so.@ESD_MAJOR_VERSION@ libesd.so.@ESD_MAJOR_VERSION@ $LD_PRELOAD"
 export LD_PRELOAD
 
 # invoke the program with the args given

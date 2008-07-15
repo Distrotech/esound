@@ -1,10 +1,7 @@
 #!/bin/sh
 
-audiofile_libs="@AUDIOFILE_LIBS@"
-audiofile_cflags="@AUDIOFILE_CFLAGS@"
-
-prefix=@prefix@
-exec_prefix=@exec_prefix@
+prefix=`pkg-config --variable prefix esound`
+exec_prefix=`pkg-config --variable exec_prefix esound`
 exec_prefix_set=no
 
 usage="\
@@ -39,32 +36,13 @@ while test $# -gt 0; do
       echo $exec_prefix
       ;;
     --version)
-      echo @ESD_VERSION@
+      pkg-config --modversion esound
       ;;
     --cflags)
-      if test @includedir@ != /usr/include ; then
-        includes=-I@includedir@
-        for i in $audiofile_cflags ; do
-          if test $i = -I@includedir@ ; then
-            includes=""
-          fi
-        done      
-      fi
-      echo $includes $audiofile_cflags
+      pkg-config --cflags esound
       ;;
     --libs)
-      my_audiofile_libs=
-      libdirs=-L@libdir@
-      for i in $audiofile_libs ; do
-        if test $i != -L@libdir@ ; then
-          if test -z "$my_audiofile_libs" ; then
-            my_audiofile_libs="$i"
-          else
-            my_audiofile_libs="$my_audiofile_libs $i"
-          fi
-        fi
-      done
-      echo $libdirs -lesd $my_audiofile_libs @LIBS@
+      pkg-config --libs esound
       ;;
     *)
       echo "${usage}" 1>&2

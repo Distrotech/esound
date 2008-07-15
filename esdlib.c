@@ -20,8 +20,10 @@
 #include <arpa/inet.h>
 #include <errno.h>
 #include <sys/wait.h>
+#include <poll.h>
 
 #include <sys/un.h>
+
 
 #ifndef SUN_LEN
 #define SUN_LEN(ptr) ((size_t) (((struct sockaddr_un *) 0)->sun_path)  \
@@ -75,6 +77,88 @@ int inet_aton(const char *cp, struct in_addr *inp)
 #endif
 #endif
 
+static ssize_t
+read_timeout (int fd, char *buf, size_t buflen)
+{
+	struct pollfd pfd[1];
+	int flags, rv;
+	ssize_t n;
+	
+	pfd[0].fd = fd;
+	pfd[0].events = POLLIN;
+	
+	do {
+		pfd[0].revents = 0;
+		rv = poll (pfd, 1, 100);
+	} while (rv == -1 && errno == EINTR);
+	
+	if (rv < 1 || !(pfd[0].revents & POLLIN)) {
+		errno = ETIMEDOUT;
+		return -1;
+	}
+	
+	if ((flags = fcntl (fd, F_GETFL)) == -1)
+		return -1;
+	
+	fcntl (fd, F_SETFL, flags | O_NONBLOCK);
+	
+	do {
+		n = read (fd, buf, buflen);
+	} while (n == -1 && errno == EINTR);
+	
+	if (n == -1) {
+		rv = errno;
+		fcntl (fd, F_SETFL, flags);
+		errno = rv;
+		return -1;
+	}
+	
+	fcntl (fd, F_SETFL, flags);
+	
+	return n;
+}
+
+static ssize_t
+write_timeout (int fd, const char *buf, size_t buflen)
+{
+	struct pollfd pfd[1];
+	size_t nwritten = 0;
+	int flags, rv;
+	ssize_t n;
+	
+	if ((flags = fcntl (fd, F_GETFL)) == -1)
+		return -1;
+	
+	fcntl (fd, F_SETFL, flags | O_NONBLOCK);
+	
+	do {
+		pfd[0].fd = fd;
+		pfd[0].events = POLLOUT;
+		
+		do {
+			pfd[0].revents = 0;
+			rv = poll (pfd, 1, 100);
+		} while (rv == -1 && errno == EINTR);
+		
+		if (rv < 1 || !(pfd[0].revents & POLLOUT)) {
+			fcntl (fd, F_SETFL, flags);
+			errno = ETIMEDOUT;
+			return -1;
+		}
+		
+		do {
+			n = write (fd, buf + nwritten, buflen - nwritten);
+		} while (n == -1 && errno == EINTR);
+		
+		if (n > 0)
+			nwritten += n;
+	} while (nwritten < buflen);
+	
+	fcntl (fd, F_SETFL, flags);
+	
+	return nwritten;
+}
+
 /**
  * esd_set_socket_buffers: set buffer lengths on a socket to optimal.
  * @sock: ESD socket
@@ -124,13 +208,13 @@ int esd_get_latency(int esd)
 /* a bad day - ignore the SIGPIPE, then make sure to catch all errors */
     phandler = signal( SIGPIPE, dummy_signal );    /* for closed esd conns */
     /* send the necessary information */
-    if ( write( esd, &proto, sizeof(proto) ) != sizeof(proto) ) {
+    if ( write_timeout( esd, (const char *) &proto, sizeof(proto) ) != sizeof(proto) ) {
 	signal( SIGPIPE, phandler ); 
 	return -1;
     }
 
     /* get the latency back from the server */
-    if ( read( esd, &lag, sizeof(lag) ) != sizeof(lag) ) {
+    if ( read_timeout( esd, (char *) &lag, sizeof(lag) ) != sizeof(lag) ) {
 	signal( SIGPIPE, phandler ); 
 	return -1;
     }
@@ -148,6 +232,7 @@ int esd_get_latency(int esd)
   
     return lag;
 }
+
 
 /**
  * esd_send_auth: send authorization to esd
@@ -207,25 +292,26 @@ int esd_send_auth( int sock )
 	}
 
 	esound_genrand(auth_key, ESD_KEY_LEN);
-	write( auth_fd, auth_key, ESD_KEY_LEN);
-    } else
+	write_timeout( auth_fd, (const char *) auth_key, ESD_KEY_LEN);
+    } else {
       /* read the key from the authorization file */
-      if ( ESD_KEY_LEN != read( auth_fd, auth_key, ESD_KEY_LEN ) )
+      if ( ESD_KEY_LEN != read_timeout( auth_fd, (char *) auth_key, ESD_KEY_LEN ) )
 	goto exit_fd;
-
+    }
+    
     /* send the key to the server */
-    if ( ESD_KEY_LEN != write( sock, auth_key, ESD_KEY_LEN ) )
+    if ( ESD_KEY_LEN != write_timeout( sock, (const char *) auth_key, ESD_KEY_LEN ) )
 	/* send key failed */
 	goto exit_fd;
 
     /* send the key to the server */
-    if ( sizeof(endian) != write( sock, &endian, sizeof(endian) ) )
+    if ( sizeof(endian) != write_timeout( sock, (const char *) &endian, sizeof(endian) ) )
 	/* send key failed */
 	goto exit_fd;
 
     /* read auth reply. esd will reply 1 as an int for yes and 0 for no */
     /* then close the connection */
-    if ( sizeof(reply) != read( sock, &reply, sizeof(reply) ) ) {
+    if ( sizeof(reply) != read_timeout( sock, (char *) &reply, sizeof(reply) ) ) {
 	/* read ok failed */
 	retval = 0;
 	goto exit_fd;
@@ -278,10 +364,10 @@ int esd_lock( int esd ) {
       printf( "esound locking\n" );
     */
 
-    write( esd, &proto, sizeof(proto) );
+    write_timeout( esd, (const char *) &proto, sizeof(proto) );
     esd_send_auth( esd );
 
-    if ( read( esd, &ok, sizeof(ok) ) != sizeof(ok) ) {
+    if ( read_timeout( esd, (char *) &ok, sizeof(ok) ) != sizeof(ok) ) {
 	signal( SIGPIPE, phandler ); 
 	return -1;
     }
@@ -317,10 +403,10 @@ int esd_unlock( int esd ){
       printf( "esound unlocking\n" );
     */
 
-    write( esd, &proto, sizeof(proto) );
+    write_timeout( esd, (const char *) &proto, sizeof(proto) );
     esd_send_auth( esd );
 
-    if ( read( esd, &ok, sizeof(ok) ) != sizeof(ok) ) {
+    if ( read_timeout( esd, (char *) &ok, sizeof(ok) ) != sizeof(ok) ) {
 	signal( SIGPIPE, phandler ); 
 	return -1;
     }
@@ -357,10 +443,10 @@ int esd_standby( int esd )
       printf( "esound standing by\n" );
     */
 
-    write( esd, &proto, sizeof(proto) );
+    write_timeout( esd, (const char *) &proto, sizeof(proto) );
     esd_send_auth( esd );
 
-    if ( read( esd, &ok, sizeof(ok) ) != sizeof(ok) ) {
+    if ( read_timeout( esd, (char *) &ok, sizeof(ok) ) != sizeof(ok) ) {
 	signal( SIGPIPE, phandler ); 
 	return -1;
     }
@@ -396,16 +482,53 @@ int esd_resume( int esd )
       printf( "esound resuming\n" );
     */
 
-    write( esd, &proto, sizeof(proto) );
+    write_timeout( esd, (const char *) &proto, sizeof(proto) );
     esd_send_auth( esd );
 
-    if ( read( esd, &ok, sizeof(ok) ) != sizeof(ok) ) {
+    if ( read_timeout( esd, (char *) &ok, sizeof(ok) ) != sizeof(ok) ) {
 	signal( SIGPIPE, phandler ); 
 	return -1;
     }
 
     signal( SIGPIPE, phandler ); 
     return ok;
+}
+
+static int
+connect_timeout (int sockfd, const struct sockaddr *serv_addr, size_t addrlen, int timeout)
+{
+	struct pollfd pfd[1];
+	int flags, rv;
+	
+	if ((flags = fcntl (sockfd, F_GETFL)) == -1)
+		return -1;
+	
+	fcntl (sockfd, F_SETFL, flags | O_NONBLOCK);
+	
+	if (connect (sockfd, serv_addr, addrlen) == 0) {
+		fcntl (sockfd, F_SETFL, flags);
+		return 0;
+	}
+	
+	if (errno != EINPROGRESS)
+		return -1;
+	
+	pfd[0].fd = sockfd;
+	pfd[0].events = POLLIN | POLLOUT;
+	
+	do {
+		pfd[0].revents = 0;
+		rv = poll (pfd, 1, timeout);
+	} while (rv == -1 && errno == EINTR);
+	
+	if (pfd[0].revents & (POLLIN | POLLOUT)) {
+		/* success, we are now connected */
+		fcntl (sockfd, F_SETFL, flags);
+		return 0;
+	}
+	
+	/* took too long / error connecting, either way: epic fail */
+	return -1;
 }
 
 /**
@@ -512,7 +635,7 @@ esd_connect_tcpip(const char *host)
            goto error_out;
          }
 
-         if ( connect( socket_out, res->ai_addr, res->ai_addrlen ) != -1 ) 
+         if ( connect_timeout ( socket_out, res->ai_addr, res->ai_addrlen, 1000 ) != -1 ) 
            break;
 
          close ( socket_out );
@@ -596,9 +719,9 @@ esd_connect_tcpip(const char *host)
     socket_addr.sin_family = AF_INET;
     socket_addr.sin_port = htons( port );
   
-    if ( connect( socket_out,
-		  (struct sockaddr *) &socket_addr,
-		  sizeof(struct sockaddr_in) ) < 0 )
+    if ( connect_timeout ( socket_out,
+			   (struct sockaddr *) &socket_addr,
+			   sizeof(struct sockaddr_in), 1000 ) < 0 )
 	goto error_out;
 
     }
@@ -650,8 +773,7 @@ esd_connect_unix(void)
     socket_unix.sun_family = AF_UNIX;
     strncpy(socket_unix.sun_path, ESD_UNIX_SOCKET_NAME, sizeof(socket_unix.sun_path));
   
-    if ( connect( socket_out,
-		  (struct sockaddr *) &socket_unix, SUN_LEN(&socket_unix) ) < 0 )
+    if ( connect_timeout ( socket_out, (struct sockaddr *) &socket_unix, SUN_LEN(&socket_unix), 100 ) < 0 )
 	goto error_out;
   
     return socket_out;
@@ -795,7 +917,7 @@ int esd_open_sound( const char *host )
 	
 	if (ret == 1) {
 	    char c;
-	    ret = read (esd_pipe[0], &c, 1);
+	    ret = read_timeout (esd_pipe[0], &c, 1);
 
 	    if (ret == 1) {
 		socket_out = esd_connect_unix();
@@ -857,19 +979,19 @@ int esd_play_stream( esd_format_t format, int rate,
 /* a bad day - ignore the SIGPIPE, then make sure to catch all errors */
     phandler = signal( SIGPIPE, dummy_signal );    /* for closed esd conns */
     /* send the audio format information */
-    if ( write( sock, &proto, sizeof(proto) ) != sizeof(proto) ) {
+    if ( write_timeout( sock, (const char *) &proto, sizeof(proto) ) != sizeof(proto) ) {
 	signal( SIGPIPE, phandler );
 	return -1;
     }
-    if ( write( sock, &format, sizeof(format) ) != sizeof(format) ) {
+    if ( write_timeout( sock, (const char *) &format, sizeof(format) ) != sizeof(format) ) {
 	signal( SIGPIPE, phandler );
 	return -1;
     }
-    if( write( sock, &rate, sizeof(rate) ) != sizeof(rate) ) {
+    if( write_timeout( sock, (const char *) &rate, sizeof(rate) ) != sizeof(rate) ) {
 	signal( SIGPIPE, phandler );
 	return -1;
     }
-    if( write( sock, name_buf, ESD_NAME_MAX ) != ESD_NAME_MAX ) {
+    if( write_timeout( sock, name_buf, ESD_NAME_MAX ) != ESD_NAME_MAX ) {
 	signal( SIGPIPE, phandler );
 	return -1;
     }
@@ -971,19 +1093,19 @@ int esd_monitor_stream( esd_format_t format, int rate,
 /* a bad day - ignore the SIGPIPE, then make sure to catch all errors */
     phandler = signal( SIGPIPE, dummy_signal );    /* for closed esd conns */
     /* send the audio format information */
-    if ( write( sock, &proto, sizeof(proto) ) != sizeof(proto) ) {
+    if ( write_timeout( sock, (const char *) &proto, sizeof(proto) ) != sizeof(proto) ) {
 	signal( SIGPIPE, phandler ); 
 	return -1;
     }
-    if ( write( sock, &format, sizeof(format) ) != sizeof(format) ) {
+    if ( write_timeout( sock, (const char *) &format, sizeof(format) ) != sizeof(format) ) {
 	signal( SIGPIPE, phandler ); 
 	return -1;
     }
-    if( write( sock, &rate, sizeof(rate) ) != sizeof(rate) ) {
+    if( write_timeout( sock, (const char *) &rate, sizeof(rate) ) != sizeof(rate) ) {
 	signal( SIGPIPE, phandler ); 
 	return -1;
     }
-    if( write( sock, name_buf, ESD_NAME_MAX ) != ESD_NAME_MAX ) {
+    if( write_timeout( sock, name_buf, ESD_NAME_MAX ) != ESD_NAME_MAX ) {
 	signal( SIGPIPE, phandler ); 
 	return -1;
     }
@@ -1052,19 +1174,19 @@ int esd_filter_stream( esd_format_t format, int rate,
 /* a bad day - ignore the SIGPIPE, then make sure to catch all errors */
     phandler = signal( SIGPIPE, dummy_signal );    /* for closed esd conns */
     /* send the audio format information */
-    if ( write( sock, &proto, sizeof(proto) ) != sizeof(proto) ) {
+    if ( write_timeout( sock, (const char *) &proto, sizeof(proto) ) != sizeof(proto) ) {
 	signal( SIGPIPE, phandler ); 
 	return -1;
     }
-    if ( write( sock, &format, sizeof(format) ) != sizeof(format) ) {
+    if ( write_timeout( sock, (const char *) &format, sizeof(format) ) != sizeof(format) ) {
 	signal( SIGPIPE, phandler ); 
 	return -1;
     }
-    if( write( sock, &rate, sizeof(rate) ) != sizeof(rate) ) {
+    if( write_timeout( sock, (const char *) &rate, sizeof(rate) ) != sizeof(rate) ) {
 	signal( SIGPIPE, phandler ); 
 	return -1;
     }
-    if( write( sock, name_buf, ESD_NAME_MAX ) != ESD_NAME_MAX ) {
+    if( write_timeout( sock, name_buf, ESD_NAME_MAX ) != ESD_NAME_MAX ) {
 	signal( SIGPIPE, phandler ); 
 	return -1;
     }
@@ -1122,19 +1244,19 @@ int esd_record_stream( esd_format_t format, int rate,
 /* a bad day - ignore the SIGPIPE, then make sure to catch all errors */
     phandler = signal( SIGPIPE, dummy_signal );    /* for closed esd conns */
     /* send the audio format information */
-    if ( write( sock, &proto, sizeof(proto) ) != sizeof(proto) ) {
+    if ( write_timeout( sock, (const char *) &proto, sizeof(proto) ) != sizeof(proto) ) {
 	signal( SIGPIPE, phandler ); 
 	return -1;
     }
-    if ( write( sock, &format, sizeof(format) ) != sizeof(format) ) {
+    if ( write_timeout( sock, (const char *) &format, sizeof(format) ) != sizeof(format) ) {
 	signal( SIGPIPE, phandler ); 
 	return -1;
     }
-    if( write( sock, &rate, sizeof(rate) ) != sizeof(rate) ) {
+    if( write_timeout( sock, (const char *) &rate, sizeof(rate) ) != sizeof(rate) ) {
 	signal( SIGPIPE, phandler ); 
 	return -1;
     }
-    if( write( sock, name_buf, ESD_NAME_MAX ) != ESD_NAME_MAX ) {
+    if( write_timeout( sock, name_buf, ESD_NAME_MAX ) != ESD_NAME_MAX ) {
 	signal( SIGPIPE, phandler ); 
 	return -1;
     }
@@ -1235,24 +1357,24 @@ int esd_sample_cache( int esd, esd_format_t format, const int rate,
 /* a bad day - ignore the SIGPIPE, then make sure to catch all errors */
     phandler = signal( SIGPIPE, dummy_signal );    /* for closed esd conns */
     /* send the necessary information */
-    if ( write( esd, &proto, sizeof(proto) ) != sizeof(proto) ) {
+    if ( write_timeout( esd, (const char *) &proto, sizeof(proto) ) != sizeof(proto) ) {
 	signal( SIGPIPE, phandler ); 
 	return -1;
     }
 
-    if ( write( esd, &format, sizeof(format) ) != sizeof(format) ) {
+    if ( write_timeout( esd, (const char *) &format, sizeof(format) ) != sizeof(format) ) {
 	signal( SIGPIPE, phandler ); 
 	return -1;
     }
-    if ( write( esd, &rate, sizeof(rate) ) != sizeof(rate) ) {
+    if ( write_timeout( esd, (const char *) &rate, sizeof(rate) ) != sizeof(rate) ) {
 	signal( SIGPIPE, phandler ); 
 	return -1;
     }
-    if ( write( esd, &size, sizeof(size) ) != sizeof(size) ) {
+    if ( write_timeout( esd, (const char *) &size, sizeof(size) ) != sizeof(size) ) {
 	signal( SIGPIPE, phandler ); 
 	return -1;
     }
-    if ( write( esd, name_buf, ESD_NAME_MAX ) != ESD_NAME_MAX ) {
+    if ( write_timeout( esd, name_buf, ESD_NAME_MAX ) != ESD_NAME_MAX ) {
 	signal( SIGPIPE, phandler ); 
 	return -1;
     }
@@ -1261,7 +1383,7 @@ int esd_sample_cache( int esd, esd_format_t format, const int rate,
     /* fsync( esd ); */
 
     /* get the sample id back from the server */
-    if ( read( esd, &id, sizeof(id) ) != sizeof(id) ) {
+    if ( read_timeout( esd, (char *) &id, sizeof(id) ) != sizeof(id) ) {
 	signal( SIGPIPE, phandler ); 
 	return -1;
     }
@@ -1290,7 +1412,7 @@ int esd_confirm_sample_cache( int esd )
 /* a bad day - ignore the SIGPIPE, then make sure to catch all errors */
     phandler = signal( SIGPIPE, dummy_signal );    /* for closed esd conns */
     /* get the sample id back from the server */
-    if ( read( esd, &id, sizeof(id) ) != sizeof(id) ) {
+    if ( read_timeout( esd, (char *) &id, sizeof(id) ) != sizeof(id) ) {
 	signal( SIGPIPE, phandler ); 
 	return -1;
     }
@@ -1319,7 +1441,7 @@ int esd_sample_getid( int esd, const char *name)
 /* we need to catch SIGPIPE to avoid the default handler giving us */
 /* a bad day - ignore the SIGPIPE, then make sure to catch all errors */
     phandler = signal( SIGPIPE, dummy_signal );    /* for closed esd conns */
-    if ( write( esd, &proto, sizeof(proto) ) != sizeof(proto) ) {
+    if ( write_timeout( esd, (const char *) &proto, sizeof(proto) ) != sizeof(proto) ) {
 	signal( SIGPIPE, phandler ); 
 	return -1;
     }
@@ -1330,7 +1452,7 @@ int esd_sample_getid( int esd, const char *name)
     else
 	namebuf[ 0 ] = '\0';
 
-    if ( write( esd, namebuf, ESD_NAME_MAX ) != ESD_NAME_MAX ) {
+    if ( write_timeout( esd, namebuf, ESD_NAME_MAX ) != ESD_NAME_MAX ) {
 	signal( SIGPIPE, phandler ); 
 	return -1;
     }
@@ -1339,7 +1461,7 @@ int esd_sample_getid( int esd, const char *name)
     /* fsync( esd ); */
 
     /* get the sample id back from the server */
-    if ( read( esd, &id, sizeof(id) ) != sizeof(id) ) {
+    if ( read_timeout( esd, (char *) &id, sizeof(id) ) != sizeof(id) ) {
 	signal( SIGPIPE, phandler ); 
 	return -1;
     }
@@ -1371,18 +1493,18 @@ int esd_sample_free( int esd, int sample )
 /* a bad day - ignore the SIGPIPE, then make sure to catch all errors */
     phandler = signal( SIGPIPE, dummy_signal );    /* for closed esd conns */
     /* send the necessary information */
-    if ( write( esd, &proto, sizeof(proto) ) != sizeof(proto) ) {
+    if ( write_timeout( esd, (const char *) &proto, sizeof(proto) ) != sizeof(proto) ) {
 	signal( SIGPIPE, phandler ); 
 	return -1;
     }
-    if ( write( esd, &sample, sizeof(sample) ) != sizeof(sample) ) {
+    if ( write_timeout( esd, (const char *) &sample, sizeof(sample) ) != sizeof(sample) ) {
 	signal( SIGPIPE, phandler ); 
 	return -1;
     }
     /* fsync( esd ); */
 
     /* get the sample id back from the server */
-    if ( read( esd, &id, sizeof(id) ) != sizeof(id) ) {
+    if ( read_timeout( esd, (char *) &id, sizeof(id) ) != sizeof(id) ) {
 	signal( SIGPIPE, phandler ); 
 	return -1;
     }
@@ -1413,11 +1535,11 @@ int esd_sample_play( int esd, int sample )
 /* a bad day - ignore the SIGPIPE, then make sure to catch all errors */
     phandler = signal( SIGPIPE, dummy_signal );    /* for closed esd conns */
     /* send the necessary information */
-    if ( write( esd, &proto, sizeof(proto) ) != sizeof(proto) ) {
+    if ( write_timeout( esd, (const char *) &proto, sizeof(proto) ) != sizeof(proto) ) {
 	signal( SIGPIPE, phandler ); 
 	return -1;
     }
-    if ( write( esd, &sample, sizeof(sample) ) != sizeof(sample) ) {
+    if ( write_timeout( esd, (const char *) &sample, sizeof(sample) ) != sizeof(sample) ) {
 	signal( SIGPIPE, phandler ); 
 	return -1;
     }
@@ -1425,7 +1547,7 @@ int esd_sample_play( int esd, int sample )
      fsync( esd ); 
 #endif
     /* get the sample id back from the server */
-    if ( read( esd, &is_ok, sizeof(is_ok) ) != sizeof(is_ok) ) {
+     if ( read_timeout( esd, (char *) &is_ok, sizeof(is_ok) ) != sizeof(is_ok) ) {
 	signal( SIGPIPE, phandler ); 
 	return -1;
     }
@@ -1457,18 +1579,18 @@ int esd_sample_loop( int esd, int sample )
 /* a bad day - ignore the SIGPIPE, then make sure to catch all errors */
     phandler = signal( SIGPIPE, dummy_signal );    /* for closed esd conns */
     /* send the necessary information */
-    if ( write( esd, &proto, sizeof(proto) ) != sizeof(proto) ) {
+    if ( write_timeout( esd, (const char *) &proto, sizeof(proto) ) != sizeof(proto) ) {
 	signal( SIGPIPE, phandler ); 
 	return -1;
     }
-    if ( write( esd, &sample, sizeof(sample) ) != sizeof(sample) ) {
+    if ( write_timeout( esd, (const char *) &sample, sizeof(sample) ) != sizeof(sample) ) {
 	signal( SIGPIPE, phandler ); 
 	return -1;
     }
     /* fsync( esd ); */
 
     /* get the sample id back from the server */
-    if ( read( esd, &is_ok, sizeof(is_ok) ) != sizeof(is_ok) ) {
+    if ( read_timeout( esd, (char *) &is_ok, sizeof(is_ok) ) != sizeof(is_ok) ) {
 	signal( SIGPIPE, phandler ); 
 	return -1;
     }
@@ -1499,18 +1621,18 @@ int esd_sample_stop( int esd, int sample )
 /* a bad day - ignore the SIGPIPE, then make sure to catch all errors */
     phandler = signal( SIGPIPE, dummy_signal );    /* for closed esd conns */
     /* send the necessary information */
-    if ( write( esd, &proto, sizeof(proto) ) != sizeof(proto) ) {
+    if ( write_timeout( esd, (const char *) &proto, sizeof(proto) ) != sizeof(proto) ) {
 	signal( SIGPIPE, phandler ); 
 	return -1;
     }
-    if ( write( esd, &sample, sizeof(sample) ) != sizeof(sample) ) {
+    if ( write_timeout( esd, (const char *) &sample, sizeof(sample) ) != sizeof(sample) ) {
 	signal( SIGPIPE, phandler ); 
 	return -1;
     }
     /* fsync( esd ); */
 
     /* get the sample id back from the server */
-    if ( read( esd, &is_ok, sizeof(is_ok) ) != sizeof(is_ok) ) {
+    if ( read_timeout( esd, (char *) &is_ok, sizeof(is_ok) ) != sizeof(is_ok) ) {
 	signal( SIGPIPE, phandler ); 
 	return -1;
     }
@@ -1541,18 +1663,18 @@ int esd_sample_kill( int esd, int sample )
 /* a bad day - ignore the SIGPIPE, then make sure to catch all errors */
     phandler = signal( SIGPIPE, dummy_signal );    /* for closed esd conns */
     /* send the necessary information */
-    if ( write( esd, &proto, sizeof(proto) ) != sizeof(proto) ) {
+    if ( write_timeout( esd, (const char *) &proto, sizeof(proto) ) != sizeof(proto) ) {
 	signal( SIGPIPE, phandler ); 
 	return -1;
     }
-    if ( write( esd, &sample, sizeof(sample) ) != sizeof(sample) ) {
+    if ( write_timeout( esd, (const char *) &sample, sizeof(sample) ) != sizeof(sample) ) {
 	signal( SIGPIPE, phandler ); 
 	return -1;
     }
     /* fsync( esd ); */
 
     /* get the sample id back from the server */
-    if ( read( esd, &is_ok, sizeof(is_ok) ) != sizeof(is_ok) ) {
+    if ( read_timeout( esd, (char *) &is_ok, sizeof(is_ok) ) != sizeof(is_ok) ) {
 	signal( SIGPIPE, phandler ); 
 	return -1;
     }

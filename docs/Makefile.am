@@ -14,8 +14,6 @@ EXTRA_DIST = \
 
 CLEANFILES = esound.dvi esound.ps esound.tex esound.aux esound.log
 
-htmldir=$(pkgdocdir)/html
-
 if HAVE_JW
 noinst_DATA = html/index.html
 else

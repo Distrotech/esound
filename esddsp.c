@@ -225,7 +225,10 @@ open_wrapper (int (*func) (const char *, int, mode_t),
   dsp_init ();
 
   va_start (args, flags);
-  mode = va_arg (args, mode_t);
+  if (sizeof (mode_t) < sizeof (int))
+	  mode = va_arg (args, int);
+  else
+	  mode = va_arg (args, mode_t);
   va_end (args);
 
   if (!strcmp (pathname, "/dev/dsp"))

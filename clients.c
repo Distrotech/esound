@@ -155,7 +155,7 @@ int get_new_clients( int listen )
       if ( esd_use_ipv6 ) {
 	char addrbuf[INET6_ADDRSTRLEN];
 
-	fd = accept( listen,(struct sockaddr *)&incoming6, &size_in6 );
+	fd = accept( listen,(struct sockaddr *)&incoming6, (socklen_t *) &size_in6 );
 	if ( fd < 0 )
                 goto again;
 	port = ntohs( incoming6.sin6_port );
@@ -168,7 +168,7 @@ int get_new_clients( int listen )
       else
 #endif
       {
-	fd = accept( listen, (struct sockaddr*) &incoming, &size_in );
+	      fd = accept( listen, (struct sockaddr*) &incoming, (socklen_t *) &size_in );
 	if ( fd < 0 )
 		goto again;
 	    port = ntohs( incoming.sin_port );
