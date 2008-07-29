@@ -10,6 +10,7 @@
 #  endif
 #endif
 
+#include <errno.h>
 
 /* FreeBSD uses a different identifier? what other BSDs? */
 #if defined(__FreeBSD__) || defined(__FreeBSD_kernel__)
