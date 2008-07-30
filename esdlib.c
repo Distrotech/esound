@@ -140,18 +140,20 @@ write_timeout (int fd, const char *buf, size_t buflen)
 			rv = poll (pfd, 1, 100);
 		} while (rv == -1 && errno == EINTR);
 		
-		if (rv < 1 || !(pfd[0].revents & POLLOUT)) {
+		if (rv < 1 || (pfd[0].revents & (POLLERR | POLLHUP))) {
 			fcntl (fd, F_SETFL, flags);
 			errno = ETIMEDOUT;
 			return -1;
 		}
 		
-		do {
-			n = write (fd, buf + nwritten, buflen - nwritten);
-		} while (n == -1 && errno == EINTR);
-		
-		if (n > 0)
-			nwritten += n;
+		if (pfd[0].revents & POLLOUT) {
+			do {
+				n = write (fd, buf + nwritten, buflen - nwritten);
+			} while (n == -1 && errno == EINTR);
+			
+			if (n > 0)
+				nwritten += n;
+		}
 	} while (nwritten < buflen);
 	
 	fcntl (fd, F_SETFL, flags);
