@@ -140,10 +140,7 @@ write_timeout (int fd, const char *buf, size_t buflen)
 			rv = poll (pfd, 1, 100);
 		} while (rv == -1 && (errno == EINTR || errno == EAGAIN));
 		
-		/* Note: If the remote end of a socket is closed,
-		 * NetBSD will use POLLIN rather than POLLHUP if
-		 * POLLOUT was requested. */
-		if (rv < 1 || (pfd[0].revents & (POLLERR | POLLHUP | POLLIN | POLLOUT)) != POLLOUT) {
+		if (rv < 1 || (pfd[0].revents & (POLLERR | POLLHUP | POLLOUT)) != POLLOUT) {
 			fcntl (fd, F_SETFL, flags);
 			errno = ETIMEDOUT;
 			return -1;
