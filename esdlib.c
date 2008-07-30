@@ -90,7 +90,7 @@ read_timeout (int fd, char *buf, size_t buflen)
 	do {
 		pfd[0].revents = 0;
 		rv = poll (pfd, 1, 100);
-	} while (rv == -1 && errno == EINTR);
+	} while (rv == -1 && (errno == EINTR || errno == EAGAIN));
 	
 	if (rv < 1 || !(pfd[0].revents & POLLIN)) {
 		errno = ETIMEDOUT;
@@ -138,22 +138,29 @@ write_timeout (int fd, const char *buf, size_t buflen)
 		do {
 			pfd[0].revents = 0;
 			rv = poll (pfd, 1, 100);
-		} while (rv == -1 && errno == EINTR);
+		} while (rv == -1 && (errno == EINTR || errno == EAGAIN));
 		
-		if (rv < 1 || (pfd[0].revents & (POLLERR | POLLHUP))) {
+		/* Note: If the remote end of a socket is closed,
+		 * NetBSD will use POLLIN rather than POLLHUP if
+		 * POLLOUT was requested. */
+		if (rv < 1 || (pfd[0].revents & (POLLERR | POLLHUP | POLLIN | POLLOUT)) != POLLOUT) {
 			fcntl (fd, F_SETFL, flags);
 			errno = ETIMEDOUT;
 			return -1;
 		}
 		
-		if (pfd[0].revents & POLLOUT) {
-			do {
-				n = write (fd, buf + nwritten, buflen - nwritten);
-			} while (n == -1 && errno == EINTR);
-			
-			if (n > 0)
-				nwritten += n;
+		do {
+			n = write (fd, buf + nwritten, buflen - nwritten);
+		} while (n == -1 && errno == EINTR);
+		
+		if (n == -1) {
+			rv = errno;
+			fcntl (fd, F_SETFL, flags);
+			errno = rv;
+			return -1;
 		}
+		
+		nwritten += n;
 	} while (nwritten < buflen);
 	
 	fcntl (fd, F_SETFL, flags);

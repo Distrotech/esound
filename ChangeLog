@@ -3,6 +3,7 @@
 	* esdlib.c (write_timeout): Check for the existence of POLLERR or
 	POLLHUP first. If either is set, abort the write(). We can't
 	assume that POLLOUT won't be set if a hang-up occurred.
+	(write_timeout): Abort on all write() errors other than EINTR.
 
 2008-07-29  Jeffrey Stedfast  <fejj@novell.com>
 
