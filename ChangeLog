@@ -1,3 +1,11 @@
+============================== 0.2.40 ===========================
+
+2008-09-03  Jeffrey Stedfast  <fejj@novell.com>
+
+	* configure.ac: Release 0.2.40
+
+	* NEWS: updated
+
 2008-07-30  Jeffrey Stedfast  <fejj@novell.com>
 
 	* esdlib.c (write_timeout): Check for the existence of POLLERR or

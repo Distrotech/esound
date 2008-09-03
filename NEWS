@@ -1,4 +1,10 @@
 ===============
+Version 0.2.40
+===============
+	* Fixed poll() logic issues for *BSD (Jeffrey Stedfast)
+	* Fixed bug #543239 by including errno.h (Jeffrey Stedfast)
+
+===============
 Version 0.2.39
 ===============
 	* Fixed esd client-side code to not hang if esd crashes/hangs
