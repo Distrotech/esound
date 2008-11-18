@@ -121,6 +121,7 @@ extern int esd_is_locked;
 extern char esd_owner_key[ESD_KEY_LEN];
 
 extern int esd_on_standby;
+extern int esd_pending_driver_reconnect;
 extern int esdbg_trace;
 extern int esdbg_comms;
 extern int esdbg_mixer;
@@ -144,6 +145,7 @@ void erase_client( esd_client_t *client );
 
 int get_new_clients( int listen );
 int wait_for_clients_and_data( int listen );
+void esd_comm_loop( int listen_socket, void *output_buffer, int esd_terminate );
 
 /* filter.c - things with which to handle filters */
 extern esd_player_t *esd_filter_list;

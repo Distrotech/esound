@@ -70,6 +70,7 @@ void set_audio_buffer( void *buf, esd_format_t format, int magl, int magr,
 void clean_exit( int signum );
 void reset_signal( int signum );
 void reset_daemon( int signum );
+void reconnect_driver( int signum );
 int open_listen_socket( const char *hostname, int port );
 
 /* from esd_config.c */
@@ -82,6 +83,8 @@ int esd_is_owned = 0;		 /* start without owner, first client claims it */
 int esd_is_locked = 1;		 /* if owned, will prohibit foreign sources */
 char esd_owner_key[ESD_KEY_LEN]; /* the key that locks the daemon */
 
+int esd_pending_driver_reconnect = 0; /* set by SIGUSR1 handler for
+                                         reconnecting to the audio card */
 int esd_on_standby = 0;		/* set to ignore incoming audio data */
 int esdbg_trace = 0;		/* show warm fuzzy debug messages */
 int esdbg_comms = 0;		/* show protocol level debug messages */
@@ -222,6 +225,15 @@ void clean_exit(int signum) {
 
     /* trust the OS to clean up the memory for the samples and such */
     exit( 0 );
+}
+
+void reconnect_driver( int signum )
+{
+    ESDBG_TRACE(
+       printf( "(ca) reconnecting to driver on signal %d\n",
+               signum ); );
+    esd_pending_driver_reconnect = 1;
+    signal( signum, reconnect_driver );
 }
 
 void reset_signal(int signum) {
@@ -612,7 +624,6 @@ int main ( int argc, char *argv[] )
     /* Enlightened sound Daemon */
 
     int esd_port = ESD_DEFAULT_PORT;
-    int length = 0;
     int arg = 0;
     int itmp;
 
@@ -643,8 +654,6 @@ int main ( int argc, char *argv[] )
     int default_rate = ESD_DEFAULT_RATE;
     int i, j, freq=440;
     int magl, magr;
-
-    int first = 1;
 
     int default_format = ESD_BITS16 | ESD_STEREO;
     /* end test scaffolding parameters */
@@ -970,6 +979,7 @@ int main ( int argc, char *argv[] )
     signal( SIGTERM, clean_exit );	/* for default kill */
     signal( SIGPIPE, reset_signal );	/* for closed rec/mon clients */
     signal( SIGHUP, reset_daemon );	/* kill -HUP clear ownership */
+    signal( SIGUSR1, reconnect_driver ); /* react to changed sound card */
 
     /* send some sine waves just to check the sound connection */
     i = 0;
@@ -1000,106 +1010,7 @@ int main ( int argc, char *argv[] )
 	close (esd_spawnfd);
     }
 
-    /* until we kill the daemon */
-    while ( 1 )
-    {
-	/* block while waiting for more clients and new data */
-	wait_for_clients_and_data( listen_socket );
-
-	/* accept new connections */
-	get_new_clients( listen_socket );
-
-
-	if ((esd_clients_list == NULL) && (!esd_playing_samples) &&
-            (!first) && (esd_terminate)) {
-/*	  fprintf(stderr, "No clients!\n");*/
-	  clean_exit(0);
-	  exit(0);
-	}
-
-	/* check for new protocol requests */
-	poll_client_requests();
-	first = 0;
-
-	/* mix new requests, and output to device */
-	refresh_mix_funcs(); /* TODO: set a flag to cue when to do this */
-	length = mix_players( output_buffer, esd_buf_size_octets );
-	
-	/* awaken if on autostandby and doing anything */
-	if ( esd_on_autostandby && length && !esd_forced_standby ) {
-	    ESDBG_TRACE( printf( "stuff to play, waking up.\n" ); );
-	    esd_server_resume();
-	}
-
-	/* we handle this even when length == 0 because a filter could have
-	 * closed, and we don't want to eat the processor if one did.. */
-	if ( esd_filter_list && !esd_on_standby ) {
-	    length = filter_write( output_buffer, length,
-				   esd_audio_format, esd_audio_rate );
-	}
-	
-	if ( length > 0 /* || esd_monitor */ ) {
-	    /* do_sleep = 0; */
-	    if ( !esd_on_standby ) {
-		/* standby check goes in here, so esd will eat sound data */
-		/* TODO: eat a round of data with a better algorithm */
-		/*        this will cause guaranteed timing issues */
-		/* TODO: on monitor, why isn't this a buffer of zeroes? */
-		/* esd_audio_write( output_buffer, esd_buf_size_octets ); */
-		esd_audio_write( output_buffer, length );
-		/* esd_audio_flush(); */ /* this is overkill */
-		esd_last_activity = time( NULL );
-	    }
-	} else {
-	    /* should be pausing just fine within wait_for_clients_and_data */
-	    /* if so, this isn't really needed */
-
-	    /* be very quiet, and wait for a wabbit to come along */
-#if 0
-	    if ( !do_sleep ) { ESDBG_TRACE( printf( "pausing in esd.c\n" ); ); }
-	    do_sleep = 1;
-	    esd_audio_pause();
-#endif
-	}
-
-	/* if someone's monitoring the sound stream, send them data */
-	/* mix_players, above, forces buffer to zero if no players */
-	/* this clears out any leftovers from recording, below */
-	if ( esd_monitor_list && !esd_on_standby && length ) {
-	/* if ( esd_monitor_list && !esd_on_standby ) {  */
-	    monitor_write( output_buffer, length );
-	}
-
-	/* if someone's recording the sound stream, send them data */
-	if ( esd_recorder_list && !esd_on_standby ) {
-	    length = esd_audio_read( output_buffer, esd_buf_size_octets );
-	    if ( length ) {
-		length = recorder_write( output_buffer, length );
-		esd_last_activity = time( NULL );
-	    }
-	}
-
-	if ( esd_on_standby ) {
-#ifdef HAVE_NANOSLEEP
-	    struct timespec restrain;
-	    restrain.tv_sec = 0;
-	    /* funky math to make sure a long can hold it all, calulate in ms */
-	    restrain.tv_nsec = (long) esd_buf_size_samples * 1000L
-		/ (long) esd_audio_rate / 4L;   /* divide by two for stereo */
-	    restrain.tv_nsec *= 1000000L;       /* convert to nanoseconds */
-	    nanosleep( &restrain, NULL );
-#else
-	    struct timeval restrain;
-	    restrain.tv_sec = 0;
-	    /* funky math to make sure a long can hold it all, calulate in ms */
-	    restrain.tv_usec = (long) esd_buf_size_samples * 1000L
-		/ (long) esd_audio_rate / 4L; 	/* divide by two for stereo */
-	    restrain.tv_usec *= 1000L; 		/* convert to microseconds */
-	    select( 0, 0, 0, 0, &restrain );
-#endif
-	}
-    } /* while ( 1 ) */
-
+    esd_comm_loop(listen_socket,output_buffer,esd_terminate);
     close (listen_socket);
 
     /* how we'd get here, i have no idea, should only exit on signal */

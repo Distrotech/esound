@@ -101,6 +101,7 @@ snd_pcm_t* initAlsa(char *dev, int format, int channels, int speed, int mode)
 	snd_pcm_uframes_t t_bufsize=BUFFERSIZE;
 #endif
 
+	snd_config_update_free_global();
 	err = snd_pcm_open(&handle, dev, mode, SND_PCM_NONBLOCK);
 	if (err < 0) {
 		if (alsadbg)

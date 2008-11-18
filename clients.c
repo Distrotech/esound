@@ -1,6 +1,7 @@
 #include "esd-server.h"
 #include <arpa/inet.h>
 #include <time.h>
+#include <errno.h>
 
 #ifdef HAVE_SYS_IOCTL_H
 # include <sys/ioctl.h>
@@ -26,6 +27,7 @@ extern int esd_use_ipv6;
 
 /* the list of the currently connected clients */
 esd_client_t *esd_clients_list;
+static int write_wait = 0;
 
 /*******************************************************************/
 /* prototypes */
@@ -251,113 +253,183 @@ again:
     return 0;
 }
 
-static int is_paused_here = 0;
-/*******************************************************************/
-/* blocks waiting for data from the listener, and client conns. */
-int wait_for_clients_and_data( int listen )
+void esd_comm_loop( int listen_socket, void *output_buffer, int esd_terminate )
 {
     fd_set rd_fds;
     struct timeval timeout;
     struct timeval *timeout_ptr = NULL;
-    esd_client_t *client = esd_clients_list;
-    int max_fd = listen, ready;
+    esd_client_t *client;
+    int max_fd = listen_socket, ready;
+    int first = 1;
+    int is_paused_here = 0;
+    int length = 0;
 
-    /* add the listener to the file descriptor list */
-    FD_ZERO( &rd_fds );
-    FD_SET( listen, &rd_fds );
-
-    /* add the clients to the list, too */
-    while ( client != NULL )
+    while ( 1 )
     {
-	/* add this client, but only if it's not monitoring */
-	if ( client->state == ESD_STREAMING_DATA &&
-	     client->request == ESD_PROTO_STREAM_MON )
+	FD_ZERO( &rd_fds );
+	FD_SET( listen_socket, &rd_fds );
+
+        if( esd_pending_driver_reconnect ) {
+            esd_pending_driver_reconnect = 0;
+            esd_audio_close();
+	    usleep(100);
+            if( esd_audio_open() < 0 )
+                fprintf( stderr, "could not reopen the audio device\n" );
+        }
+
+	if ((esd_clients_list == NULL) && (!first) && (esd_terminate)
+	&& (esd_autostandby_secs<0 || esd_on_autostandby)) {
+	    clean_exit(0);
+	    exit(0);
+	}
+
+	for( client = esd_clients_list ; client ; client = client->next)
 	{
-	    client = client->next;
-	    continue;
+	    if ( client->state == ESD_STREAMING_DATA &&
+		client->request == ESD_PROTO_STREAM_MON )
+		continue;
+
+	    FD_SET( client->fd, &rd_fds );
+	    if ( client->fd > max_fd )
+		max_fd = client->fd;
 	}
 
-	FD_SET( client->fd, &rd_fds );
-
-	/* update the maximum fd for the select() */
-	if ( client->fd > max_fd )
-	    max_fd = client->fd;
-
-	/* next client */
-	client = client->next;
-    }
-
-    /* if we're doing something useful, make sure we return immediately */
-    if ( esd_recorder_list || esd_playing_samples ) {
-	timeout.tv_sec = 0;
-	timeout.tv_usec = 0;
-	timeout_ptr = &timeout;
-    } else {
-
-	/* TODO: any reason not to pause indefinitely here? */
-	/* sample players that's why, if no players, can pause indefinitely */
-	/* if ( esd_on_autostandby 
-	        || (esd_autostandby_secs < 0 && !esd_playing_samples ) )
-	       timeout_ptr = NULL; else { ... } */
-
-	if ( is_paused_here ) {
-
-	    ESDBG_TRACE( printf( "paused, awaiting instructions.\n" ); );
-	    timeout_ptr = NULL;
-
-	} else {
-
+	/* if we're doing something useful, make sure we return immediately */
+	if ( esd_recorder_list || esd_playing_samples ) {
 	    timeout.tv_sec = 0;
-	    /* funky math to make sure a long can hold it all, calulate in ms */
-	    timeout.tv_usec = (long) esd_buf_size_samples * 1000L
-		/ (long) esd_audio_rate / 4L; 	/* divide by two for stereo */
-	    timeout.tv_usec *= 1000L; 		/* convert to microseconds */
+	    timeout.tv_usec = 0;
 	    timeout_ptr = &timeout;
+	} else {
+	    if ( is_paused_here && (esd_autostandby_secs<0 || esd_on_standby)) {
+		ESDBG_TRACE( printf( "paused, awaiting instructions.\n" ); );
+		timeout_ptr = NULL;
+	    } else {
+		if (is_paused_here && esd_autostandby_secs>=0) {
+		    timeout.tv_sec = (esd_last_activity+esd_autostandby_secs+1)-time(NULL);
+		    if (timeout.tv_sec < 0 || timeout.tv_sec > esd_autostandby_secs+1)
+			timeout.tv_sec = 0;
+		    timeout.tv_usec = 0;
+		    timeout_ptr = &timeout;
+		} else {
+		    if (!write_wait)
+		    {
+			int samples;
 
+			samples = ((esd_audio_format & ESD_MASK_CHAN) == ESD_STEREO) ? 2 : 1;
+			timeout.tv_sec = 0;
+			/* funky math to make sure a long can hold it all, calulate in ms */
+			timeout.tv_usec = ((long) samples * 1000L
+			    / (long) esd_audio_rate)+1;
+			timeout.tv_usec *= 1000; 	/* convert to microseconds */
+			timeout_ptr = &timeout;
+		    }
+		    else
+			timeout_ptr = NULL;
+		}
+	    }
 	}
-    }
 
-    ready = select( max_fd+1, &rd_fds, NULL, NULL, timeout_ptr );
+	ready = select( max_fd+1, &rd_fds, NULL, NULL, timeout_ptr );
 
-    ESDBG_COMMS( printf( 
-	"paused=%d, samples=%d, auto=%d, standby=%d, record=%d, ready=%d\n",
-	is_paused_here, esd_playing_samples, 
-	esd_autostandby_secs, esd_on_standby, 
-	(esd_recorder_list != 0), ready ); );
+	ESDBG_COMMS( printf( 
+	    "paused=%d, samples=%d, auto=%d, standby=%d, record=%d, ready=%d\n",
+	    is_paused_here, esd_playing_samples, 
+	    esd_autostandby_secs, esd_on_standby, 
+	    (esd_recorder_list != 0), ready ); );
 
-    /* TODO: return ready, and do this in esd.c */
-    if ( ready <= 0 ) {
-	/* if < 0, something horrible happened:
-	   EBADF   invalid file descriptor - let individual read sort it out
-	   EINTR   non blocked signal caught - o well, no big deal
-	   EINVAL  n is negative - not bloody likely
-	   ENOMEM  unable to allocate internal tables - o well, no big deal */
-
-	if ( !is_paused_here && !esd_playing_samples && (esd_autostandby_secs<0) ) {
-	    ESDBG_TRACE( printf( "doing nothing, pausing server.\n" ); );
-	    esd_audio_flush();
-	    esd_audio_pause();
-	    esd_last_activity = time( NULL );
-	    is_paused_here = 1;
-	}
-
-	if ( !is_paused_here && !esd_playing_samples && !esd_recorder_list ) {
-
-	    if ( esd_autostandby_secs >= 0
+	if ( ready < 0 ) {
+	    if ( errno == EINTR && timeout_ptr == NULL && write_wait == 0 ) {
+		ready = 1;
+	    } else {
+		if ( errno == EINTR || errno == EAGAIN )
+		    continue;
+		perror("select");
+		exit(1);
+	    }
+	} else if ( ready == 0 ) {
+	    if ( !is_paused_here && !esd_playing_samples && !esd_recorder_list ) {
+		ESDBG_TRACE( printf( "doing nothing, pausing server.\n" ); );
+		esd_audio_flush();
+		if (!first)
+		    esd_audio_pause();
+		esd_last_activity = time( NULL );
+		is_paused_here = 1;
+	    }
+	    if ( is_paused_here && esd_autostandby_secs >= 0
 		 && ( time(NULL) > esd_last_activity + esd_autostandby_secs ) ) {
 		ESDBG_TRACE( printf( "bored, going to standby mode.\n" ); );
 		esd_server_standby();
 		esd_on_autostandby = 1;
-		is_paused_here = 1;
 	    }
-
+	    if (!esd_recorder_list && is_paused_here)
+		continue;
 	}
-
-    } else {
-
 	is_paused_here = 0;
 
-    }
+	if ( FD_ISSET(listen_socket, &rd_fds ) ) {
+	    get_new_clients( listen_socket );
+	}
 
-    return ready;
+	if ( ready || esd_playing_samples ) {
+	    /* check for new protocol requests */
+	    poll_client_requests();
+	    first = 0;
+
+	/* mix new requests, and output to device */
+	refresh_mix_funcs(); /* TODO: set a flag to cue when to do this */
+	length = mix_players( output_buffer, esd_buf_size_octets );
+	
+	/* awaken if on autostandby and doing anything */
+	if ( esd_on_autostandby && length && !esd_forced_standby ) {
+	    ESDBG_TRACE( printf( "stuff to play, waking up.\n" ); );
+	    if ( !esd_server_resume()) {
+		usleep(100);
+	    }
+	}
+
+	/* we handle this even when length == 0 because a filter could have
+	 * closed, and we don't want to eat the processor if one did.. */
+	if ( esd_filter_list && !esd_on_standby ) {
+	    length = filter_write( output_buffer, length,
+				   esd_audio_format, esd_audio_rate );
+	}
+	
+	if ( length > 0 && !write_wait) {
+	    if ( !esd_on_standby ) {
+		int nbytes;
+		/* standby check goes in here, so esd will eat sound data */
+		/* TODO: eat a round of data with a better algorithm */
+		/*        this will cause guaranteed timing issues */
+		/* TODO: on monitor, why isn't this a buffer of zeroes? */
+		nbytes = esd_audio_write( output_buffer, length );
+#if 0
+		val.tv_sec = 0;
+		val.tv_usec = ((nbytes / esd_sample_size /
+				       (((esd_audio_format & ESD_MASK_CHAN) == ESD_STEREO) ? 2 : 1))
+				       * 1000) / esd_audio_rate;
+		val.tv_usec *= 1000000;
+#endif
+
+		esd_last_activity = time( NULL );
+	    }
+
+	/* if someone's monitoring the sound stream, send them data */
+	/* mix_players, above, forces buffer to zero if no players */
+	/* this clears out any leftovers from recording, below */
+	if ( esd_monitor_list && !esd_on_standby && length ) {
+	    monitor_write( output_buffer, length );
+	}
+
+	}
+	}
+
+	/* if someone's recording from the audio device, send them data */
+	if ( esd_recorder_list && !esd_on_standby ) {
+	    length = esd_audio_read( output_buffer, esd_buf_size_octets );
+	    if ( length ) {
+		length = recorder_write( output_buffer, length );
+		esd_last_activity = time( NULL );
+	    }
+	}
+    }
 }
