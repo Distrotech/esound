@@ -1,3 +1,10 @@
+2008-11-18  Josselin Mouette  <joss@malsain.org>
+
+	* esdfile.c: (esd_play_file): accept file formats supported by 
+        libaudiofile.
+	* configure.ac: require libaudiofile 0.2.3 which adds support 
+        for them.
+
 ============================== 0.2.40 ===========================
 
 2008-09-03  Jeffrey Stedfast  <fejj@novell.com>

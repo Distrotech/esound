@@ -362,7 +362,7 @@ dnl make sure we have the library, -laudiofile
 
 build_esdplay=false
 
-PKG_CHECK_MODULES(AUDIOFILE, [audiofile >= 0.1.5])
+PKG_CHECK_MODULES(AUDIOFILE, [audiofile >= 0.2.3])
 
 CFLAGS="$CFLAGS $AUDIOFILE_CFLAGS"
 LIBS="$LIBS $AUDIOFILE_LIBS"

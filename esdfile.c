@@ -69,7 +69,11 @@ int esd_play_file( const char *name_prefix, const char *filename, int fallback )
 
     /* This check was added because audiofile doesn't tell us whether or
      * not it will play compressed audio correctly. */
-    if ( in_compression != AF_COMPRESSION_NONE )
+    if ( in_compression != AF_COMPRESSION_NONE &&
+	 in_compression != AF_COMPRESSION_G711_ULAW &&
+	 in_compression != AF_COMPRESSION_G711_ALAW &&
+	 in_compression != AF_COMPRESSION_IMA &&
+	 in_compression != AF_COMPRESSION_MS_ADPCM)
     {
 	/* fputs ("compressed audio not supported supported\n", stderr); */
 	return 0;
