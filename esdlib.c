@@ -825,15 +825,22 @@ static int is_host_local(const char* host)
  * to ESD.
  */
 #define min(a,b) ( ( (a)<(b) ) ? (a) : (b) )
-int esd_open_sound( const char *host )
+int esd_open_sound( const char *rhost )
 {
     int socket_out = -1;
     int len;
     char use_unix = 0;
     char display_host[ 256 ];
     const char *display;
+    char *host = NULL;
 
-    if ( !host ) host = getenv("ESPEAKER");
+    if ( rhost )
+	host = strdup(rhost);
+    else {
+	char *espeaker = getenv("ESPEAKER");
+	if ( espeaker )
+	    host = strdup(espeaker);
+    }
 
     display = getenv( "DISPLAY" );
     if ( !(host && *host) && display ) {
@@ -845,7 +852,8 @@ int esd_open_sound( const char *host )
 	    len = min( len, 255 ); 
 	    strncpy( display_host, display, len );
 	    display_host[ len ] = '\0';
-	    host = display_host;
+	    if ( host ) free(host);
+	    host = strdup(display_host);
 	}
     }
 
@@ -943,6 +951,7 @@ int esd_open_sound( const char *host )
 	close(socket_out); socket_out = -1;
     }
 
+    if ( host ) free(host);
     return socket_out;
 }
 

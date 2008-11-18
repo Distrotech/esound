@@ -1,5 +1,14 @@
 2008-11-18  Josselin Mouette  <joss@malsain.org>
 
+        Patch from Jeff Waugh <jeff.waugh@ubuntu.com>, credits for 
+        diagnosing the issue go to Jan Schmidt.
+
+	* esdlib.c: do not modify host passed to esd_sound_open, 
+	because that is highly offensive. (Fixes GStreamer using 
+	ESPEAKER.)
+
+2008-11-18  Josselin Mouette  <joss@malsain.org>
+
 	* esddsp.c: (mmap64): ship an implementation of mmap64.
 
 2008-11-18  Josselin Mouette  <joss@malsain.org>
