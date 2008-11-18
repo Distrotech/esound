@@ -1,5 +1,10 @@
 2008-11-18  Josselin Mouette  <joss@malsain.org>
 
+	* docs/esdcat.1.in: Add standard pod2man header to avoid errors 
+	from man.
+
+2008-11-18  Josselin Mouette  <joss@malsain.org>
+
 	* esddsp.c: (dsp_init): Protect dsp_init() with a mutex to 
 	prevent race conditions from multiple calls (which hanged the 
 	desktop session).
