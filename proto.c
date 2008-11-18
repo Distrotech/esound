@@ -337,14 +337,14 @@ int esd_proto_stream_recorder( esd_client_t *client )
 	/* let the device know we want to record */
 	ESDBG_TRACE( printf( "closing audio for a sec...\n" ); );
 	esd_audio_close();
-	sleep(1);
+	usleep(100);
 	esd_audio_format |= ESD_RECORD;
 	ESDBG_TRACE( printf( "reopening audio to record...\n" ); );
 	if (esd_audio_open() < 0) {
             /* Failed to record */
             free_player( recorder );
             esd_audio_format &= ~ESD_RECORD;
-            sleep(1);
+            usleep(100);
             /* If we fail here, we have a oops */
             esd_audio_open();
             return 0;
