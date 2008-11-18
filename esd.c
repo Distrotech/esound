@@ -640,7 +640,7 @@ int main ( int argc, char *argv[] )
     /* begin test scaffolding parameters */
     /* int format = AFMT_U8; AFMT_S16_LE; */
     /* int stereo = 0; */     /* 0=mono, 1=stereo */
-    int default_rate = ESD_DEFAULT_RATE, default_buf_size = ESD_BUF_SIZE;
+    int default_rate = ESD_DEFAULT_RATE;
     int i, j, freq=440;
     int magl, magr;
 
@@ -848,11 +848,6 @@ int main ( int argc, char *argv[] )
     exit( 1 );	
   }
 
-#define ESD_AUDIO_STUFF \
-    esd_sample_size = ( (esd_audio_format & ESD_MASK_BITS) == ESD_BITS16 ) \
-	? sizeof(signed short) : sizeof(unsigned char); \
-    esd_buf_size_samples = default_buf_size / 2; \
-    esd_buf_size_octets = esd_buf_size_samples * esd_sample_size;
 
     /* start the initializatin process */
 /*    printf( "ESound daemon initializing...\n" );*/
@@ -860,7 +855,6 @@ int main ( int argc, char *argv[] )
     /* set the data size parameters */
     esd_audio_format = default_format;
     esd_audio_rate = default_rate;
-    ESD_AUDIO_STUFF;
 
   /* open and initialize the audio device, /dev/dsp */
   itmp = esd_audio_open();
@@ -885,7 +879,6 @@ int main ( int argc, char *argv[] )
     /* cant do defaults ... try 44.1 kkz 8bit stereo */
     esd_audio_format = ESD_BITS8 | ESD_STEREO;
     esd_audio_rate = 44100;
-    ESD_AUDIO_STUFF;
     if ( esd_audio_open() < 0 ) {
       fprintf(stderr, "Audio device open for 44.1Khz, stereo, 8bit failed\n"
 
@@ -893,56 +886,48 @@ int main ( int argc, char *argv[] )
     /* cant do defaults ... try 48 kkz 16bit stereo */
     esd_audio_format = ESD_BITS16 | ESD_STEREO;
     esd_audio_rate = 48000;
-    ESD_AUDIO_STUFF;
     if ( esd_audio_open() < 0 ) {
       fprintf(stderr, "Audio device open for 48Khz, stereo,16bit failed\n"
 	      "Trying 22.05Khz, 8bit stereo.\n");
       /* cant do defaults ... try 22.05 kkz 8bit stereo */
       esd_audio_format = ESD_BITS8 | ESD_STEREO;
       esd_audio_rate = 22050;
-      ESD_AUDIO_STUFF;
       if ( esd_audio_open() < 0 ) {
 	fprintf(stderr, "Audio device open for 22.05Khz, stereo, 8bit failed\n"
 		"Trying 44.1Khz, 16bit mono.\n");
 	/* cant do defaults ... try 44.1Khz kkz 16bit mono */
 	esd_audio_format = ESD_BITS16;
 	esd_audio_rate = 44100;
-	ESD_AUDIO_STUFF;
 	if ( esd_audio_open() < 0 ) {
 	  fprintf(stderr, "Audio device open for 44.1Khz, mono, 8bit failed\n"
 		  "Trying 22.05Khz, 8bit mono.\n");
 	  /* cant do defaults ... try 22.05 kkz 8bit mono */
 	  esd_audio_format = ESD_BITS8;
 	  esd_audio_rate = 22050;
-	  ESD_AUDIO_STUFF;
 	  if ( esd_audio_open() < 0 ) {
 	    fprintf(stderr, "Audio device open for 22.05Khz, mono, 8bit failed\n"
 		    "Trying 11.025Khz, 8bit stereo.\n");
 	    /* cant to defaults ... try 11.025 kkz 8bit stereo */
 	    esd_audio_format = ESD_BITS8 | ESD_STEREO;
 	    esd_audio_rate = 11025;
-	    ESD_AUDIO_STUFF;
 	    if ( esd_audio_open() < 0 ) {
 	      fprintf(stderr, "Audio device open for 11.025Khz, stereo, 8bit failed\n"
 		      "Trying 11.025Khz, 8bit mono.\n");
 	      /* cant to defaults ... try 11.025 kkz 8bit mono */
 	      esd_audio_format = ESD_BITS8;
 	      esd_audio_rate = 11025;
-	      ESD_AUDIO_STUFF;
 	      if ( esd_audio_open() < 0 ) {
 		fprintf(stderr, "Audio device open for 11.025Khz, mono, 8bit failed\n"
 			"Trying 8.192Khz, 8bit mono.\n");
 	        /* cant to defaults ... try 8.192 kkz 8bit mono */
 		esd_audio_format = ESD_BITS8;
 		esd_audio_rate = 8192;
-		ESD_AUDIO_STUFF;
 		if ( esd_audio_open() < 0 ) {
 		  fprintf(stderr, "Audio device open for 8.192Khz, mono, 8bit failed\n"
 			  "Trying 8Khz, 8bit mono.\n");
 		  /* cant to defaults ... try 8 kkz 8bit mono */
 		  esd_audio_format = ESD_BITS8;
 		  esd_audio_rate = 8000;
-		  ESD_AUDIO_STUFF;
 		  if ( esd_audio_open() < 0 ) {
 		    fprintf(stderr, "Sound device inadequate for Esound. Fatal.\n");
 		    if (!esd_use_tcpip)
@@ -969,6 +954,11 @@ int main ( int argc, char *argv[] )
     }
    }
   }
+    esd_sample_size = ( (esd_audio_format & ESD_MASK_BITS) == ESD_BITS16 )
+	? sizeof(signed short) : sizeof(unsigned char);
+    esd_buf_size_samples = esound_getblksize() / esd_sample_size;
+    esd_buf_size_octets = esound_getblksize();
+
 
     /* allocate and zero out buffer */
     output_buffer = (void *) malloc( esd_buf_size_octets );

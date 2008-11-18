@@ -12,6 +12,8 @@ extern "C" {
 
 /* size of the audio buffer */
 #define ESD_BUF_SIZE (4 * 1024)
+/* maximum size we can write().  Otherwise we might overflow */
+#define ESD_MAX_WRITE_SIZE (21 * 4096)
 
 /* length of the authorization key, octets */
 #define ESD_KEY_LEN (16)

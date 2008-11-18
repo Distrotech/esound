@@ -209,6 +209,9 @@ int filter_write( void *buffer, int size, esd_format_t format, int rate );
 int esd_set_socket_buffers( int sock, int src_format, 
 			    int src_rate, int base_rate );
 
+/* audio.c */
+int esound_getblksize(void);
+
 /*******************************************************************/
 /* evil evil macros */
 

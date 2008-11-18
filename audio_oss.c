@@ -23,6 +23,7 @@ const char *esd_audio_devices()
     return "/dev/dsp, /dev/dsp2, etc.";
 }
 
+#define NFRAGS 32
 
 #define ARCH_esd_audio_open
 int esd_audio_open()
@@ -31,6 +32,22 @@ int esd_audio_open()
 
     int afd = -1, value = 0, test = 0;
     int mode = O_WRONLY;
+    int rate;
+    int fragsize;
+    int frag;
+    struct timeval tv;
+    fd_set set;
+
+    rate = esd_audio_rate *
+        ( ( ( esd_audio_format & ESD_MASK_CHAN) == ESD_STEREO ) ? 2 : 1 ) *
+        ( ( ( esd_audio_format & ESD_MASK_BITS) == ESD_BITS16 ) ? 2 : 1 );
+
+    for ( fragsize = 0; 1L << fragsize < rate / 25; fragsize++ )
+	;
+
+    fragsize--;
+
+    frag = (NFRAGS << 16) | fragsize;
 
     /* if recording, set for full duplex mode */
     if ( (esd_audio_format & ESD_MASK_FUNC) == ESD_RECORD )
@@ -51,6 +68,10 @@ int esd_audio_open()
     mode &= ~O_NONBLOCK;
     fcntl(afd, F_SETFL, mode);
 
+#if defined(SNDCTL_DSP_SETFRAGMENT)
+    ioctl(afd, SNDCTL_DSP_SETFRAGMENT, &frag);
+#endif
+
     /* TODO: check that this is allowable */
     /* set for full duplex operation, if recording */
 #if defined(SNDCTL_DSP_SETDUPLEX)
@@ -58,26 +79,6 @@ int esd_audio_open()
         ioctl( afd, SNDCTL_DSP_SETDUPLEX, 0 );
     }
 #endif
-
-    /* set the sound driver fragment size and number */
-#if !defined(__powerpc__) /* does not exist on powerpc */
-    /* fragment = max_buffers << 16 + log2(buffer_size), (256 16) */
-    value = test = ( 0x0100 << 16 ) + 0x0008;
-    if (ioctl(afd, SNDCTL_DSP_SETFRAGMENT, &test) == -1)
-    {   /* Fatal error */
-        perror( "SNDCTL_DSP_SETFRAGMENT" );
-        close( afd );
-        esd_audio_fd = -1;
-        return( -1 );
-    }
-    if ( 0 /* value != test */ ) /* TODO: determine the real test */
-    {   /* The device doesn't support the requested audio format. */
-        fprintf( stderr, "unsupported fragment size: %d\n", value );
-        close( afd );
-        esd_audio_fd = -1;
-        return( -1 );
-    }
-#endif /* #if !defined(__powerpc__) */
 
     /* set the sound driver audio format for playback */
     
@@ -131,8 +132,31 @@ int esd_audio_open()
         return( -1 );
     }
 
+    if ( ioctl(afd, SNDCTL_DSP_GETBLKSIZE, &test) == -1)
+    { /* Fatal error */
+        perror("SNDCTL_DSP_GETBLKSIZE");
+        close( afd );
+        esd_audio_fd = -1;
+        return( -1 );
+    }
+    esd_write_size = test > ESD_MAX_WRITE_SIZE ? ESD_MAX_WRITE_SIZE : test;
+
     /* value = test = buf_size; */
     esd_audio_fd = afd;
+    /*
+     * From XMMS:
+     * Stupid hack to find out if the driver supports select; some
+     * drivers won't work properly without a select and some won't
+     * work with a select :/
+     */
+
+    tv.tv_sec = 0;
+    tv.tv_usec = 10;
+    FD_ZERO(&set);
+    FD_SET(afd, &set);
+    test = select(afd + 1, NULL, &set, NULL, &tv);
+    if (test > 0)
+	    select_works = 1;
     return afd;
 }
 

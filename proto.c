@@ -89,22 +89,23 @@ esd_proto_handler_info_t esd_proto_map[ ESD_PROTO_MAX ] =
 int esd_proto_get_latency( esd_client_t *client )
 {
     int lag, amount, actual;
+    int buf_size = esound_getblksize();
 
     ESDBG_TRACE( printf( "(%02d) proto: get latency\n", client->fd ); );
   
     if (esd_audio_format & ESD_STEREO)
       {
 	if (esd_audio_format & ESD_BITS16)
-	  amount = (44100 * (ESD_BUF_SIZE + 64)) / esd_audio_rate;
+	  amount = (44100 * (buf_size + 64)) / esd_audio_rate;
 	else
-	  amount = (44100 * (ESD_BUF_SIZE + 128)) / esd_audio_rate;
+	  amount = (44100 * (buf_size + 128)) / esd_audio_rate;
       }
     else
       {
 	if (esd_audio_format & ESD_BITS16)
-	  amount = (2 * 44100 * (ESD_BUF_SIZE + 128)) / esd_audio_rate;
+	  amount = (2 * 44100 * (buf_size + 128)) / esd_audio_rate;
 	else
-	  amount = (2 * 44100 * (ESD_BUF_SIZE + 256)) / esd_audio_rate;
+	  amount = (2 * 44100 * (buf_size + 256)) / esd_audio_rate;
       }
     lag = maybe_swap_32( client->swap_byte_order, amount );
 

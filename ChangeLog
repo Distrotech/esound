@@ -1,5 +1,20 @@
 2008-11-18  Josselin Mouette  <joss@malsain.org>
 
+	Patch by Ryan Murray <rmurray@debian.org>
+
+	* audio.c: (esd_audio_write), (esd_audio_flush),
+	(esound_getblksize):
+	* audio_oss.c: (esd_audio_open):
+	* esd-server.h:
+	* esd.c: (main):
+	* esd.h:
+	* proto.c: (esd_proto_get_latency):
+        Rewrite generic esd_audio_write to attempt to use select if the 
+        driver seems to support it, and to write in a blocksize that 
+        can be changed by audio open functions.
+
+2008-11-18  Josselin Mouette  <joss@malsain.org>
+
 	* esound.pc.in: put audiofile in Requires.private to avoid 
         spuriously linking to it.
 
