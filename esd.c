@@ -997,13 +997,8 @@ int main ( int argc, char *argv[] )
 		esd_audio_write( output_buffer, esd_buf_size_octets );
 	    }
 	}
+	esd_audio_pause();
     }
-
-    /* put some stuff in the sound driver before pausing */
-    esd_audio_write( NULL, 0);
-
-    /* pause the sound output */
-    esd_audio_pause();
 
     /* Startup succeeded */
     if(esd_spawnpid)

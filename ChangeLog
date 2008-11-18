@@ -1,5 +1,10 @@
 2008-11-18  Josselin Mouette  <joss@malsain.org>
 
+	* esd.c: (main): save a call to esd_audio_pause when run with 
+	-nobeeps.
+
+2008-11-18  Josselin Mouette  <joss@malsain.org>
+
 	* esd.c: (main): allow the spawnfd to be 0, which is a valid 
           FD. Do never play beeps when esd has just been spawned.
 
