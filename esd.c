@@ -628,6 +628,7 @@ int main ( int argc, char *argv[] )
     int itmp;
 
     void *output_buffer = NULL;
+    extern signed int *mixed_buffer;
 
     char *hostname=NULL;
     char *endptr;
@@ -971,6 +972,7 @@ int main ( int argc, char *argv[] )
 
     /* allocate and zero out buffer */
     output_buffer = (void *) malloc( esd_buf_size_octets );
+    mixed_buffer = malloc( esd_buf_size_samples * sizeof(*mixed_buffer) );
     memset( output_buffer, 0, esd_buf_size_octets );
 
 

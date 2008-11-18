@@ -3,8 +3,7 @@
 #include <limits.h>
 
 /*******************************************************************/
-/* ESD_BUF_SIZE is the maximum possible number of samples */
-signed int mixed_buffer[ ESD_BUF_SIZE ];
+signed int *mixed_buffer = NULL;
 
 /* prototype for compiler */
 int mix_and_copy( void *dest_buf, int dest_len, 
@@ -596,7 +595,7 @@ int mix_mono_8u_to_stereo_32s_sv( esd_player_t *player, int length )
 	rd_dat = wr_dat * player->rate / esd_audio_rate;
 	rd_dat /= 2;	/* adjust for mono */
 	
-	sample = source_data_uc[ rd_dat++ ];
+	sample = source_data_uc[ rd_dat ];
 	sample -= 127; sample *= 256;
 	
 	mixed_buffer[ wr_dat++ ] += sample;
@@ -657,7 +656,7 @@ int mix_mono_16s_to_stereo_32s_sv( esd_player_t *player, int length )
 	rd_dat = wr_dat * player->rate / esd_audio_rate;
 	rd_dat /= 2;	/* adjust for mono */
 	
-	sample = source_data_ss[ rd_dat++ ];
+	sample = source_data_ss[ rd_dat ];
 	
 	mixed_buffer[ wr_dat++ ] += sample;
 	mixed_buffer[ wr_dat++ ] += sample;
@@ -673,7 +672,7 @@ int mix_stereo_16s_to_stereo_32s_sv( esd_player_t *player, int length )
     register signed short *source_data_ss
 	= (signed short *) player->data_buffer;
 
-    ESDBG_MIXER( printf( "mixing stereo 16s to stereo 32s\n" ); );
+    ESDBG_MIXER( printf( "mixing stereo 16s to stereo 32s length %d\n", length ); );
 
     if ( player->rate == esd_audio_rate ) {
 	/* optimize for simple increment by one and add loop */
@@ -721,7 +720,7 @@ int mix_mono_8u_to_stereo_32s( esd_player_t *player, int length )
 	rd_dat = wr_dat * player->rate / esd_audio_rate;
 	rd_dat /= 2;	/* adjust for mono */
 	
-	sample = source_data_uc[ rd_dat++ ];
+	sample = source_data_uc[ rd_dat ];
 	sample -= 127; sample *= 256;
 	
 	sample = sample * player->left_vol_scale / ESD_VOLUME_BASE;
@@ -766,7 +765,7 @@ int mix_stereo_8u_to_stereo_32s( esd_player_t *player, int length )
 	    sample = sample * player->left_vol_scale / ESD_VOLUME_BASE;
 	    mixed_buffer[ wr_dat++ ] += sample;
 
-	    sample = source_data_uc[ rd_dat++ ];
+	    sample = source_data_uc[ rd_dat ];
 	    sample -= 127; sample *= 256;
 	    sample = sample * player->right_vol_scale / ESD_VOLUME_BASE;
 	    mixed_buffer[ wr_dat++ ] += sample;
@@ -792,7 +791,7 @@ int mix_mono_16s_to_stereo_32s( esd_player_t *player, int length )
 	rd_dat = wr_dat * player->rate / esd_audio_rate;
 	rd_dat /= 2;	/* adjust for mono */
 	
-	sample = source_data_ss[ rd_dat++ ];
+	sample = source_data_ss[ rd_dat ];
 	
 	mixed_buffer[ wr_dat++ ] 
 	    += sample * player->left_vol_scale / ESD_VOLUME_BASE;
@@ -835,7 +834,7 @@ int mix_stereo_16s_to_stereo_32s( esd_player_t *player, int length )
 	    sample = sample * player->left_vol_scale / ESD_VOLUME_BASE;
 	    mixed_buffer[ wr_dat++ ] += sample;
 
-	    sample = source_data_ss[ rd_dat++ ];
+	    sample = source_data_ss[ rd_dat ];
 	    sample = sample * player->right_vol_scale / ESD_VOLUME_BASE;
 	    mixed_buffer[ wr_dat++ ] += sample;
 	}
@@ -890,14 +889,14 @@ void clip_mix_to_output_8u( unsigned char *output, int length )
 /* takes all input players, and mixes them to the mixed_buffer */
 int mix_players( void *output, int length )
 {
-    int actual = 0, max = 0;
+    int actual = 0, min = 0, max = 0, translated = 0, iBps, used;
     esd_player_t *player = NULL;
     esd_player_t *erase = NULL;
 
     ESDBG_MIXER( printf( "++++++++++++++++++++++++++++++++++++++++++\n" ); );
 
     /* zero the sum buffer */
-    memset( mixed_buffer, 0, esd_buf_size_samples * sizeof(int) );
+    memset( mixed_buffer, 0, esd_buf_size_samples * sizeof(*mixed_buffer) );
     
     /* as long as there's a player out there */
     player = esd_players_list;
@@ -905,21 +904,45 @@ int mix_players( void *output, int length )
     {
 	/* read the client sound data */
 	actual = read_player( player );
-
-	/* read_player(): >0 = data, ==0 = no data, <0 = erase it */
-	if ( actual > 0  ) {
-	    /* printf( "received: %d bytes from %d\n", 
-	            actual, player->source_id ); */
-	    /* actual = mix_to_stereo_32s( player, length ); */
-	    actual = player->mix_func( player, length );
-	    if ( actual > max ) max = actual;
-	    
-	} else if ( actual == 0 ) {
-	    ESDBG_TRACE( printf( "(%02d) no data available from player [%p]\n", 
+	
+	if ( actual == 0 ) {
+	    ESDBG_TRACE( printf( "(%02d) no new data available from player [%p]\n", 
 				 player->source_id, player ); );
-	} else {
+	    if ( player->actual_length == 0 ) {
+		player = player->next;
+		continue;
+	    }
+	}
+	
+	if ( actual < 0 ) {
 	    /* actual < 0 means erase the player */
 	    erase = player;
+	} else {
+	    /* actual >= 0 means data might be there to mix */
+	    iBps = sizeof(signed short) * 2;
+
+	    if ( (player->format & ESD_MASK_BITS) == ESD_BITS8 )
+		iBps /= sizeof(signed short);
+	    if ( (player->format & ESD_MASK_CHAN) == ESD_MONO )
+		iBps /= 2;
+
+	    /* how much data is really there? */
+	    translated = ((player->actual_length / iBps) * esd_audio_rate + player->rate - 1) / player->rate;
+	    translated *= sizeof(signed short) * 2;
+
+	    if ( translated > length ) {
+		ESDBG_TRACE( printf( "(%02d) player translated length doesn't fit [%p]\n",
+			player->source_id, player ); );
+		translated = length;
+	    }
+
+	    if ( min == 0 ) {
+		min = translated;
+	    } else {
+		if ( min > translated ) {
+		    min = translated;
+		}
+	    }
 	}
 
 	/* check out the next item in the list */
@@ -932,13 +955,54 @@ int mix_players( void *output, int length )
 	}
     }
 
+    if ( min > 0 ) {
+	player = esd_players_list;
+	while( player != NULL )
+	{
+	    if ( player->actual_length > 0 ) {
+		/* read_player(): >0 = data, ==0 = no data, <0 = erase it */
+ 		iBps = sizeof(signed short) * 2;
+ 
+  		if ( (player->format & ESD_MASK_BITS) == ESD_BITS8 )
+ 		    iBps /= sizeof(signed short);
+  		if ( (player->format & ESD_MASK_CHAN) == ESD_MONO )
+ 		    iBps /= 2;
+ 
+ 		actual = player->mix_func( player, min );
+  
+ 		/* but how much data did we use? */
+ 		used = (actual / (sizeof(signed short) * 2)) * player->rate / esd_audio_rate;
+ 
+ 		if ( (player->format & ESD_MASK_BITS) != ESD_BITS8 )
+ 		    used *= sizeof(signed short);
+ 		if ( (player->format & ESD_MASK_CHAN) != ESD_MONO )
+ 		    used *= 2;
+ 
+ 		if ( player->actual_length - used > 0 ) {
+ 		    memmove( player->data_buffer, player->data_buffer + used, player->actual_length - used );
+ 		    player->actual_length -= used;
+ 		} else {
+ 		    /* kill it, it's probably all used anyways */
+ 		    player->actual_length = 0;
+ 		}
+ 		
+		if ( actual > max ) {
+		    max = actual;
+		}
+	    }
+
+	    /* check out the next item in the list */
+	    player = player->next;
+	}
+
     /* ESDBG_COMMS( printf( "maximum stream length = %d bytes\n", max ); ); */ 
 
-    if ( (esd_audio_format & ESD_MASK_BITS) == ESD_BITS16 ) 
-	clip_mix_to_output_16s( output, max );
-    else {
-	clip_mix_to_output_8u( output, max );
-	max /= 2; /* half as many samples as you'd think */
+	if ( (esd_audio_format & ESD_MASK_BITS) == ESD_BITS16 ) 
+	    clip_mix_to_output_16s( output, max );
+	else {
+	    clip_mix_to_output_8u( output, max );
+	    max /= 2; /* half as many samples as you'd think */
+	}
     }
 
     return max;

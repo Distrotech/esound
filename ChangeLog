@@ -1,5 +1,18 @@
 2008-11-18  Josselin Mouette  <joss@malsain.org>
 
+	Patch from Matthew Ashton <mashton@stormix.com>
+
+	* esd.c: (main):
+	* mix.c: (mix_mono_8u_to_stereo_32s_sv),
+	(mix_mono_16s_to_stereo_32s_sv), (mix_stereo_16s_to_stereo_32s_sv),
+	(mix_mono_8u_to_stereo_32s), (mix_stereo_8u_to_stereo_32s),
+	(mix_mono_16s_to_stereo_32s), (mix_stereo_16s_to_stereo_32s),
+	(mix_players):
+	Fix 32k samples turning into static when 8k samples played in 
+        the middle. Debian #79145.
+
+2008-11-18  Josselin Mouette  <joss@malsain.org>
+
 	Patch from Ryan Murray <rmurray@debian.org>
 
 	* filter.c: (filter_write):
