@@ -1,5 +1,15 @@
 2008-11-18  Josselin Mouette  <joss@malsain.org>
 
+        Patch from Martin Pitt <martin.pitt@ubuntu.com>
+
+	* audio_alsa09.c: Call snd_pcm_hw_free() before 
+        snd_pcm_close(). This closes the file descriptor to the sound 
+        device even if the device is not physically present any more.
+        This fixes the esound/hotplug deadlock when removing a 
+        currently active sound device.
+
+2008-11-18  Josselin Mouette  <joss@malsain.org>
+
 	* esdfilt.c: (main): add informative output to -double, similar 
           to that of -half.
 

@@ -389,10 +389,14 @@ void esd_audio_close(void)
 		print_state();
 	}
 
-	if (alsa_playback_handle != NULL)
+	if (alsa_playback_handle != NULL) {
+		snd_pcm_hw_free( alsa_playback_handle );
 		snd_pcm_close( alsa_playback_handle );
-	if (alsa_capture_handle != NULL)
+	}
+	if (alsa_capture_handle != NULL) {
+		snd_pcm_hw_free( alsa_capture_handle );
 		snd_pcm_close(alsa_capture_handle);
+	}
 	alsa_playback_handle = NULL;
 	alsa_capture_handle = NULL;
 }
