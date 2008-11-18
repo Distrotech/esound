@@ -103,7 +103,7 @@ int esd_use_tcpip = 0;          /* use tcp/ip sockets instead of unix domain */
 int esd_terminate = 0;          /* terminate after the last client exits */
 int esd_public = 0;             /* allow connects from hosts other than localhost */
 int esd_spawnpid = 0;           /* The PID of the process that spawned us (for use by esdlib only) */
-int esd_spawnfd = 0;            /* The FD of the process that spawned us (for use by esdlib only) */
+int esd_spawnfd = -1;           /* The FD of the process that spawned us (for use by esdlib only) */
 
 #if defined ENABLE_IPV6        
 int esd_use_ipv6 = 0;          /* We need it in accept () to know if we use 
@@ -786,7 +786,7 @@ int main ( int argc, char *argv[] )
 		esd_spawnpid = atoi( opts[ arg ] );
 	} else if ( !strcmp( opts[ arg ], "-spawnfd" ) ) {
 	    if ( ++arg < num_opts )
-		esd_spawnfd = atoi( opts[ arg ] );
+		sscanf ( opts [ arg ], "%i", &esd_spawnfd);
 	} else if ( !strcmp( opts[ arg ], "-trust" ) ) {
 	    esd_trustval = 0;
 	} else if ( !strcmp( opts[ arg ], "-v" ) || !strcmp( opts[ arg ], "--version" ) ) {
@@ -869,7 +869,7 @@ int main ( int argc, char *argv[] )
     if(esd_spawnpid)
       kill(esd_spawnpid, SIGALRM); /* Startup failed */
     
-    if(esd_spawnfd) {
+    if(esd_spawnfd >= 0) {
 	char c = 0; /* Startup failed */
 	write (esd_spawnfd, &c, 1);
     }
@@ -953,7 +953,7 @@ int main ( int argc, char *argv[] )
 		    if(esd_spawnpid)
 		      kill(esd_spawnpid, SIGALRM); /* Startup failed */
 
-		    if(esd_spawnfd) {
+		    if(esd_spawnfd >= 0) {
 			char c = 0; /* Startup failed */
 			write (esd_spawnfd, &c, 1);
 		    }
@@ -983,7 +983,7 @@ int main ( int argc, char *argv[] )
 
     /* send some sine waves just to check the sound connection */
     i = 0;
-    if ( esd_beeps ) {
+    if ( esd_spawnfd >= 0 && esd_beeps ) {
 	magl = magr = ( (esd_audio_format & ESD_MASK_BITS) == ESD_BITS16)
 	    ? 30000 : 100;
 
@@ -1009,7 +1009,7 @@ int main ( int argc, char *argv[] )
     if(esd_spawnpid)
       kill(esd_spawnpid, SIGUSR1);
 
-    if(esd_spawnfd) {
+    if(esd_spawnfd >= 0) {
 	char c = 1; /* Startup succeeded */
 	write (esd_spawnfd, &c, 1);
     }
