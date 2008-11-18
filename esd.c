@@ -255,7 +255,8 @@ esd_connect_unix(void)
 
   /* set the connect information */
   socket_unix.sun_family = AF_UNIX;
-  strncpy(socket_unix.sun_path, ESD_UNIX_SOCKET_NAME, sizeof(socket_unix.sun_path));
+  strncpy(socket_unix.sun_path, ESD_UNIX_SOCKET_NAME, sizeof(socket_unix.sun_path)-1);
+  socket_unix.sun_path[sizeof(socket_unix.sun_path)-1] = '\0';
   if ( connect( socket_out,
 	       (struct sockaddr *) &socket_unix, SUN_LEN(&socket_unix) ) < 0 )
     return -1;

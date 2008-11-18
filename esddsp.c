@@ -132,8 +132,9 @@ dsp_init (void)
       const char *str;
      
       str = getenv ("ESDDSP_NAME");
-      ident = malloc (ESD_NAME_MAX);
+      ident = malloc (ESD_NAME_MAX+1);
       strncpy (ident, (str ? str : "esddsp"), ESD_NAME_MAX);
+      ident[ESD_NAME_MAX] = '\0';
 
       str = getenv("ESDDSP_MMAP");
       mmapemu = str && !strcmp(str,"1");

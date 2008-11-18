@@ -1,5 +1,13 @@
 2008-11-18  Josselin Mouette  <joss@malsain.org>
 
+        Patches from Ryan Murray <rmurray@debian.org>
+
+	* esd.c: (esd_connect_unix): prevent strncpy from writing a 
+        non-NULL-terminated string.
+	* esddsp.c: (dsp_init): same here.
+
+2008-11-18  Josselin Mouette  <joss@malsain.org>
+
         Patch from Martin Pitt <martin.pitt@ubuntu.com>
 
 	* audio_alsa09.c: Call snd_pcm_hw_free() before 
