@@ -26,6 +26,8 @@
 
 #if defined(__GNUC__) && !defined(__STRICT_ANSI__)
 
+#define _GNU_SOURCE 1
+
 #ifdef DSP_DEBUG
 #define DPRINTF(format, args...)	printf(format, ## args)
 #else
@@ -45,6 +47,7 @@
 #include <sys/time.h>
 #include <stdio.h>
 #include <errno.h>
+#include <pthread.h>
 
 #ifdef HAVE_MACHINE_SOUNDCARD_H
 #  include <machine/soundcard.h>
@@ -124,9 +127,12 @@ set_volume (int left, int right)
 }
 
 
+pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+
 static void
 dsp_init (void)
 {
+  pthread_mutex_lock(&mutex);
   if (!ident)
     {
       const char *str;
@@ -158,6 +164,7 @@ dsp_init (void)
 	  DPRINTF ("mixer settings file: %s\n", mixer);
 	}
     }
+  pthread_mutex_unlock(&mutex);
 }
 
 static void
