@@ -680,6 +680,33 @@ mmap (void  *start,  size_t length, int prot, int flags, int fd, off_t offset)
   return (void *)-1;
 }
 
+void *
+mmap64 (void  *start,  size_t length, int prot, int flags, int fd, off64_t offset)
+{
+  static void *(*func) (void *, size_t, int, int, int, off64_t) = NULL;
+  
+  if (!func)
+    func = (void * (*) (void *, size_t, int, int, int, off64_t)) dlsym (REAL_LIBC, "mmap64");
+
+  if(fd != sndfd || sndfd == -1)
+    return (*func)(start,length,prot,flags,fd,offset);
+  else
+    {
+      DPRINTF ("esddsp: mmap64 - start = %x, length = %d, prot = %d\n",
+	       start, length, prot);
+      DPRINTF ("      flags = %d, fd = %d, offset = %lld\n",flags, fd,offset);
+      if(mmapemu)
+	{
+	  mmapemu_osize = length;
+	  mmapemu_obuffer = malloc(length);
+	  mmapemu_ocount.ptr = mmapemu_ocount.blocks = mmapemu_ocount.bytes = 0;
+	  return mmapemu_obuffer;
+	}
+      else DPRINTF ("esddsp: /dev/dsp mmap64 (unsupported, try -m option)...\n");
+    }
+  return (void *)-1;
+}
+
 int
 munmap (void *start, size_t length)
 {
