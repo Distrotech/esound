@@ -890,6 +890,10 @@ int esd_open_sound( const char *rhost )
 	/* there's something inherently flaky about this, and if
 	   there's no audio device, Bad Things Happen */
 
+        /* do not bother trying if esd does not exist */
+        if (access(SERVERDIR"/esd", X_OK) != 0)
+          goto finish_connect;
+
 	if (pipe (esd_pipe) < 0)
 	  goto finish_connect;
 
