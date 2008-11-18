@@ -1,5 +1,10 @@
 2008-11-18  Josselin Mouette  <joss@malsain.org>
 
+	* audio_alsa09.c: fix signedness of parameters passed to the 
+	ALSA API.
+
+2008-11-18  Josselin Mouette  <joss@malsain.org>
+
         Patch from Ryan Murray <rmurray@debian.org>
 
 	* clients.c: (get_new_clients): prettier debugging output.

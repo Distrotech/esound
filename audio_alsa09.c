@@ -93,11 +93,11 @@ snd_pcm_t* initAlsa(char *dev, int format, int channels, int speed, int mode)
 	snd_pcm_t *handle;
 	snd_pcm_hw_params_t *hwparams;
 	int err;
-	int periods;
+	unsigned int periods;
   
 #ifdef DRIVER_ALSA_09_NEW_PCM_API
 	int t_dir=0;
-	int t_speed=speed;
+	unsigned int t_speed=(unsigned int)speed;
 	snd_pcm_uframes_t t_bufsize=BUFFERSIZE;
 #endif
 
