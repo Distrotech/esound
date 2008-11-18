@@ -1,3 +1,7 @@
+2008-11-18  Josselin Mouette <joss@malsain.org>
+
+	* esd-server.h: add missing sys/un.h header.
+
 2008-11-18  Josselin Mouette  <joss@malsain.org>
 
 	* proto.c: (esd_proto_stream_recorder): replace the 1 s sleeps, 

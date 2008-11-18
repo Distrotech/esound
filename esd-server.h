@@ -15,6 +15,7 @@
 #include <sys/ioctl.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
+#include <sys/un.h>
 #include <signal.h>
 #include <sys/time.h>
 #include <sys/types.h>
