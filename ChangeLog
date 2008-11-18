@@ -2,6 +2,13 @@
 
 	Patch from Martin Pitt <martin.pitt@ubuntu.com>
 
+	* util.c: (esd_get_socket_dirname): support multiple esd 
+	instances (one per user).
+
+2008-11-18  Josselin Mouette  <joss@malsain.org>
+
+	Patch from Martin Pitt <martin.pitt@ubuntu.com>
+
 	* esdlib.c: Check if the esd binary exists at all. If not, 
 	forego forking a shell and trying to execute it. This both 
 	improves startup time and also avoids the "/bin/sh: 

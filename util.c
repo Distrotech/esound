@@ -27,15 +27,17 @@ esd_get_socket_dirname (void)
 	const char *audiodev = NULL;
 	static char *dirname = NULL;
 
-        if ((audiodev = getenv("AUDIODEV"))) {
-                char *newdev = strrchr(audiodev, '/');
-                if (newdev != NULL) {
-                        audiodev = newdev++;
-                }
-        } else
-            audiodev = "";
-        dirname = malloc(strlen(audiodev) +  40);
-        sprintf (dirname, "/tmp/.esd%s-%i", audiodev, getuid());
+        if (dirname == NULL) {
+            if ((audiodev = getenv("AUDIODEV"))) {
+                    char *newdev = strrchr(audiodev, '/');
+                    if (newdev != NULL) {
+                            audiodev = newdev++;
+                    }
+            } else
+                audiodev = "";
+            dirname = malloc(strlen(audiodev) +  40);
+            sprintf (dirname, "/tmp/.esd%s-%i", audiodev, getuid());
+        }
 
 	return dirname;
 }
