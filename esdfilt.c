@@ -51,6 +51,7 @@ int main(int argc, char **argv)
 	    printf( "halving data\n" );
 	} else if ( !strcmp( "-double", argv[ arg ] ) ) {
 	    twice = 1;
+	    printf( "doubling data\n" );
 	} else {
 	    target = fopen( argv[arg], "w" );
 	    if (!target) {
