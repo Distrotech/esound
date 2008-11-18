@@ -1,4 +1,38 @@
 ===============
+Version 0.2.41
+===============
+	* Fix 32k samples turning into static when 8k samples played in 
+        the middle. Debian #79145. (Matthew Ashton)
+	* Fix filter buffer handling so filters work. Debian #202027.
+        (Ryan Murray)
+	* Reconnect the ALSA driver and reload the config file after
+        receiving a SIGUSR1. (Martin Pitt)
+	* Fixed esd_audio_write() to use select() if the driver supports
+        it (otherwise usleep) and write data in a configurable block size.
+        (Ryan Murray)
+	* Fixed esound.pc audifile linking. (Josselin Mouette)
+	* Fixed esdcat.1. (Josselin Mouette)
+	* Protect dsp_init() with a mutex lock. (Josselin Mouette)
+	* Fixed to allow multiple esd instances (one per user). (Martin Pitt)
+	* Fixes to startup time by not trying to exec a binary if it doesn't
+        exist. (Martin Pitt)
+	* Prettier debugging output. (Ryan Murray)
+	* Fixed signedness compiler warnings. (Josselin Mouette)
+	* Remove libesddsp from LD_PRELOAD when autospawning esd. (Ryan Murray)
+	* Fixes for GStreamer using ESPEAKER. (Jeff Waugh)
+	* Fixes for mmap64 (Josselin Mouette)
+	* Close the spawnfd when the startup is successful. (Josselin Mouette)
+	* Save a call to esd_audio_pause when run with -nobeeps. (Josselin Mouette)
+	* Improved error checking for the -spawnfd switch. (Josselin Mouette)
+	* Fixed buffer overflow possibilities. (Ryan Murray)
+	* Call snd_pcm_hw_free() before calling snd_pcm_close() to avoid a
+        memory leak. (Martin Pitt)
+	* Add informative output for -double switch. (Josselin Mouette)
+	* Use smaller sleep timeouts. (Josselin Mouette)
+	* Updated to handle more file formats supported by audiofile 0.2.3.
+        (Josselin Mouette)
+
+===============
 Version 0.2.40
 ===============
 	* Fixed poll() logic issues for *BSD (Jeffrey Stedfast)
