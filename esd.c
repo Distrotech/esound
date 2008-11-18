@@ -1007,6 +1007,7 @@ int main ( int argc, char *argv[] )
     if(esd_spawnfd >= 0) {
 	char c = 1; /* Startup succeeded */
 	write (esd_spawnfd, &c, 1);
+	close (esd_spawnfd);
     }
 
     /* until we kill the daemon */
