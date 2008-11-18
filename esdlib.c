@@ -895,16 +895,42 @@ int esd_open_sound( const char *rhost )
 
 	childpid = fork();
 	if(!childpid) {
+	    char *preload2;
+	    char *lib;
+	    char *cmd;
+
 	    /* child process */
+	    close (esd_pipe[0]);
+	    /*
+	     * pull libesddsp out of LD_PRELOAD if it is there
+	     */
+	    preload2 = getenv("LD_PRELOAD");
+	    if (preload2)
+		while ((lib = strstr(preload2,"libesddsp"))) {
+		    char *preload = preload2;
+		    char *start = preload;
+		    char *end   = preload+strcspn(preload," \t\n\0");
+		    int length;
+
+		    while(end < lib) {
+			start = end+1;
+			end   = start+strcspn(start,"\t\n\0");
+		    }
+		    length = (preload+strlen(preload))-(end+1);
+		    preload2 = malloc(11+(start-preload)+length);
+		    strcpy(preload2, "LD_PRELOAD=");
+		    strncat(preload2, preload, start-preload);
+		    strncat(preload2, end+1, length);
+		    putenv(preload2);
+		}
+	    cmd = malloc(strlen(SERVERDIR"/esd  -spawnfd 9999999999") + strlen(esd_spawn_options));
+	    sprintf(cmd, "%s/esd %s -spawnfd %d", SERVERDIR, esd_spawn_options, esd_pipe[1]);
+
 	    if(!fork()) {
-		/* child of child process */
-		char *cmd;
-
+		/* child of child process.  Minimal so startup overhead is
+		 * not included in the waiting time
+		 */
 		setsid();
-		cmd = malloc(strlen(SERVERDIR"/esd  -spawnfd 999999") + (esd_spawn_options?strlen(esd_spawn_options):0));
-
-		sprintf(cmd, "%s/esd %s -spawnfd %d", SERVERDIR, esd_spawn_options?esd_spawn_options:"", esd_pipe[1]);
-
 		execl("/bin/sh", "/bin/sh", "-c", cmd, NULL);
 		perror("execl");
 		_exit(1);
@@ -915,6 +941,7 @@ int esd_open_sound( const char *rhost )
 	} else {
 	    int estat;
 
+	    close(esd_pipe[1]);
 	    while ((waitpid (childpid, &estat, 0)== -1) && (errno == EINTR));
 	}
 
@@ -941,8 +968,6 @@ int esd_open_sound( const char *rhost )
 	}
 	    
 	close (esd_pipe[0]);
-	close (esd_pipe[1]);
-	
     }
 #endif
  finish_connect:
