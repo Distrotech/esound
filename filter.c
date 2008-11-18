@@ -57,6 +57,10 @@ int filter_write( void *buffer, int size, esd_format_t format, int rate )
 	/* make sure the filter is still alive before we read from it */
 	if ( !erase ) {
 	    actual = read_player( filter );
+	    if (actual >= 0)
+		filter->actual_length -= actual;
+	    else
+		erase = filter;
 	}
 
 	/* translate data to next filter whether current one is alive or not */

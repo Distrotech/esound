@@ -1,5 +1,14 @@
 2008-11-18  Josselin Mouette  <joss@malsain.org>
 
+	Patch from Ryan Murray <rmurray@debian.org>
+
+	* filter.c: (filter_write):
+	* players.c: (read_player), (new_stream_player),
+	(new_sample_player):
+	Fix filter buffer handling so filters work. Debian #202027.
+
+2008-11-18  Josselin Mouette  <joss@malsain.org>
+
 	Patch from Martin Pitt <martin.pitt@ubuntu.com>
 
 	* esd-server.h:

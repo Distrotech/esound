@@ -280,7 +280,7 @@ int write_player( esd_player_t *player, void *src_buffer, int src_length,
 
 /*******************************************************************/
 /* read block of data from client, return < 0 to have it erased */
-int read_player( esd_player_t *player )
+int read_player( esd_player_t *player  )
 {
     fd_set rd_fds;
     int actual = 0, actual_2nd = 0, can_read = 0;
@@ -295,16 +295,16 @@ int read_player( esd_player_t *player )
 	/* use select to prevent blocking clients that are ready */
 	timeout.tv_sec = 0;
 	timeout.tv_usec = 0;
+
 	FD_ZERO( &rd_fds );
 	FD_SET( player->source_id, &rd_fds );
 
 	/* if the data is ready, read a block */
-	can_read = select( player->source_id + 1, 
-			   &rd_fds, NULL, NULL, &timeout ) ;
+ 	can_read = (( player->actual_length < player->buffer_length ) &&
+ 		select( player->source_id + 1, &rd_fds, NULL, NULL, &timeout ));
+ 	
 	if ( can_read > 0 )
 	{
-	    player->actual_length = 0;
-	    do {
 		ESD_READ_BIN( player->source_id,
 			      player->data_buffer + player->actual_length, 
 			      player->buffer_length - player->actual_length,
@@ -317,25 +317,23 @@ int read_player( esd_player_t *player )
 		if (actual < player->buffer_length - player->actual_length)
 			break;
 		
-		/* more data, save how much we got */
-		if ( actual > 0 )
-		   player->actual_length += actual;
-	    } while (player->actual_length < player->buffer_length);
-
 	    /* endian swap multi-byte data if we need to */
 	    client = (esd_client_t *) (player->parent);
 	    if ( client->swap_byte_order 
 		 && ( (player->format & ESD_MASK_BITS) == ESD_BITS16 ) )
 	    {
-		buffer = (unsigned short*) player->data_buffer;
+		buffer = (unsigned short*) player->data_buffer+player->actual_length;
 		for ( pos = buffer 
-			  ; pos < buffer + player->actual_length / sizeof(short)
+			  ; pos < buffer + actual / sizeof(short)
 			  ; pos ++ )
 		{
 		    data = swap_endian_16( (*pos) );
 		    *pos = data;
 		}
 	    }
+
+	    /* more data, save how much we got */
+	    player->actual_length += actual;
 
 	} else if ( can_read < 0 ) {
 	    sprintf( message, "error reading client (%d)\n", 
@@ -361,15 +359,16 @@ int read_player( esd_player_t *player )
 
 	/* copy the data from the sample to the player */
 	actual = ( ((esd_sample_t*)player->parent)->sample_length 
-		   - player->last_pos > player->buffer_length )
-	    ? player->buffer_length 
+		   - player->last_pos > player->buffer_length-player->actual_length )
+	    ? player->buffer_length-player->actual_length
 	    : ((esd_sample_t*)player->parent)->sample_length - player->last_pos;
 	if ( actual > 0 ) {
-	    memcpy( player->data_buffer, 
+	    memcpy( player->data_buffer+player->actual_length, 
 		    ((esd_sample_t*)player->parent)->data_buffer 
 		    + player->last_pos, actual );
 	    player->last_pos += actual;
-	    if ( ( player->format & ESD_MASK_FUNC ) != ESD_LOOP ) {
+	    player->actual_length += actual;
+	    if ( player->actual_length == player->buffer_length || ( player->format & ESD_MASK_FUNC ) != ESD_LOOP ) {
 		/* we're done for this iteration */
 		break;
 	    }
@@ -378,34 +377,39 @@ int read_player( esd_player_t *player )
 	    return -1;
 	}
 
-	/* we are looping, see if we need to copy another block */
-	if ( player->last_pos >= ((esd_sample_t*)player->parent)->sample_length ) {
-	    player->last_pos = 0;
-	}
+	while ( player->actual_length < player->buffer_length ) {
+	    /* we are looping, see if we need to copy another block */
+	    if ( player->last_pos >= ((esd_sample_t*)player->parent)->sample_length ) {
+		player->last_pos = 0;
 
-	actual_2nd = ( ((esd_sample_t*)player->parent)->sample_length 
-		   - player->last_pos > player->buffer_length - actual )
-	    ? player->buffer_length - actual
-	    : ((esd_sample_t*)player->parent)->sample_length - player->last_pos;
-	if ( actual_2nd >= 0 ) {
 	    /* only keep going if we didn't want to stop looping */
-	    if ( ( ((esd_sample_t*)player->parent)->format & ESD_MASK_FUNC )
-		 != ESD_STOP ) {
-		memcpy( player->data_buffer + actual, 
+	    if ( ( ((esd_sample_t*)player->parent)->format & ESD_MASK_FUNC ) 
+	      == ESD_STOP ) 
+		break;
+	    }
+
+	    /* copy the data from the sample to the player */
+	    actual_2nd = ( ((esd_sample_t*)player->parent)->sample_length 
+		       - player->last_pos > player->buffer_length-player->actual_length )
+		? player->buffer_length-player->actual_length
+		: ((esd_sample_t*)player->parent)->sample_length - player->last_pos;
+	    if ( actual_2nd > 0 ) {
+		memcpy( player->data_buffer+player->actual_length, 
 			((esd_sample_t*)player->parent)->data_buffer 
 			+ player->last_pos, actual_2nd );
 		player->last_pos += actual_2nd;
 		actual += actual_2nd;
+		player->actual_length += actual_2nd;
 
 		/* make sure we're not at the end */
 		if ( player->last_pos >= ((esd_sample_t*)player->parent)->sample_length ) {
 		    player->last_pos = 0;
+		    /* only keep going if we didn't want to stop looping */
+		    if ( ( ((esd_sample_t*)player->parent)->format & ESD_MASK_FUNC ) 
+		      == ESD_STOP ) 
+			break;
 		}
 	    }
-
-	} else {
-	    /* something horrible has happened to the sample */
-	    return -1;
 	}
 
 	/* sample data is swapped as it's cached, no swap needed here */
@@ -561,8 +565,19 @@ esd_player_t *new_stream_player( esd_client_t *client )
     if ( (player->format & ESD_MASK_CHAN) == ESD_MONO )
 	player->buffer_length /= 2;
 
-    /* force to an even multiple of 4 */
-    player->buffer_length += ( 4 - (player->buffer_length % 4) ) % 4;
+    /* force to an even multiple of 4 bytes (lower) */
+    player->buffer_length -= (player->buffer_length % 4);
+
+    player->actual_length = 0;
+    /* everything's ok, set the easy stuff */
+    player->left_vol_scale = player->right_vol_scale = ESD_VOLUME_BASE;
+
+    if ((player->mix_func = get_mix_func( player )) == NULL) {
+	free( player );
+	return NULL;
+    }
+    
+    player->translate_func = NULL; /* no translating, just mixing */
 
     player->data_buffer
 	= (void *) malloc( player->buffer_length );
@@ -572,11 +587,6 @@ esd_player_t *new_stream_player( esd_client_t *client )
 	free( player );
 	return NULL;
     }
-
-    /* everything's ok, set the easy stuff */
-    player->left_vol_scale = player->right_vol_scale = ESD_VOLUME_BASE;
-    player->mix_func = get_mix_func( player );
-    player->translate_func = NULL; /* no translating, just mixing */
 
     ESDBG_TRACE( printf( "(%02d) player: [%p]\n", player->source_id, player ); );
 
@@ -634,7 +644,14 @@ esd_player_t *new_sample_player( int sample_id, int loop )
 	player->buffer_length /= 2;
 
     /* force to an even multiple of 4 */
-    player->buffer_length += ( 4 - (player->buffer_length % 4) ) % 4;
+    player->buffer_length -= ( player->buffer_length % 4 );
+
+    if ((player->mix_func = get_mix_func( player )) == NULL) {
+	free( player );
+	return NULL;
+    }
+
+    player->translate_func = NULL; /* no translating, just mixing */
 
     player->data_buffer
 	= (void *) malloc( player->buffer_length );
@@ -648,9 +665,8 @@ esd_player_t *new_sample_player( int sample_id, int loop )
     /* update housekeeping values */
     esd_playing_samples++;
     player->last_pos = 0;
+    player->actual_length = 0;
     sample->ref_count++;
-    player->mix_func = get_mix_func( player );
-    player->translate_func = NULL; /* no translating, just mixing */
 
     ESDBG_TRACE( printf( "<%02d> new player: refs=%d samps=%d [%p]\n", 
 			 player->source_id, sample->ref_count, 
