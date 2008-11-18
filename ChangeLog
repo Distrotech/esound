@@ -1,5 +1,10 @@
 2008-11-18  Josselin Mouette  <joss@malsain.org>
 
+	* esound.pc.in: put audiofile in Requires.private to avoid 
+        spuriously linking to it.
+
+2008-11-18  Josselin Mouette  <joss@malsain.org>
+
 	* docs/esdcat.1.in: Add standard pod2man header to avoid errors 
 	from man.
 

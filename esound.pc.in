@@ -6,7 +6,7 @@ esd_serverdir=@ESD_PC_DIR@
 
 Name: esound
 Description: esound
-Requires: audiofile
+Requires.private: audiofile
 Version: @VERSION@
 Libs: -L${libdir} -lesd @SOUND_LIBS@
 Cflags: -I${includedir}
