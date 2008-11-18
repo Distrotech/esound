@@ -2,6 +2,12 @@
 
         Patch from Ryan Murray <rmurray@debian.org>
 
+	* clients.c: (get_new_clients): prettier debugging output.
+
+2008-11-18  Josselin Mouette  <joss@malsain.org>
+
+        Patch from Ryan Murray <rmurray@debian.org>
+
 	* esdlib.c: Remove libesddsp from LD_PRELOAD when autospawning 
 	esd.
 

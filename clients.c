@@ -146,7 +146,6 @@ int get_new_clients( int listen )
     size_t size_in = sizeof(struct sockaddr_in);
     esd_client_t *new_client = NULL;
     
-    unsigned long addr;
     short port;
 
     /* see who awakened us */
@@ -171,22 +170,24 @@ int get_new_clients( int listen )
 	      fd = accept( listen, (struct sockaddr*) &incoming, (socklen_t *) &size_in );
 	if ( fd < 0 )
 		goto again;
-	    port = ntohs( incoming.sin_port );
-	    addr = ntohl( incoming.sin_addr.s_addr );
-
 	    ESDBG_TRACE( 
+	    if (esd_use_tcpip) {
+
+		port = ntohs( incoming.sin_port );
+		addr = ntohl( incoming.sin_addr.s_addr );
+
 		printf( "(%02d) new client from: %03u.%03u.%03u.%03u:%05d\n", 
 			fd, (unsigned int) addr >> 24, 
 			(unsigned int) (addr >> 16) % 256, 
 			(unsigned int) (addr >> 8) % 256, 
-			(unsigned int) addr % 256, port ); );
+			(unsigned int) addr % 256, port );
+	    } );
       }     
 
 #ifdef USE_LIBWRAP
 	    if (esd_use_tcpip)
 	    {
 		struct request_info req;
-		struct servent *serv;
 
 		request_init( &req, RQ_DAEMON, "esound", RQ_FILE, fd, NULL );
 		fromhost( &req );
